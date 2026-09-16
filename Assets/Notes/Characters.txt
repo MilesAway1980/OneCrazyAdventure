@@ -1,0 +1,44 @@
+Bowling Ball
+    Roll and smash through things
+    
+Magnet
+    Pull metal objects toward him.  Pull himself toward metal objects.
+    
+Ladder
+    Other characters can climb him to get to previously inaccessible areas
+    
+Robot
+    Slow bu invincible
+    
+Rubber Duck
+    Floats on water.  Inflates and others can ride him.
+    
+Spring
+    Jumps high, gains height of jump (bounce) with fall distance
+    
+Dragon (maybe change to another inanimate object)
+    Can climb rough walls to high distances.  Can glide down.
+    
+Werewolf (maybe change to another inanimate object)
+    Slash big damage to enemies
+    
+Worm
+    Digs into the soft ground
+    
+Prism / Magnifying glass  (Maybe two different characters?)
+    Change the angle of light and can also use light to shoot lasers
+    
+Bulb
+    Lights up dark rooms
+    
+Torch
+    Minimal light but can keep companions thawed in freezing conditions
+    
+Suction Cup
+    Can climb smooth walls and ceilings.  Can hang on indefinitely.
+    
+Chainsaw
+    Cuts down logs, makes paths, bridges over gaps, etc.  Can damage enemies.
+    
+
+    

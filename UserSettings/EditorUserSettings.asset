@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!162 &1
+EditorUserSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 5
+  m_ConfigSettings:
+    GraphicsSettingsInspector_UserSettings:
+      value: 18134705175a055722080a3115371d4a0d55006876786860616b0471b8b07a68ffab74f9ee2a3a30300cea1a11320d0beb1a0c25f7060f494b4cc80018eb09361fc211cb1f862d19c51d19dcc413d6ade0d8ddfcddf9f4d9d29195fcfde6ebeae6f0a9c9afa6f8c5b89ff7a1aacececac4eba4d7c9d28bda
+      flags: 0
+    QuickInstaller_com.unity.purchasing_installRecorded:
+      value: 2550581500
+      flags: 0
+    QuickInstaller_com.unity.services.levelplay_installRecorded:
+      value: 2550581500
+      flags: 0
+    QuickInstaller_com.unity.services.vivox_installRecorded:
+      value: 2550581500
+      flags: 0
+    RecentlyUsedSceneGuid-0:
+      value: 05035000030d5d0d5b595f2745730b4444151e7f752d20602f281e36b3b8633b
+      flags: 0
+    RecentlyUsedSceneGuid-1:
+      value: 55010c515d035159595b5e2147750d44454f4e2e752c75327c714832b7e5613d
+      flags: 0
+    RecentlyUsedSceneGuid-2:
+      value: 57090354070d0c0b550c5e2346755c4441154d2b2a7d7465797f1f67b1b96c6f
+      flags: 0
+    RecentlyUsedSceneGuid-3:
+      value: 505051075c045f09585e097044765e4415161c78752b24672e2d4967b0b26d3e
+      flags: 0
+    RecentlyUsedSceneGuid-4:
+      value: 5a09555104540d5908585b7440705a4440154f2c7b7c70607d281936b0e6666f
+      flags: 0
+    RecentlyUsedSceneGuid-5:
+      value: 5a05515153000f595b5c5c7140215c4413154b7f797d7e337c791f37b5b26d6c
+      flags: 0
+    RecentlyUsedSceneGuid-6:
+      value: 5005550353540d5a585f5a7145760844414f4b787c7e24627e2b1e62b0b6323a
+      flags: 0
+    RecentlyUsedSceneGuid-7:
+      value: 555056035003595f090a5f7b437008444f4e492e7d712561792d196ab3e2356b
+      flags: 0
+    RecentlyUsedSceneGuid-8:
+      value: 5a07045f51535e0e555a5d734620094447164a7b2d2b7f672f701965b6e2626f
+      flags: 0
+    RecentlyUsedSceneGuid-9:
+      value: 5007050254075a0f5b0c5c2345220b44444f1b2b7f7e763379784837b3b6646a
+      flags: 0
+    vcSharedLogLevel:
+      value: 0d5e400f0650
+      flags: 0
+  m_VCAutomaticAdd: 1
+  m_VCDebugCom: 0
+  m_VCDebugCmd: 0
+  m_VCDebugOut: 0
+  m_SemanticMergeMode: 2
+  m_DesiredImportWorkerCount: 6
+  m_StandbyImportWorkerCount: 2
+  m_IdleImportWorkerShutdownDelay: 60000
+  m_VCShowFailedCheckout: 1
+  m_VCOverwriteFailedCheckoutAssets: 1
+  m_VCProjectOverlayIcons: 1
+  m_VCHierarchyOverlayIcons: 1
+  m_VCOtherOverlayIcons: 1
+  m_VCAllowAsyncUpdate: 1
+  m_VCScanLocalPackagesOnConnect: 1
+  m_ArtifactGarbageCollection: 1
+  m_CompressAssetsOnImport: 1
+  m_VCAutoRevertUnchangedFiles: 0

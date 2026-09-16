@@ -1,0 +1,30 @@
+.inputField > .unity-float-field__label {
+    font-size: 10px;
+    padding-right: 0;
+    margin-right: -50px;
+    padding-left: 0;
+    width: auto;
+    color: rgb(255, 255, 255);
+}
+
+.inputField > .unity-float-field__input {
+    padding-right: 0;
+    margin-right: 0;
+    width: 40px;
+    font-size: 10px;
+    color: rgb(0, 0, 0);
+}
+
+.toggleField > .unity-toggle__label {
+    font-size: 14px;
+    margin-right: 0;
+    width: auto;
+    padding-right: 0;
+    min-width: 100px;
+    max-width: 0;
+}
+
+.toggleField > .unity-toggle__input {
+    font-size: 14px;
+    margin-left: 0;
+}

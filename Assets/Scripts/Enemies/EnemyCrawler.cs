@@ -3,8 +3,8 @@ using UnityEngine;
 
 public enum NarrowGapBehavior
 {
-    TurnAround,
-    TreatAsSolid
+    TreatAsSolid,
+    TurnAround
 }
 
 // Crawls around the nearest body of tiles. It reads that body's outline, pushes it out by the enemy's radius, and

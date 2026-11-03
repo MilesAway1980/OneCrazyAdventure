@@ -18,7 +18,7 @@ public class Map : MonoBehaviour
     {
         if (tilemaps == null)
         {
-            tilemaps = FindObjectsByType<Tilemap>(FindObjectsSortMode.None).ToList();
+            tilemaps = FindObjectsByType<Tilemap>().ToList();
             destructibleTilemaps = new List<Tilemap>();
 
             foreach (var tilemap in tilemaps)
@@ -56,15 +56,64 @@ public class Map : MonoBehaviour
         return initialized;
     }
 
-    public static float? DistanceFromDirection(Vector3 point, Vector2 direction, float distance = 20)
+    private static readonly RaycastHit2D[] rayHits = new RaycastHit2D[16];
+
+    // The nearest thing on the Ground layer along a ray, or a hit with no collider if there is nothing. With
+    // ignorePushable, anything marked PushableSolid is looked straight through, so it's the next thing that really
+    // blocks the way. With ignoreBody, so is anything attached to that body: a character that has joined the Ground
+    // layer, such as a solid Brick, would otherwise find himself with every ray that starts inside him.
+    private static RaycastHit2D NearestGround(
+        Vector3 point, Vector2 direction, float distance, bool ignorePushable, Rigidbody2D ignoreBody)
     {
-        var tile = Physics2D.Raycast(point, direction, distance, LayerMask.GetMask("Ground"));
+        if (!ignorePushable && !ignoreBody)
+        {
+            return Physics2D.Raycast(point, direction, distance, LayerMask.GetMask("Ground"));
+        }
+
+        var filter = new ContactFilter2D { useTriggers = Physics2D.queriesHitTriggers };
+        filter.SetLayerMask(LayerMask.GetMask("Ground"));
+
+        var count = Physics2D.Raycast(point, direction, filter, rayHits, distance);
+        var nearest = new RaycastHit2D();
+
+        for (int i = 0; i < count; i++)
+        {
+            var hit = rayHits[i];
+
+            if (ignoreBody && hit.collider.attachedRigidbody == ignoreBody)
+            {
+                continue;
+            }
+
+            if (ignorePushable)
+            {
+                var pushable = hit.collider.GetComponentInParent<PushableSolid>();
+
+                if (pushable && pushable.enabled)
+                {
+                    continue;
+                }
+            }
+
+            if (!nearest.collider || hit.distance < nearest.distance)
+            {
+                nearest = hit;
+            }
+        }
+
+        return nearest;
+    }
+
+    public static float? DistanceFromDirection(
+        Vector3 point, Vector2 direction, float distance = 20, bool ignorePushable = false, Rigidbody2D ignoreBody = null)
+    {
+        var tile = NearestGround(point, direction, distance, ignorePushable, ignoreBody);
 
         if (!tile.collider)
         {
             return null;
         }
-        
+
         return tile.distance;
     }
 
@@ -86,9 +135,10 @@ public class Map : MonoBehaviour
     }
     */
 
-    public static TileDirection GetTilePositionInDirection(Vector3 point, Vector2 direction, float distance = 20)
+    public static TileDirection GetTilePositionInDirection(
+        Vector3 point, Vector2 direction, float distance = 20, Rigidbody2D ignoreBody = null)
     {
-        var hit = Physics2D.Raycast(point, direction, distance, LayerMask.GetMask("Ground"));
+        var hit = NearestGround(point, direction, distance, false, ignoreBody);
         if (!hit.collider)
         {
             return new TileDirection();
@@ -211,6 +261,68 @@ public class Map : MonoBehaviour
         return (inWater, density);
     }
 
+    private static readonly List<Vector2> shapePoints = new List<Vector2>();
+
+    // Whether a point is inside the solid part of a tile on a tilemap that collides. The colliders themselves can't say:
+    // they are just the outline of the ground, so something deep in the ground touches no edge and overlaps nothing.
+    public static bool IsInsideSolid(Vector2 point)
+    {
+        foreach (var tilemap in destructibleTilemaps)
+        {
+            var cell = tilemap.WorldToCell(point);
+            var colliderType = tilemap.GetColliderType(cell);
+
+            if (colliderType == Tile.ColliderType.None)
+            {
+                continue;
+            }
+
+            if (colliderType == Tile.ColliderType.Grid)
+            {
+                return true;
+            }
+
+            var sprite = tilemap.GetSprite(cell);
+
+            if (!sprite)
+            {
+                continue;
+            }
+
+            // Relative to where the sprite's pivot sits in the cell, undoing any flip or rotation the tile was given.
+            var anchor = tilemap.CellToWorld(cell) + tilemap.tileAnchor;
+            var local = tilemap.GetTransformMatrix(cell).inverse.MultiplyPoint3x4(new Vector3(point.x, point.y) - anchor);
+
+            for (int i = 0; i < sprite.GetPhysicsShapeCount(); i++)
+            {
+                sprite.GetPhysicsShape(i, shapePoints);
+
+                if (IsInsidePolygon(local, shapePoints))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsInsidePolygon(Vector2 point, List<Vector2> polygon)
+    {
+        var inside = false;
+
+        for (int i = 0, j = polygon.Count - 1; i < polygon.Count; j = i++)
+        {
+            if ((polygon[i].y > point.y) != (polygon[j].y > point.y) &&
+                point.x < (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x)
+            {
+                inside = !inside;
+            }
+        }
+
+        return inside;
+    }
+
     public static Vector3Int TilePositionFromWorldPoint(Vector3 worldPoint)
     {
         return TilePositionFromWorldPoint(worldPoint.x, worldPoint.y);
@@ -260,8 +372,13 @@ public class Map : MonoBehaviour
         CreateTile(tilePosition.x, tilePosition.y, tiles);
     }
 
+    // Raised just before a tile comes back, so that anything standing in its space can be moved out first.
+    public static event Action<Vector2Int> TileCreating;
+
     public static void CreateTile(int x, int y, List<(Tilemap, TileBase)> tiles)
     {
+        TileCreating?.Invoke(new Vector2Int(x, y));
+
         foreach (var tile in tiles)
         {
             var tilemap = tile.Item1;

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Characters
@@ -14,25 +13,49 @@ namespace Characters
         public float explosionResetTimeSeconds;
 
         public bool exploded;
-        public bool charging;
         public float explodingTime;
         public Sprite explodedSprite;
-        public Sprite explodedJumpSprite;
 
         public GameObject explosionPiece;
-        public float numExplosionPieces;
+        public int numExplosionPieces;
+
+        [Header("Charge Meter")]
+        [Tooltip("A bar in the upper right of the view of the player using him, showing how close the fuse is to going off. It appears while he charges, drains when the action is let go, and fades just after an explosion.")]
+        public MeterLayout chargeMeter = new MeterLayout { showSeconds = 0.5f };
+
+        // How far from him a fallen tile has to be before it's put back, which also hides it from view.
+        private const float TileResetDistance = 25f;
+
+        // The pieces shrink by this much each frame at 60 frames per second, and by the same amount per second at any other rate.
+        private const float PieceShrinkPerFrame = 0.95f;
+        private const float PieceGoneScale = 0.001f;
 
         private List<GameObject> explodedPieces;
         private List<DamageableTile> explodedTiles;
 
-        public int pieceCount;
+        private ScreenMeter meter;
+        private float meterShowUntil;
+
+        // The charge the bar shows. It holds the last value while the bar fades out after an explosion.
+        private float displayedCharge;
 
         protected override void Start()
         {
             explodedPieces = new List<GameObject>();
             explodedTiles = new List<DamageableTile>();
-            explosionPiece.SetActive(false);
+
+            if (explosionPiece)
+            {
+                explosionPiece.SetActive(false);
+            }
+            else
+            {
+                Debug.LogError($"{name}: the Dynamite needs an explosion piece, or there is nothing to show when he goes off.", this);
+            }
+
             base.Start();
+
+            meter = gameObject.AddComponent<ScreenMeter>();
         }
 
         protected override void Update()
@@ -41,7 +64,6 @@ namespace Characters
 
             if (performingAction && !exploded)
             {
-                charging = true;
                 chargeValue += chargeValueIncreaseSpeed * Time.deltaTime;
                 if (chargeValue > maximumChargeValue)
                 {
@@ -75,8 +97,33 @@ namespace Characters
             {
                 spriteRenderer.sprite = explodedSprite;
             }
+
+            UpdateMeter();
         }
-        
+
+        // Keeps the charge bar up to date: shown while the fuse is burning, and for a moment after.
+        private void UpdateMeter()
+        {
+            if (!meter)
+            {
+                return;
+            }
+
+            meter.SetLayout(chargeMeter);
+
+            if (chargeValue > 0f)
+            {
+                displayedCharge = maximumChargeValue > 0f ? Mathf.Clamp01(chargeValue / maximumChargeValue) : 0f;
+                meterShowUntil = Time.time + chargeMeter.showSeconds;
+            }
+
+            meter.Show(
+                GetPlayerCamera(),
+                displayedCharge,
+                chargeMeter.show && Time.time < meterShowUntil,
+                Color.Lerp(Color.yellow, Color.red, displayedCharge));
+        }
+
         public override void DirectionPress(Vector2 directionValue)
         {
             if (canMove)
@@ -84,7 +131,7 @@ namespace Characters
                 Move(directionValue);
             }
         }
-        
+
         public override void Action(bool active)
         {
             if (exploded)
@@ -95,178 +142,128 @@ namespace Characters
 
             performingAction = active;
         }
-        
-        protected override void GetCurrentMovementSetting(bool isInLiquid, float density)
-        {
-            string settingName;
-
-            /*if (isInLiquid)
-            {
-                if (performingAction)
-                {
-                    settingName = "bouncyliquid";
-                }
-                else
-                {
-                    if (charging)
-                    {
-                        settingName = "chargingliquid";
-                    }
-                    else
-                    {
-                        settingName = "liquid";
-                    }
-                }
-            }
-            else
-            {
-                if (performingAction)
-                {
-                    settingName = "bouncy";
-                }
-                else
-                {
-                    if (charging)
-                    {
-                        settingName = "charging";
-                    }
-                    else
-                    {
-                        settingName = "base";
-                    }
-                }
-            }*/
-
-            settingName = "base";
-
-            currentMovementSettings = GetMovementSetting(settingName, density);
-
-            //Do not call the base function
-        }
 
         private void Explode()
         {
             exploded = true;
             explodingTime = Time.time;
-            
-            for (int i = 0; i < numExplosionPieces; i++)
-            {
-                var piece = Instantiate(explosionPiece);
-                piece.SetActive(true);
-                var angle = Random.Range(0, 360);
-                var vector = GameMath.GetMagnitudeFromAngle(angle, 0.25f);
-                piece.transform.position = new Vector3(
-                    transform.position.x + vector.x,
-                    transform.position.y + vector.y,
-                    transform.position.z
-                );
-                
-                var rb = piece.GetComponent<Rigidbody2D>();
-                rb.AddForce(
-                    vector * (explosionForce * 15),
-                    ForceMode2D.Impulse
-                );
 
-                explodedPieces.Add(piece);
+            // Everything the blast can push, found before his own pieces exist so they aren't pushed a second time.
+            var bodies = new HashSet<Rigidbody2D>(FindObjectsByType<Rigidbody2D>(FindObjectsInactive.Exclude));
+
+            if (explosionPiece)
+            {
+                for (int i = 0; i < numExplosionPieces; i++)
+                {
+                    var piece = Instantiate(explosionPiece);
+                    piece.SetActive(true);
+                    var vector = GameMath.GetMagnitudeFromAngle(Random.Range(0f, 360f), 0.25f);
+                    piece.transform.position = transform.position + (Vector3)vector;
+
+                    var rb = piece.GetComponent<Rigidbody2D>();
+                    rb.AddForce(
+                        vector * (explosionForce * 15),
+                        ForceMode2D.Impulse
+                    );
+
+                    explodedPieces.Add(piece);
+                }
             }
 
-            var allObjects = FindObjectsByType<Rigidbody2D>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).ToList();
-
-            var dynamiteTiles = DamageableTile.GetDynamiteTiles();
-
-            foreach (var dynamiteTile in dynamiteTiles)
+            foreach (var dynamiteTile in DamageableTile.GetDynamiteTiles())
             {
                 var dTile = dynamiteTile.Key;
                 var position = dynamiteTile.Value;
-                
-                var distance = Vector2.Distance(transform.position, position);
+
+                if (Vector2.Distance(transform.position, position) > explosionDistance)
+                {
+                    continue;
+                }
+
+                // A tile that is still falling from an earlier blast is only pushed again.
+                if (!explodedTiles.Contains(dTile))
+                {
+                    Map.DestroyTile(position);
+                    dTile.GetRigidbody2D().bodyType = RigidbodyType2D.Dynamic;
+                    dTile.EnableSpriteRenderer(true);
+                    explodedTiles.Add(dTile);
+                }
+
+                // A set, so a tile already found above isn't pushed twice.
+                bodies.Add(dTile.GetRigidbody2D());
+            }
+
+            foreach (var body in bodies)
+            {
+                if (body.bodyType == RigidbodyType2D.Static || body.gameObject == gameObject)
+                {
+                    continue;
+                }
+
+                var offset = body.position - (Vector2)transform.position;
+                var distance = offset.magnitude;
+
                 if (distance > explosionDistance)
                 {
                     continue;
                 }
 
-                Map.DestroyTile(position);
-                dTile.GetRigidbody2D().bodyType = RigidbodyType2D.Dynamic;
-                dTile.EnableSpriteRenderer(true);
-                allObjects.Add(dTile.GetRigidbody2D());
+                // Pushed away from him, or straight up if it's exactly where he is and there's no away.
+                var direction = distance > 0.0001f ? offset / distance : Vector2.up;
+                var force = (explosionDistance - distance) * explosionForce;
 
-                explodedTiles.Add(dTile);
-            }
-
-            foreach (var rb in allObjects)
-            {
-                if (rb.bodyType != RigidbodyType2D.Static)
-                {
-                    if (rb.gameObject == gameObject)
-                    {
-                        continue;
-                    }
-                    
-                    var distance = Vector2.Distance(rb.position, transform.position);
-
-                    if (distance > explosionDistance)
-                    {
-                        continue;
-                    }
-
-                    var angle = GameMath.GetAngle(transform.position, rb.transform.position);
-                    var force = Mathf.Abs((explosionDistance - distance) * explosionForce);
-                    var dir = GameMath.GetMagnitudeFromAngle(angle);
-
-                    dir = new Vector2(dir.x * force, dir.y * force);
-
-                    rb.AddForce(dir, ForceMode2D.Impulse);
-                }
+                body.AddForce(direction * force, ForceMode2D.Impulse);
             }
         }
 
         private void CalculateExplosionPieces()
         {
-            pieceCount = explodedPieces.Count;
-            if (explodedPieces.Count > 0)
+            var shrink = Mathf.Pow(PieceShrinkPerFrame, Time.deltaTime * 60f);
+
+            for (int i = explodedPieces.Count - 1; i >= 0; i--)
             {
-                foreach (var piece in explodedPieces)
+                var piece = explodedPieces[i];
+
+                if (!piece)
                 {
-                    if (piece)
-                    {
-                        var explosionShrinkRate = 20000;
-                        var newExplosionSize = explosionShrinkRate * Time.deltaTime;
-                        if (newExplosionSize > 0.95f)
-                        {
-                            newExplosionSize = 0.95f;
-                        }
-
-                        var newSize = piece.transform.localScale * newExplosionSize;
-                        piece.transform.localScale = newSize;
-
-                        if (piece.transform.localScale.x < 0.001f)
-                        {
-                            Destroy(piece.gameObject);
-                        }
-                    }
+                    explodedPieces.RemoveAt(i);
+                    continue;
                 }
-                
-                explodedPieces = explodedPieces.Where(p => p.gameObject).ToList();
+
+                piece.transform.localScale *= shrink;
+
+                if (piece.transform.localScale.x < PieceGoneScale)
+                {
+                    Destroy(piece);
+                    explodedPieces.RemoveAt(i);
+                }
             }
 
-            if (explodedTiles.Count > 0)
+            for (int i = explodedTiles.Count - 1; i >= 0; i--)
             {
-                foreach (var explodedTile in explodedTiles)
+                var explodedTile = explodedTiles[i];
+
+                if (!explodedTile)
                 {
-                    var distance = Vector2.Distance(transform.position, explodedTile.transform.position);
-                    if (distance > 25)
-                    {
-                        explodedTile.EnableSpriteRenderer(false);
-                        explodedTile.GetRigidbody2D().bodyType = RigidbodyType2D.Kinematic;
-                        explodedTile.transform.position = new Vector3(
-                            explodedTile.position.x,
-                            explodedTile.position.y,
-                            explodedTile.transform.position.z
-                        );
-                        
-                        explodedTile.GetRigidbody2D().linearVelocity = Vector2.zero;
-                        explodedTile.SetDestroyed();
-                    }
+                    explodedTiles.RemoveAt(i);
+                    continue;
+                }
+
+                var distance = Vector2.Distance(transform.position, explodedTile.transform.position);
+                if (distance > TileResetDistance)
+                {
+                    explodedTile.EnableSpriteRenderer(false);
+                    explodedTile.GetRigidbody2D().bodyType = RigidbodyType2D.Kinematic;
+                    explodedTile.transform.position = new Vector3(
+                        explodedTile.position.x,
+                        explodedTile.position.y,
+                        explodedTile.transform.position.z
+                    );
+
+                    explodedTile.GetRigidbody2D().linearVelocity = Vector2.zero;
+                    explodedTile.SetDestroyed();
+
+                    explodedTiles.RemoveAt(i);
                 }
             }
         }

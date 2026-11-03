@@ -26,13 +26,17 @@ public class EnemySideToSide : Enemy
         var rightTileDirection = enemyMovement.GetDirection(EnemyDirection.R);
         var leftTileDirection = enemyMovement.GetDirection(EnemyDirection.L);
 
-        if (downLeftTileDirection.distance > distanceToFloorBelowToTurnAround && (int)enemyMovement.GetAngle() == 270)
+        // No floor at all below counts as too far down, so they turn around at a drop with nothing at the bottom too.
+        var noFloorDownLeft = !downLeftTileDirection.hasHit || downLeftTileDirection.distance > distanceToFloorBelowToTurnAround;
+        var noFloorDownRight = !downRightTileDirection.hasHit || downRightTileDirection.distance > distanceToFloorBelowToTurnAround;
+
+        if (noFloorDownLeft && (int)enemyMovement.GetAngle() == 270)
         {
             enemyMovement.SetAngle(90);
             rigidBody2D.linearVelocityX = 0;
         }
 
-        if (downRightTileDirection.distance > distanceToFloorBelowToTurnAround && (int)enemyMovement.GetAngle() == 90)
+        if (noFloorDownRight && (int)enemyMovement.GetAngle() == 90)
         {
             enemyMovement.SetAngle(270);
             rigidBody2D.linearVelocityX = 0;
@@ -41,7 +45,7 @@ public class EnemySideToSide : Enemy
         //Right
         if ((int)enemyMovement.GetAngle() == 90)
         {
-            if (rightTileDirection.position != null && rightTileDirection.distance < distanceFromWallToTurnAround)
+            if (rightTileDirection.hasHit && rightTileDirection.distance < distanceFromWallToTurnAround)
             {
                 rigidBody2D.linearVelocityX = 0;
                 enemyMovement.SetAngle(270);
@@ -55,7 +59,7 @@ public class EnemySideToSide : Enemy
         //Left
         if ((int)enemyMovement.GetAngle() == 270)
         {
-            if (leftTileDirection.position != null && leftTileDirection.distance < distanceFromWallToTurnAround)
+            if (leftTileDirection.hasHit && leftTileDirection.distance < distanceFromWallToTurnAround)
             {
                 rigidBody2D.linearVelocityX = 0;
                 enemyMovement.SetAngle(90);

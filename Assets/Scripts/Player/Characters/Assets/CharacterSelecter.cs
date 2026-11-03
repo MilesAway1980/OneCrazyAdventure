@@ -14,7 +14,7 @@ public class CharacterSelecter: MonoBehaviour
     void Start()
     {
         selections = new List<Character>();
-        characters = FindObjectsByType<Character>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID).ToList();
+        characters = FindObjectsByType<Character>(FindObjectsInactive.Include).OrderBy(c => c.GetEntityId()).ToList();
         foreach (var character in characters)
         {
             var selection = gameObject.AddComponent<CharacterSelection>();
@@ -26,20 +26,29 @@ public class CharacterSelecter: MonoBehaviour
                 case "balloon":
                     add = characterScriptables.balloon;
                     break;
-                case "brick":
-                    add = characterScriptables.brick;
-                    break;
                 case "bouncy ball":
                     add = characterScriptables.bouncyBall;
                     break;
                 case "bowling ball":
                     add = characterScriptables.bowlingBall;
                     break;
+                case "brad":
+                    add = characterScriptables.brad;
+                    break;
+                case "brick":
+                    add = characterScriptables.brick;
+                    break;
                 case "bulb":
                     add = characterScriptables.bulb;
                     break;
+                case "die":
+                    add = characterScriptables.die;
+                    break;
                 case "dynamite":
                     add = characterScriptables.dynamite;
+                    break;
+                case "flashlight":
+                    add = characterScriptables.flashlight;
                     break;
                 case "ladder":
                     add = characterScriptables.ladder;
@@ -47,8 +56,14 @@ public class CharacterSelecter: MonoBehaviour
                 case "magnet":
                     add = characterScriptables.magnet;
                     break;
+                case "paperclip":
+                    add = characterScriptables.paperclip;
+                    break;
                 case "pebble":
                     add = characterScriptables.pebble;
+                    break;
+                case "pencil":
+                    add = characterScriptables.pencil;
                     break;
                 case "piton":
                     add = characterScriptables.piton;
@@ -61,18 +76,6 @@ public class CharacterSelecter: MonoBehaviour
                     break;
                 case "umbrella":
                     add = characterScriptables.umbrella;
-                    break;
-                case "pencil":
-                    add = characterScriptables.pencil;
-                    break;
-                case "brad":
-                    add = characterScriptables.brad;
-                    break;
-                case "paperclip":
-                    add = characterScriptables.paperclip;
-                    break;
-                case "die":
-                    add = characterScriptables.die;
                     break;
             }
 

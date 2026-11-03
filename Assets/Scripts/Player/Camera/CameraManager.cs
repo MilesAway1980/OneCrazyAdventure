@@ -201,6 +201,21 @@ public class CameraManager : MonoBehaviour
     {
         return instance.cameras;
     }
+
+    // The camera showing a player's view: their own, or the main one when the views are joined and theirs is off.
+    // Null if there's no camera yet.
+    public static Camera GetCameraForPlayer(Player player)
+    {
+        if (!instance || instance.cameras == null || instance.cameras.Length == 0)
+        {
+            return null;
+        }
+
+        var index = player ? Mathf.Clamp(player.playerNum - 1, 0, instance.cameras.Length - 1) : 0;
+        var camera = instance.cameras[index];
+
+        return camera && camera.enabled ? camera : instance.cameras[0];
+    }
     
     public static void SetRect(Camera cam, Rect dest)
     {
@@ -343,7 +358,7 @@ public class CameraManager : MonoBehaviour
     {
         if (Time.realtimeSinceStartup - lastReacquireTime >= characterReacquireTimer)
         {
-            characters = FindObjectsByType<Character>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID).ToList();
+            characters = FindObjectsByType<Character>(FindObjectsInactive.Exclude).OrderBy(c => c.GetEntityId()).ToList();
         }
         
         if (characters.Count <= 1 || PlayerManager.GetPlayerCount() == 1)

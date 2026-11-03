@@ -1,30 +1,38 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Characters
 {
     public class BowlingBall : Character
     {
-        public float rotationDampening;
-
-        private bool isRolling;
         private float rotationAngle;
 
         private PolygonCollider2D polygonCollider;
         private CircleCollider2D circleCollider;
         private RollDamage rollDamage;
 
+        // Whether everything he needs was found. Until then there is nothing to switch.
+        private bool ready;
+
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         protected override void Start()
         {
             base.Start();
 
-            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
             polygonCollider = GetComponent<PolygonCollider2D>();
             circleCollider = GetComponent<CircleCollider2D>();
             rollDamage = GetComponent<RollDamage>();
 
-            canMove = true;
+            if (!polygonCollider || !circleCollider || !rollDamage)
+            {
+                Debug.LogError(
+                    $"{name}: the Bowling Ball needs a PolygonCollider2D, a CircleCollider2D and a RollDamage.", this);
+                return;
+            }
+
+            ready = true;
+
+            // The action may already have been pressed before he was ready.
+            ApplyRolling();
         }
 
         // Update is called once per frame
@@ -32,27 +40,23 @@ namespace Characters
         {
             base.Update();
 
-            if (isRolling)
+            if (!ready || !performingAction)
             {
-                rotationAngle -= moveSpeed * rotationDampening;
-                //rotationAngle -= rigidBody.linearVelocity.x * rotationDampening;
-                if (rotationAngle >= 360)
-                {
-                    rotationAngle -= 360;
-                }
-
-                spriteRenderer.transform.rotation = Quaternion.Euler(0, 0, rotationAngle);
-                rollDamage.enabled = true;
-
-                //rigidBody.constraints = RigidbodyConstraints2D.None;
-            }
-            else
-            {
-                //rigidBody.constraints = RigidbodyConstraints2D.FreezeRotation;
-                rollDamage.enabled = false;
+                return;
             }
 
-            //print (rigidBody.linearVelocity);
+            // Rolling without slipping: the angle turned is the distance covered along the ground over the radius.
+            // It's his real speed, so it also turns when something else moves him, and not when he's held still.
+            var radius = circleCollider.radius * Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.y));
+            if (radius > 0f)
+            {
+                var turned = rigidBody2D.linearVelocity.x * Time.deltaTime / radius * Mathf.Rad2Deg;
+
+                // Rolling right turns clockwise, which is the negative direction.
+                rotationAngle = Mathf.Repeat(rotationAngle - turned, 360f);
+            }
+
+            spriteRenderer.transform.localRotation = Quaternion.Euler(0, 0, rotationAngle);
         }
 
         public override void DirectionPress(Vector2 directionValue)
@@ -63,54 +67,34 @@ namespace Characters
             }
         }
 
+        // Called every frame with whether the button is held, so only a change does anything.
         public override void Action(bool rolling)
         {
-            isRolling = rolling;
-            performingAction = rolling;
-
-            if (isRolling == false)
-            {
-                rotationAngle = 0;
-                spriteRenderer.transform.rotation = Quaternion.Euler(0, 0, rotationAngle);
-                polygonCollider.enabled = true;
-                circleCollider.enabled = false;
-            }
-            else
-            {
-                polygonCollider.enabled = false;
-                circleCollider.enabled = true;
-            }
-        }
-
-        public override void CheckTouchingTiles(List<(Vector2Int, float)> up, List<(Vector2Int, float)> down,
-            List<(Vector2Int, float)> left, List<(Vector2Int, float)> right)
-        {
-            /*
-            if (isRolling == false)
+            if (rolling == performingAction)
             {
                 return;
             }
 
-            foreach (var u in up)
+            performingAction = rolling;
+
+            if (ready)
             {
-
+                ApplyRolling();
             }
+        }
 
-            foreach (var d in down)
+        // Puts him into or out of rolling: a ball that does damage, or the ordinary shape.
+        private void ApplyRolling()
+        {
+            rollDamage.enabled = performingAction;
+            circleCollider.enabled = performingAction;
+            polygonCollider.enabled = !performingAction;
+
+            if (!performingAction)
             {
-
+                rotationAngle = 0;
+                spriteRenderer.transform.localRotation = Quaternion.identity;
             }
-
-            foreach (var l in left)
-            {
-
-            }
-
-            foreach (var r in right)
-            {
-
-            }
-            */
         }
 
         protected override void GetCurrentMovementSetting(bool isInLiquid, float density)
@@ -119,7 +103,7 @@ namespace Characters
 
             if (isInLiquid)
             {
-                if (isRolling)
+                if (performingAction)
                 {
                     settingName = "rollingliquid";
                 }
@@ -130,7 +114,7 @@ namespace Characters
             }
             else
             {
-                if (isRolling)
+                if (performingAction)
                 {
                     settingName = "rolling";
                 }

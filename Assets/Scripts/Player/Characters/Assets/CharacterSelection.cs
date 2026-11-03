@@ -1,7 +1,5 @@
 using UnityEngine;
-using System.Collections.Generic;
 using Characters;
-using System.Linq;
 
 public class CharacterSelection : MonoBehaviour
 {

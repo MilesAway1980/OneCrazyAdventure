@@ -10,7 +10,7 @@ public class ChainLinker : MonoBehaviour
     void Start()
     {
         linkDistances = new Dictionary<Joint2D, float>();
-        links = FindObjectsByType<Joint2D>(FindObjectsSortMode.None).Where(l => l.enabled == true).ToList();
+        links = FindObjectsByType<Joint2D>().Where(l => l.enabled == true).ToList();
         foreach (var link in links)
         {
             var attachedTo = link.connectedBody;

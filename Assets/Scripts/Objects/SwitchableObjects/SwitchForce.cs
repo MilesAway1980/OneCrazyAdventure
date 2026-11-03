@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class SwitchForce : SwitchableObject
 {
-    [Range(0, 360)]
+    [Tooltip("0 is up and the angle grows clockwise: 90 is right, 180 is down, 270 is left")]
+    [AngleDial]
     public float forceDirection;
     public float force;
     [Tooltip("If the force is not an impulse, it will be a pushing force")]

@@ -23,7 +23,7 @@ public class CharacterFreeze: MonoBehaviour
           character = GetComponent<Character>();
           if (heatSources == null)
           {
-               heatSources = FindObjectsByType<HeatSource>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+               heatSources = FindObjectsByType<HeatSource>(FindObjectsInactive.Exclude);
           }
           
           frozenMovementSettings = character.gameObject.AddComponent<MovementSettings>();

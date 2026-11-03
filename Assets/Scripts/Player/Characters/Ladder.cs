@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,6 +14,9 @@ namespace Characters
 
         public float addLadderDistance;
 
+        [Tooltip("Two presses of the action button this close together, in seconds, count as a double tap.")]
+        public float doubleTapSeconds = 0.3f;
+
         private bool extended;
 
         private Vector2 topSpot;
@@ -26,13 +28,30 @@ namespace Characters
         BoxCollider2D boxCollider;
         PolygonCollider2D polygonCollider;
 
+        // 1 is extending, -1 is retracting and 0 is holding still, according to up and down while the action is held.
         private int extendState;
 
-        public float extendLength;
+        // Set by a double tap: keeps extending or retracting on its own until it's all the way, or it's stopped.
+        private int autoState;
 
-        //private SpriteRenderer top;
-        //private SpriteRenderer bottom;
-        //private List<SpriteRenderer> middles;
+        private bool actionHeld;
+
+        // The up and down being pressed this frame.
+        private float directionY;
+
+        // Whether the current press of the action was the second of a double tap, and when the last one began.
+        private bool doubleTapHeld;
+        private float lastPressTime = float.NegativeInfinity;
+
+        // How far out he is, which the meter shows.
+        private float extendLength;
+
+        [Header("Height Meter")]
+        [Tooltip("A bar in the upper right of the view of the player using him, showing how far he is extended out of his greatest length. It appears while he is extended or the action is held, and fades a moment after he is back to normal.")]
+        public MeterLayout heightMeter = new MeterLayout { showSeconds = 1.5f };
+
+        private ScreenMeter meter;
+        private float meterShowUntil;
 
         private Vector2 originalColliderOffset;
         private Vector2 originalColliderSize;
@@ -43,7 +62,6 @@ namespace Characters
         {
             base.Start();
 
-            //middles = new List<SpriteRenderer>();
             middleLadderObjects = new List<GameObject>();
 
             topLadderObject = new GameObject
@@ -61,9 +79,6 @@ namespace Characters
             bottomLadderObject.transform.parent = transform;
             bottomLadderObject.transform.localScale = Vector3.one;
 
-            //top = topLadderObject.AddComponent<SpriteRenderer>();
-            //bottom = bottomLadderObject.AddComponent<SpriteRenderer>();
-
             topLadderObject.SetActive(false);
             bottomLadderObject.SetActive(false);
 
@@ -79,6 +94,8 @@ namespace Characters
             originalColliderSize = boxCollider.size;
             
             interactableLadder = GetComponent<InteractableLadder>();
+
+            meter = gameObject.AddComponent<ScreenMeter>();
         }
 
         // Update is called once per frame
@@ -86,28 +103,47 @@ namespace Characters
         {
             base.Update();
 
-            if (extendState == 1)
+            // A double tap carries on by itself; otherwise it's up and down while the action is held.
+            var state = autoState != 0 ? autoState : extendState;
+
+            if (state == 1)
             {
                 if (extendLength < maxLength)
                 {
-                    var dist = Map.DistanceFromDirection(topLadderObject.transform.position, Vector2.up);
+                    // Nothing in the way for a unit above the top of it, which isn't counting himself.
+                    var blocked = Map.DistanceFromDirection(topLadderObject.transform.position, Vector2.up, 1.0f, false, rigidBody2D) != null;
 
-                    if (dist == null || dist > 1.0f)
+                    if (!blocked)
                     {
-                        extendLength += extendSpeed * Time.deltaTime;
+                        extendLength = Mathf.Min(extendLength + extendSpeed * Time.deltaTime, maxLength);
+                    }
+                    else if (autoState == 1)
+                    {
+                        //Hit a tile and can't go any further.
+                        autoState = 0;
                     }
                 }
                 else
                 {
                     extendLength = maxLength;
+
+                    if (autoState == 1)
+                    {
+                        autoState = 0;
+                    }
                 }
             }
-            else if (extendState == -1)
+            else if (state == -1)
             {
                 extendLength -= extendSpeed * Time.deltaTime;
-                if (extendLength < 0)
+                if (extendLength <= 0)
                 {
                     extendLength = 0;
+
+                    if (autoState == -1)
+                    {
+                        autoState = 0;
+                    }
                 }
             }
 
@@ -125,39 +161,37 @@ namespace Characters
                     transform.position.z
                 );
 
-                for (int i = 0; i < middleLadderObjects.Count; i++)
+                // One more rung every addLadderDistance. Those he has made are kept, and shown only as many as he needs.
+                var neededLadders = Mathf.FloorToInt(extendLength / Mathf.Max(addLadderDistance, 0.01f));
+
+                while (middleLadderObjects.Count < neededLadders)
                 {
-                    middleLadderObjects[i].SetActive(false);
+                    var newLadderMiddle = new GameObject("Middle Ladder " + (middleLadderObjects.Count + 1));
+                    newLadderMiddle.transform.parent = transform;
+                    newLadderMiddle.transform.localScale = Vector3.one;
+                    var newSpriteRenderer = newLadderMiddle.AddComponent<SpriteRenderer>();
+                    newSpriteRenderer.sprite = middleSprite;
+                    middleLadderObjects.Add(newLadderMiddle);
                 }
 
-                var neededLadders = (int)Mathf.Floor(extendLength / addLadderDistance);
+                var points = extendLength / (neededLadders + 1);
 
-                if (neededLadders > 0)
+                for (int i = 0; i < middleLadderObjects.Count; i++)
                 {
-                    if (middleLadderObjects.Count < neededLadders)
+                    var needed = i < neededLadders;
+
+                    if (middleLadderObjects[i].activeSelf != needed)
                     {
-                        var newLadderMiddle = new GameObject();
-                        newLadderMiddle.transform.parent = transform;
-                        newLadderMiddle.transform.localScale = Vector3.one;
-                        var newSpriteRenderer = newLadderMiddle.AddComponent<SpriteRenderer>();
-                        newSpriteRenderer.sprite = middleSprite;
-                        middleLadderObjects.Add(newLadderMiddle);
+                        middleLadderObjects[i].SetActive(needed);
                     }
 
-                    //distance = topLadderObject.transform.position.y - bottomLadderObject.transform.position.y;
-                    //var points = distance / (neededLadders + 1);
-                    var points = extendLength / (neededLadders + 1);
-
-                    for (int i = 0; i < neededLadders; i++)
+                    if (needed)
                     {
-                        middleLadderObjects[i].SetActive(true);
                         middleLadderObjects[i].transform.position = new Vector3(
                             transform.position.x,
                             transform.position.y + points * (i + 1),
                             transform.position.z
                         );
-
-                        middleLadderObjects[i].name = "Middle Ladder " + (i + 1);
                     }
                 }
 
@@ -168,12 +202,9 @@ namespace Characters
 
                 boxCollider.size = new Vector2(boxCollider.size.x, size);
                 boxCollider.offset = new Vector2(boxCollider.offset.x, offset);
-                //boxCollider.isTrigger = true;
-                
+
                 boxCollider.enabled = true;
                 polygonCollider.enabled = false;
-                
-                //rigidBody2D.constraints = RigidbodyConstraints2D.FreezeAll;
             }
             else
             {
@@ -183,35 +214,75 @@ namespace Characters
                 bottomLadderObject.SetActive(false);
                 topLadderObject.SetActive(false);
 
+                foreach (var middle in middleLadderObjects)
+                {
+                    if (middle.activeSelf)
+                    {
+                        middle.SetActive(false);
+                    }
+                }
+
                 boxCollider.offset = originalColliderOffset;
                 boxCollider.size = originalColliderSize;
                 boxCollider.enabled = false;
-                //boxCollider.isTrigger = false;
                 polygonCollider.enabled = true;
 
                 extended = false;
-
-                //rigidBody2D.constraints = RigidbodyConstraints2D.FreezeRotation;
             }
 
             interactableLadder.climbable = extended;
+
+            UpdateMeter();
+        }
+
+        // Keeps the height bar up to date: shown while he is extended or the action is held, and for a moment after.
+        private void UpdateMeter()
+        {
+            if (!meter)
+            {
+                return;
+            }
+
+            meter.SetLayout(heightMeter);
+
+            var fraction = maxLength > 0f ? extendLength / maxLength : 0f;
+
+            if (extendLength > 0f || actionHeld)
+            {
+                meterShowUntil = Time.time + heightMeter.showSeconds;
+            }
+
+            meter.Show(
+                GetPlayerCamera(),
+                fraction,
+                heightMeter.show && Time.time < meterShowUntil,
+                new Color(0.3f, 0.7f, 1f),
+                extendLength.ToString("0.0"));
         }
 
         public override void DirectionPress(Vector2 directionValue)
         {
             var yPress = directionValue.y;
+            directionY = yPress;
 
-            if (yPress < 0)
+            // Up and down only work the ladder while the action is held, so they can be pressed freely while walking.
+            if (actionHeld && yPress < 0)
             {
                 RetractLadder();
             }
-            else if (yPress > 0)
+            else if (actionHeld && yPress > 0)
             {
                 ExtendLadder();
             }
-            else if ((int)yPress == 0)
+            else
             {
                 HoldLadder();
+            }
+
+            // After a double tap, up or down can be pressed at any point while the button is still down.
+            if (doubleTapHeld)
+            {
+                StartAuto();
             }
 
             if (canMove)
@@ -220,9 +291,53 @@ namespace Characters
             }
         }
 
+        // Called every frame with whether the button is held.
         public override void Action(bool active)
         {
+            actionHeld = active;
 
+            if (!active)
+            {
+                doubleTapHeld = false;
+            }
+        }
+
+        // Called once as the button goes down. Pressing again soon after is a double tap, which, with up or down held,
+        // keeps going until the ladder is fully extended or retracted. Any press stops a ladder that is going by itself.
+        public override void FirstActionPress()
+        {
+            autoState = 0;
+
+            doubleTapHeld = Time.time - lastPressTime <= doubleTapSeconds;
+
+            // A third quick press starts counting afresh, rather than being a double tap with the second.
+            lastPressTime = doubleTapHeld ? float.NegativeInfinity : Time.time;
+
+            if (doubleTapHeld)
+            {
+                StartAuto();
+            }
+        }
+
+        // The player has moved on to another character. The button they were holding will never be seen let go.
+        // A ladder going by itself carries on.
+        public override void ControlLost()
+        {
+            actionHeld = false;
+            doubleTapHeld = false;
+            extendState = 0;
+        }
+
+        private void StartAuto()
+        {
+            if (directionY > 0)
+            {
+                autoState = 1;
+            }
+            else if (directionY < 0)
+            {
+                autoState = -1;
+            }
         }
 
         private void ExtendLadder()

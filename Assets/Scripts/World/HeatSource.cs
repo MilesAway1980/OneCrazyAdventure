@@ -5,8 +5,9 @@ public class HeatSource : MonoBehaviour
     [SerializeField] private float heatLevel;
     [SerializeField] private float heatRange;
 
-    private float intensity;
-    private float range;
+    // On at full strength, unless whatever carries it turns it down, so that a heat source just placed gives off heat.
+    private float intensity = 1;
+    private float range = 1;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -46,6 +47,19 @@ public class HeatSource : MonoBehaviour
     {
         intensity = 0;
         range = 0;
+    }
+
+    // Gives off all its heat, or none.
+    public void SetOn(bool on)
+    {
+        if (on)
+        {
+            Reset();
+        }
+        else
+        {
+            ShutOff();
+        }
     }
 
     public float GetLevel()

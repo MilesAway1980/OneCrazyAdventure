@@ -7,32 +7,30 @@ public class SwitchBrighten : SwitchableObject
     public Color brightenColorDarkest;
     public Color brightenColorLightest;
 
-    private Color originalColorDarkest;
-    private Color originalColorLightest;
-    
-    
-    /*protected override void Start()
-    {
-        base.Start();
-    }
-
-    
-    protected override void Update()
-    {
-        base.Update();
-    }*/
+    // Whether this switch is the one currently holding the scene brighter.
+    private bool brightening;
 
     public override void Activate()
     {
-        darkTileMap.darkest = brightenColorDarkest;
-        darkTileMap.lightest = brightenColorLightest;
+        if (darkTileMap)
+        {
+            darkTileMap.darkest = brightenColorDarkest;
+            darkTileMap.lightest = brightenColorLightest;
+            brightening = true;
+        }
+
         base.Activate();
     }
 
     public override void Deactivate()
     {
-        darkTileMap.darkest = originalColorDarkest;
-        darkTileMap.lightest = originalColorLightest;
         base.Deactivate();
+
+        // The base only switches off once its timer or "stay on" setting allows it.
+        if (brightening && !activated)
+        {
+            darkTileMap.RestoreOriginalColors();
+            brightening = false;
+        }
     }
 }

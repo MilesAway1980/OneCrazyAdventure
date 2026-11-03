@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+// TODO Tiles that are damaged by standing on them (standOn) should have an optional weight to go with it: how heavy what
+// stands on them has to be. A character of a mass of 20 could then cross, where a mass of 50 would break them.
 public class DamageableTileSection : DamageableTileOptions
 {
     //private Dictionary<Vector2, List<(Tilemap, TileBase)>> tiles;

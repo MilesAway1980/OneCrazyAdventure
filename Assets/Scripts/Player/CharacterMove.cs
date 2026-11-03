@@ -18,11 +18,15 @@ public class CharacterMove : MonoBehaviour
     private InputAction zoomOutAction;
     private InputAction lookAction;
     private InputAction lookLock;
+    private InputAction leaveAction;
 
     private Character currentCharacter;
     private Player player;
     
     PlayerInput playerInput;
+
+    // How far through holding the leave button the player is, from 0 (not holding it) up to 1 (they've left).
+    public float LeaveProgress { get; private set; }
 
     private int inputDeviceNumber;
     //private bool firstPress;
@@ -65,6 +69,19 @@ public class CharacterMove : MonoBehaviour
             zoomOutAction = playerInput.actions.FindAction("ZoomOut");
             lookAction = playerInput.actions.FindAction("Look");
             lookLock = playerInput.actions.FindAction("LookLock");
+            leaveAction = playerInput.actions.FindAction("Leave");
+        }
+
+        LeaveProgress = leaveAction != null && leaveAction.IsInProgress()
+            ? leaveAction.GetTimeoutCompletionPercentage()
+            : 0f;
+
+        // The action is a hold, so this only happens once the button has been held for long enough. That keeps a
+        // stray press from dropping someone out of the game.
+        if (leaveAction != null && leaveAction.WasPerformedThisFrame())
+        {
+            PlayerManager.RemovePlayer(player);
+            return;
         }
 
         if (!currentCharacter)
@@ -114,7 +131,7 @@ public class CharacterMove : MonoBehaviour
         {
             if (!GetPressed(prevAction))
             {
-                currentCharacter = Player.GetAvailableCharacter(player, true);
+                SetCurrentCharacter(Player.GetAvailableCharacter(player, true));
                 player.AssignCharacter(currentCharacter);
                 SetPressed(prevAction, true);
             }
@@ -128,7 +145,7 @@ public class CharacterMove : MonoBehaviour
         {
             if (!GetPressed(nextAction))
             {
-                currentCharacter = Player.GetAvailableCharacter(player, false);
+                SetCurrentCharacter(Player.GetAvailableCharacter(player, false));
                 player.AssignCharacter(currentCharacter);
                 SetPressed(nextAction, true);
             }
@@ -185,9 +202,74 @@ public class CharacterMove : MonoBehaviour
         }
     }
 
+    // The Player Input sends these messages when this player's controller is unplugged or runs out of battery, and
+    // when it comes back.  The same device is reconnected to the player automatically.
+    void OnDeviceLost()
+    {
+        print($"{name} lost their device.");
+        ReleaseEverything();
+    }
+
+    void OnDeviceRegained()
+    {
+        print($"{name} got their device back.");
+        ReleaseEverything();
+    }
+
+    // Lets go of everything the player was holding. The release of a button on a controller that has vanished is
+    // never seen, so the character would otherwise carry on walking, jumping or using their action by themselves.
+    private void ReleaseEverything()
+    {
+        LeaveProgress = 0f;
+
+        if (inputActionPresses != null)
+        {
+            foreach (var action in inputActionPresses.Keys.ToList())
+            {
+                inputActionPresses[action] = false;
+            }
+        }
+
+        if (currentCharacter)
+        {
+            currentCharacter.DirectionPress(Vector2.zero);
+            currentCharacter.Jump(false);
+            currentCharacter.Action(false);
+        }
+    }
+
+    // The player is leaving the game. Their character is let go of, mid-press or not, so it doesn't carry on walking or
+    // using its action with nobody controlling it, and anyone else can take it over.
+    public void ReleaseControl()
+    {
+        ReleaseEverything();
+        SetCurrentCharacter(null);
+    }
+
     public void AssignCharacter(Character c)
     {
+        SetCurrentCharacter(c);
+    }
+
+    // Changes who the player controls, telling the character they're leaving and the one they're taking over.
+    private void SetCurrentCharacter(Character c)
+    {
+        if (c == currentCharacter)
+        {
+            return;
+        }
+
+        if (currentCharacter)
+        {
+            currentCharacter.ControlLost();
+        }
+
         currentCharacter = c;
+
+        if (currentCharacter)
+        {
+            currentCharacter.ControlGained();
+        }
     }
     
     private bool GetPressed(InputAction action)

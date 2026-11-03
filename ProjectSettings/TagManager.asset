@@ -20,7 +20,7 @@ TagManager:
   - Player 2 Only
   - Player 3 Only
   - Player 4 Only
-  - 
+  - Rope
   - 
   - 
   - 
@@ -44,3 +44,4 @@ TagManager:
     locked: 0
   m_RenderingLayers:
   - Default
+  m_MigratedRenderPipelines: []

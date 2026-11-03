@@ -21,26 +21,41 @@ public class DamageableTile : DamageableTileOptions
     //private bool hitDown;
     //private bool hitLeft;
 
-    private static Dictionary<DamageableTile, Vector2Int> dynamiteTiles;
+    // Always there, even in a scene with no dynamite tiles. Each tile takes itself out when it is destroyed, so a scene
+    // that is left doesn't leave its tiles behind in it.
+    private static readonly Dictionary<DamageableTile, Vector2Int> dynamiteTiles =
+        new Dictionary<DamageableTile, Vector2Int>();
     private Rigidbody2D rigidBody;
     private SpriteRenderer spriteRenderer;
+
+    // The space of every tile that can be destroyed, whether or not it is at the moment. Somewhere a tile may come back
+    // to isn't a place to leave anyone.
+    private static readonly HashSet<Vector2Int> destroyableTileSpaces = new HashSet<Vector2Int>();
 
     void Start()
     {
         tiles = Map.GetTiles(position, true);
         destroyed = false;
-        if (dynamiteTiles == null)
-        {
-            dynamiteTiles = new Dictionary<DamageableTile, Vector2Int>();
-        }
+        destroyableTileSpaces.Add(position);
 
         if (dynamite)
         {
-            dynamiteTiles.Add(this, position);
+            dynamiteTiles[this] = position;
         }
-        
+
         rigidBody = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+    }
+
+    void OnDestroy()
+    {
+        dynamiteTiles.Remove(this);
+        destroyableTileSpaces.Remove(position);
+    }
+
+    public static bool IsDestroyableTileSpace(Vector2Int cell)
+    {
+        return destroyableTileSpaces.Contains(cell);
     }
 
     void Update()

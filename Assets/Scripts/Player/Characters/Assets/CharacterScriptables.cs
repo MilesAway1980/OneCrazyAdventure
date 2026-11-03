@@ -7,23 +7,24 @@ public class CharacterScriptables : ScriptableObject
     public int maxCharactersAtOnce = 4;
 
     public bool
-        ladder,
+        balloon,
+        bouncyBall,
         bowlingBall,
-        pebble,
-        suctionCup,
-        magnet,
-        umbrella,
-        piton,
-        torch,
+        brad,
         brick,
         bulb,
-        dynamite,
-        balloon,
-        brad,
-        pencil,
-        paperclip,
         die,
-        bouncyBall;
+        dynamite,
+        flashlight,
+        ladder,
+        magnet,
+        paperclip,
+        pebble,
+        pencil,
+        piton,
+        suctionCup,
+        torch,
+        umbrella;
 
     //public List<bool> generic;        //TODO make this so everyone can be this character
 

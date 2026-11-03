@@ -104,9 +104,12 @@ public class LeverSwitch : InteractableObject
     {
         if (!triggerCollider.bounds.Contains(interacter.transform.position))
         {
+            print($"{this.gameObject} is out of range");
             //Character is not within the range to interact
             return false;
         }
+        
+        print($"Interacting with: {this.gameObject} ");
 
         if (oneTime)
         {

@@ -44,7 +44,7 @@ public class MapEditor : MonoBehaviour
     
     void Start()
     {
-        tilemaps = FindObjectsByType<Tilemap>(FindObjectsSortMode.None).ToList();
+        tilemaps = FindObjectsByType<Tilemap>().ToList();
         //mouseLineRenderer = GetComponent<LineRenderer>();
         
         var lineRenderers = GetComponentsInChildren<LineRenderer>();

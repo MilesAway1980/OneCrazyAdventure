@@ -4,20 +4,16 @@ namespace Characters
 {
     public class Balloon : Character
     {
-        /*protected override void Start()
+        protected override void Start()
         {
+            // His string hangs from him, so taking hold of the end of it would tie him in a loop.
+            ableToGrabObjects = false;
+
             base.Start();
         }
 
-        protected override void Update()
-        {
-            base.Update();
-        }*/
-
         public override void DirectionPress(Vector2 directionValue)
         {
-            //var yPress = directionValue.y;
-
             if (canMove)
             {
                 Move(directionValue);
@@ -34,25 +30,11 @@ namespace Characters
             string settingName;
             if (performingAction)
             {
-                if (inLiquid)
-                {
-                    settingName = "floatliquid";
-                }
-                else
-                {
-                    settingName = "float";
-                }
+                settingName = isInLiquid ? "floatliquid" : "float";
             }
             else
             {
-                if (inLiquid)
-                {
-                    settingName = "liquid";
-                }
-                else
-                {
-                    settingName = "base";
-                }
+                settingName = isInLiquid ? "liquid" : "base";
             }
 
             currentMovementSettings = GetMovementSetting(settingName, density);

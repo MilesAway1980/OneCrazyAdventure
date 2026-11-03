@@ -21,8 +21,9 @@ namespace Characters
         
         public bool ableToClimbObjects = true;
         public bool ableToCarryObjects = true;
+        public bool ableToGrabObjects = true;
 
-        public Rigidbody2D carryAttachmentPoint; 
+        public Rigidbody2D carryAttachmentPoint;
 
         private bool holdingJump;
         //Eventually make protected.  public for testing
@@ -69,16 +70,47 @@ namespace Characters
         private bool climbing;
         private InteractableLadder interactingLadder;
         private CarryableObject objectCarrying;
-        
+        private GrabPoint grabPoint;
+
         private static int characterCount;
         private static List<Character> characters;
         private static List<InteractableObject> interactableObjects;
         private static List<CarryableObject> carryableObjects;
 
+        // The last place he was that no destroyable tile has ever been, which is always somewhere he can be put back.
+        private Vector2 lastSafePosition;
+
+        [Tooltip("How fast, in units per second, he is pushed back toward the last safe place while a tile that came back on him is still around him.")]
+        public float safePushSpeed = 6f;
+
+        // How far into a tile's space he has to reach to count as being in it, so resting against it doesn't.
+        private const float CellMargin = 0.02f;
+
+        // How far into something solid he has to be before it counts as being inside it, as touching is not.
+        private const float PenetrationTolerance = 0.02f;
+
+        // The solid colliders of whichever character is being looked at, and what they overlap.
+        private static readonly Collider2D[] solidColliders = new Collider2D[16];
+        private static readonly Collider2D[] groundOverlaps = new Collider2D[16];
+
+        // While a tile that came back on him is still around him, he is carried toward his last safe place. It doesn't
+        // stop for the ground, so what he is pushed through can't push him out somewhere else.
+        private bool returningToSafety;
+        private RigidbodyType2D bodyTypeBeforeReturn;
+
+        // The spaces of the tiles that came back on him during that, which may not have a collider yet.
+        private readonly List<Vector2Int> blockingCells = new List<Vector2Int>();
+
         protected virtual void Start()
         {
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
             rigidBody2D = GetComponent<Rigidbody2D>();
+
+            lastSafePosition = rigidBody2D.position;
+
+            // Every character starts this, but it's taken off first so that it's never on twice.
+            Map.TileCreating -= MakeRoomForTile;
+            Map.TileCreating += MakeRoomForTile;
 
             var detectors = GetComponentsInChildren<Detector>();
             floorDetectors = detectors
@@ -140,14 +172,14 @@ namespace Characters
             if (interactableObjects == null)
             {
                 interactableObjects =
-                    FindObjectsByType<InteractableObject>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+                    FindObjectsByType<InteractableObject>(FindObjectsInactive.Exclude)
                         .ToList();
             }
 
             if (carryableObjects == null)
             {
                 carryableObjects =
-                    FindObjectsByType<CarryableObject>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+                    FindObjectsByType<CarryableObject>(FindObjectsInactive.Exclude)
                         .ToList();
             }
             
@@ -169,6 +201,12 @@ namespace Characters
 
         protected virtual void FixedUpdate()
         {
+            if (returningToSafety)
+            {
+                PushTowardSafePosition();
+                return;
+            }
+
             if (Mathf.Abs(rigidBody2D.linearVelocityY) < 0.0001f)
             {
                 rigidBody2D.linearVelocityY = 0;
@@ -194,7 +232,7 @@ namespace Characters
             foreach (var detector in floorDetectors)
             {
                 //var dist = currentMap.DistanceFromGround(detector.transform.position);
-                var dist = Map.DistanceFromDirection(detector.transform.position, Vector2.down);
+                var dist = Map.DistanceFromDirection(detector.transform.position, Vector2.down, 20, false, rigidBody2D);
                 if (dist != null)
                 {
                     if (dist < distFromGround)
@@ -237,7 +275,8 @@ namespace Characters
                 var distance = float.PositiveInfinity;
                 foreach (var wallDetector in wallDetectors)
                 {
-                    var dist = Map.DistanceFromDirection(wallDetector.transform.position, direction, 5);
+                    // Pushable things aren't walls: walking into them is how they get pushed.
+                    var dist = Map.DistanceFromDirection(wallDetector.transform.position, direction, 5, true, rigidBody2D);
                     if (dist != null && dist < distance)
                     {
                         distance = (float)dist;
@@ -320,7 +359,8 @@ namespace Characters
 
         protected virtual void Update()
         {
-            GetTouchingTiles();
+            RememberSafePosition();
+
             SetSprite();
 
             var (isInLiquid, density) = Map.IsInLiquid(transform.position);
@@ -342,58 +382,206 @@ namespace Characters
             }
         }
 
-        public void GetTouchingTiles()
+        // A tile that can be destroyed may come back while he is where it was, which would leave him stuck in it or
+        // pushed through the ground and out into somewhere he can't normally get to. So he keeps hold of the last
+        // place he was that has never been a destroyable tile's space, and is pushed back toward it when one returns on
+        // him, just as far as it takes to be out of it.
+        private void RememberSafePosition()
         {
-            var down = new List<(Vector2Int, float)>();
-            var up = new List<(Vector2Int, float)>();
-            var right = new List<(Vector2Int, float)>();
-            var left = new List<(Vector2Int, float)>();
-
-            foreach (var floorDetector in floorDetectors)
+            if (!returningToSafety && !InDestroyableTileSpace())
             {
-                var upTile = Map.GetTilePositionInDirection(floorDetector.transform.position, Vector2.up);
-                if (upTile.position != null && upTile.distance != null)
-                {
-                    up.Add(
-                        ((Vector2Int)upTile.position, (float)upTile.distance)
-                    );
-                }
+                lastSafePosition = rigidBody2D.position;
+            }
+        }
 
-                var downTile = Map.GetTilePositionInDirection(floorDetector.transform.position, Vector2.down);
-                if (downTile.position != null && downTile.distance != null)
+        // Called just before a tile comes back, so that whoever is where it is going is dealt with before it has a
+        // collider that would push them out somewhere else.
+        private static void MakeRoomForTile(Vector2Int cell)
+        {
+            if (characters == null)
+            {
+                return;
+            }
+
+            foreach (var character in characters)
+            {
+                if (character && character.isActiveAndEnabled && character.ReachesIntoCell(cell))
                 {
-                    down.Add(
-                        ((Vector2Int)downTile.position, (float)downTile.distance)
-                    );
+                    character.StartReturningToSafety(cell);
+                }
+            }
+        }
+
+        private void StartReturningToSafety(Vector2Int cell)
+        {
+            if (!blockingCells.Contains(cell))
+            {
+                blockingCells.Add(cell);
+            }
+
+            if (returningToSafety)
+            {
+                return;
+            }
+
+            returningToSafety = true;
+
+            // Nothing pushes a kinematic body out of the ground, so only this moves him until he's clear.
+            bodyTypeBeforeReturn = rigidBody2D.bodyType;
+            rigidBody2D.bodyType = RigidbodyType2D.Kinematic;
+            rigidBody2D.linearVelocity = Vector2.zero;
+            rigidBody2D.angularVelocity = 0f;
+            moveSpeed = 0;
+        }
+
+        // A step toward the last safe place, for as long as he is inside a tile that came back or anything solid. If he
+        // is stuck for real, that's all the way. Stood anywhere else, it's as short a way as takes him out.
+        private void PushTowardSafePosition()
+        {
+            if (!IsInsideSomething())
+            {
+                FinishReturningToSafety();
+                return;
+            }
+
+            var toSafe = lastSafePosition - rigidBody2D.position;
+            var step = safePushSpeed * Time.fixedDeltaTime;
+
+            if (toSafe.magnitude <= step)
+            {
+                SetPosition(lastSafePosition);
+                FinishReturningToSafety();
+                return;
+            }
+
+            SetPosition(rigidBody2D.position + toSafe.normalized * step);
+        }
+
+        private void FinishReturningToSafety()
+        {
+            returningToSafety = false;
+            blockingCells.Clear();
+
+            rigidBody2D.bodyType = bodyTypeBeforeReturn;
+            rigidBody2D.linearVelocity = Vector2.zero;
+            rigidBody2D.angularVelocity = 0f;
+            moveSpeed = 0;
+        }
+
+        protected void SetPosition(Vector2 position)
+        {
+            rigidBody2D.position = position;
+            transform.position = new Vector3(position.x, position.y, transform.position.z);
+        }
+
+        // Whether he is in the space of a tile that came back on him, in the solid part of the ground, or across the
+        // edge of anything solid on the ground layer.
+        private bool IsInsideSomething()
+        {
+            foreach (var cell in blockingCells)
+            {
+                if (ReachesIntoCell(cell))
+                {
+                    return true;
                 }
             }
 
-            foreach (var wallDetector in wallDetectors)
-            {
-                var leftTile = Map.GetTilePositionInDirection(wallDetector.transform.position, Vector2.left);
-                if (leftTile.position != null && leftTile.distance != null)
-                {
-                    left.Add(
-                        ((Vector2Int)leftTile.position, (float)leftTile.distance)
-                    );
-                }
+            var filter = new ContactFilter2D { useTriggers = false };
+            filter.SetLayerMask(LayerMask.GetMask("Ground"));
 
-                var rightTile = Map.GetTilePositionInDirection(wallDetector.transform.position, Vector2.right);
-                if (rightTile.position != null && rightTile.distance != null)
+            var count = GetSolidColliders();
+
+            // The ground's colliders are only its outline, so being deep in it touches no edge. The tiles say instead.
+            for (int i = 0; i < count; i++)
+            {
+                if (Map.IsInsideSolid(solidColliders[i].bounds.center))
                 {
-                    right.Add(
-                        ((Vector2Int)rightTile.position, (float)rightTile.distance)
-                    );
+                    return true;
                 }
             }
 
-            up = up.Distinct().ToList();
-            down = down.Distinct().ToList();
-            left = left.Distinct().ToList();
-            right = right.Distinct().ToList();
+            for (int i = 0; i < count; i++)
+            {
+                var collider = solidColliders[i];
+                var overlapping = collider.Overlap(filter, groundOverlaps);
 
-            CheckTouchingTiles(up, down, left, right);
-            CheckCollapseTiles(up, down, left, right);
+                for (int j = 0; j < overlapping; j++)
+                {
+                    var other = groundOverlaps[j];
+
+                    if (other.attachedRigidbody != rigidBody2D && collider.Distance(other).distance < -PenetrationTolerance)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // His colliders that are solid right now. They change with the shape he takes, such as rolling or stretching.
+        private int GetSolidColliders()
+        {
+            var attached = rigidBody2D.GetAttachedColliders(solidColliders);
+            var solid = 0;
+
+            for (int i = 0; i < attached; i++)
+            {
+                var collider = solidColliders[i];
+
+                if (collider.isActiveAndEnabled && !collider.isTrigger)
+                {
+                    solidColliders[solid++] = collider;
+                }
+            }
+
+            return solid;
+        }
+
+        private bool ReachesIntoCell(Vector2Int cell)
+        {
+            var count = GetSolidColliders();
+
+            for (int i = 0; i < count; i++)
+            {
+                var bounds = solidColliders[i].bounds;
+
+                if (bounds.min.x < cell.x + 1 - CellMargin && bounds.max.x > cell.x + CellMargin &&
+                    bounds.min.y < cell.y + 1 - CellMargin && bounds.max.y > cell.y + CellMargin)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool InDestroyableTileSpace()
+        {
+            var count = GetSolidColliders();
+
+            for (int i = 0; i < count; i++)
+            {
+                var bounds = solidColliders[i].bounds;
+
+                var minX = Mathf.FloorToInt(bounds.min.x + CellMargin);
+                var maxX = Mathf.FloorToInt(bounds.max.x - CellMargin);
+                var minY = Mathf.FloorToInt(bounds.min.y + CellMargin);
+                var maxY = Mathf.FloorToInt(bounds.max.y - CellMargin);
+
+                for (int x = minX; x <= maxX; x++)
+                {
+                    for (int y = minY; y <= maxY; y++)
+                    {
+                        if (DamageableTile.IsDestroyableTileSpace(new Vector2Int(x, y)))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void SetSprite()
@@ -458,7 +646,7 @@ namespace Characters
             return canMove;
         }
 
-        public void Jump(bool active, float jumpValue = 1.0f)
+        public virtual void Jump(bool active, float jumpValue = 1.0f)
         {
             if (active && canMove)
             {
@@ -535,13 +723,60 @@ namespace Characters
 
         }
 
-        public virtual void Interact()
+        // A player has just stopped controlling this character. Buttons that were held are no longer being read, so
+        // anything waiting for them to be let go should give up.
+        public virtual void ControlLost()
         {
 
+        }
+
+        // A player has just taken over this character.
+        public virtual void ControlGained()
+        {
+
+        }
+
+        private Player lastPlayer;
+
+        // The camera showing the view of the player using this character, for a meter to appear in. After they move
+        // on to another character it's still their view, so they can keep an eye on this one. Before anyone has used
+        // it, or when views are joined together, it's the main camera.
+        protected Camera GetPlayerCamera()
+        {
+            if (PlayerManager.players != null)
+            {
+                foreach (var player in PlayerManager.players)
+                {
+                    if (player && player.character == this)
+                    {
+                        lastPlayer = player;
+                        break;
+                    }
+                }
+            }
+
+            return CameraManager.GetCameraForPlayer(lastPlayer);
+        }
+
+        public virtual void Interact()
+        {
+            print ($"INTERACT {carryableObjects.Count} | {interactableObjects.Count}");
             if (climbing)
             {
                 climbing = false;
                 return;
+            }
+
+            if (grabPoint)
+            {
+                var wasHolding = grabPoint.IsGrabbedBy(this);
+                grabPoint.Release(this);
+                grabPoint = null;
+
+                if (wasHolding)
+                {
+                    return;
+                }
             }
 
             if (objectCarrying)
@@ -569,41 +804,6 @@ namespace Characters
                 {
                     //Can only interact with one object
                     return;
-                }
-            }
-        }
-
-        public virtual void CheckTouchingTiles(
-            List<(Vector2Int, float)> up,
-            List<(Vector2Int, float)> down,
-            List<(Vector2Int, float)> left,
-            List<(Vector2Int, float)> right
-        )
-        {
-
-        }
-
-        protected void CheckCollapseTiles(
-            List<(Vector2Int, float)> up,
-            List<(Vector2Int, float)> down,
-            List<(Vector2Int, float)> left,
-            List<(Vector2Int, float)> right
-        )
-        {
-            //TODO Add another feature to the editor to make it so that the tiles can support a limited weight.
-            //Maybe a character of a mass of 20 can cross but not a mass of 50
-            foreach (var d in down)
-            {
-                float collapseDistance = 0.25f;
-
-                //var distance = Vector2.Distance(transform.position, new Vector2(d.x + 0.5f, d.y + 0.5f));
-                var distance = d.Item2;
-
-                //print(distance);
-
-                if (distance < collapseDistance)
-                {
-                    //TileMonitor.CollapseTouch(d.Item1);
                 }
             }
         }
@@ -710,6 +910,11 @@ namespace Characters
             {
                 climbing = false;
             }
+        }
+
+        public void SetGrab(GrabPoint point)
+        {
+            grabPoint = point;
         }
 
         public Rigidbody2D GetCarryPoint()

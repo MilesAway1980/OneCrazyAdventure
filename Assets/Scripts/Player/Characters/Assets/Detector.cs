@@ -15,14 +15,18 @@ public class Detector : MonoBehaviour
     public TileDirection hit;
     private Vector2 direction;
 
+    // Whoever carries the detector, who never finds himself.
+    private Rigidbody2D ownBody;
+
     void Start()
     {
+        ownBody = GetComponentInParent<Rigidbody2D>();
         UpdateVector();
     }
-    
+
     void Update()
     {
-        hit = Map.GetTilePositionInDirection(transform.position, direction);
+        hit = Map.GetTilePositionInDirection(transform.position, direction, 20, ownBody);
         //print(hit);
     }
 

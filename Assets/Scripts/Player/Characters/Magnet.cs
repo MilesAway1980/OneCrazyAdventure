@@ -1,40 +1,60 @@
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Characters
 {
+    // Holding the action switches on a magnetic field that pulls things toward him. He stays on if the player moves
+    // to another character, as characters are meant to work together, and only switches off when the action is let go
+    // while he is being played.
     public class Magnet : Character
     {
         [SerializeField]
         private GameObject magneticField;
-        private bool magnetActive;
+
+        [Tooltip("How hard the field pulls things toward him. It's the strength of the field's Point Effector 2D, which is set from this.")]
+        public float pullStrength = 500f;
+
+        private PointEffector2D effector;
 
         protected override void Start()
         {
-            magneticField.SetActive(false);
             base.Start();
+
+            if (!magneticField)
+            {
+                Debug.LogError($"{name}: the Magnet has no magnetic field assigned, so it can't pull anything.", this);
+                return;
+            }
+
+            effector = magneticField.GetComponent<PointEffector2D>();
+
+            if (!effector)
+            {
+                Debug.LogError($"{name}: the magnetic field has no Point Effector 2D, so it can't pull anything.", this);
+            }
+
+            magneticField.SetActive(false);
         }
 
         protected override void Update()
         {
             base.Update();
 
-            if (!magnetActive)
+            // A negative force pulls toward the effector. Every frame, so it can be tuned while playing.
+            if (effector && !Mathf.Approximately(effector.forceMagnitude, -pullStrength))
             {
-                canMove = true;
-                magneticField.SetActive(false);
-            }
-            else
-            {
-                magneticField.SetActive(true);
+                effector.forceMagnitude = -pullStrength;
             }
         }
 
+        // Called every frame with whether the button is held.
         public override void Action(bool active)
         {
             performingAction = active;
-            magnetActive = active;
+
+            if (magneticField && magneticField.activeSelf != active)
+            {
+                magneticField.SetActive(active);
+            }
         }
 
         public override void DirectionPress(Vector2 directionValue)

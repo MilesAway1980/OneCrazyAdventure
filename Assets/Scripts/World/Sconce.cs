@@ -1,69 +1,70 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
+// A wall sconce: its sprite shows whether its light is lit. The light itself, how long it burns and how it looks lit
+// and unlit are all the LightTileSource's.
 public class Sconce : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-
-    public bool lit;
     public Sprite unlitSprite;
     public Sprite litSprite;
 
-    public BrightTileSource BrightTileSourceOn;
-    public BrightTileSource BrightTileSourceOff;
+    [Tooltip("The light of this sconce. It is lit and snuffed out through the sconce, or by itself when its time is up, and the sprite follows.")]
+    public LightTileSource lightTileSource;
 
-    public Color lightColorOn;
-    public Color lightColorOff;
-
-    public float timeUntilGoOut;
-    
     private SpriteRenderer spriteRenderer;
-    private float startTime;
-    private bool oldLit;
-    
+    private bool shownLit;
+
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-        spriteRenderer.color = lightColorOff;
+
+        if (!lightTileSource)
+        {
+            lightTileSource = GetComponent<LightTileSource>();
+        }
+
+        if (!lightTileSource)
+        {
+            Debug.LogWarning($"{name}: a Sconce needs a LightTileSource.", this);
+            return;
+        }
+
+        ShowLit(lightTileSource.lit);
     }
 
     void Update()
     {
-        if (Time.realtimeSinceStartup - startTime > timeUntilGoOut)
+        if (lightTileSource && lightTileSource.lit != shownLit)
         {
-            Snuff();
+            ShowLit(lightTileSource.lit);
         }
-
-        /*if (lit != oldLit)
-        {
-            if (lit)
-            {
-                Light();
-            }
-            else
-            {
-                Snuff();
-            }
-
-            oldLit = lit;
-        }*/
     }
 
     public void Light()
     {
-        lit = true;
-        BrightTileSourceOn.enabled = true;
-        BrightTileSourceOff.enabled = false;
-        spriteRenderer.color = lightColorOn;
-        spriteRenderer.sprite = litSprite;
-        startTime = Time.realtimeSinceStartup;
+        if (lightTileSource)
+        {
+            lightTileSource.Light();
+        }
     }
 
     public void Snuff()
     {
-        lit = false;
-        BrightTileSourceOn.enabled = false;
-        BrightTileSourceOff.enabled = true;
-        spriteRenderer.color = lightColorOff;
-        spriteRenderer.sprite = unlitSprite;
+        if (lightTileSource)
+        {
+            lightTileSource.Snuff();
+        }
+    }
+
+    private void ShowLit(bool lit)
+    {
+        shownLit = lit;
+
+        var sprite = lit ? litSprite : unlitSprite;
+
+        if (sprite)
+        {
+            spriteRenderer.sprite = sprite;
+        }
     }
 }

@@ -100,7 +100,11 @@ public class DamageableTileSection : DamageableTileOptions
                 dt.standOnTimeNeeded = standOnTimeNeeded;
 
                 dt.timeStayDestroyed = timeStayDestroyed;
-                
+
+                // What shows when it breaks is read from the section as it is then, rather than copied now, so it can be
+                // changed while playing.
+                dt.section = this;
+
                 dt.dynamite = dynamite;
                 dt.dynamiteMass = dynamiteMass;
                 dt.dynamiteForceNeeded = dynamiteForceNeeded;

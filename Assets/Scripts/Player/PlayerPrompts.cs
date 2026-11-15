@@ -63,7 +63,7 @@ public class PlayerPrompts : MonoBehaviour
             var progress = Mathf.Clamp01(player.characterMove.LeaveProgress);
             var area = new Rect((Screen.width - width) * 0.5f, y, width, lineHeight);
 
-            DrawText(new Rect(area.x, area.y, area.width, fontSize * 1.5f), $"{player.name} leaving...", fontSize, 1f);
+            DrawText(new Rect(area.x, area.y, area.width, fontSize * 1.5f), GameText.Fill(GameText.Current.playerLeaving, player: player.name), fontSize, 1f);
 
             var bar = new Rect(area.x, area.y + fontSize * 1.6f, area.width, fontSize * 0.4f);
             GUI.color = new Color(0f, 0f, 0f, 0.6f);
@@ -88,7 +88,7 @@ public class PlayerPrompts : MonoBehaviour
         // A gentle pulse so it's noticed without being distracting.
         var alpha = nobodyYet ? 1f : Mathf.Lerp(0.5f, 0.9f, Mathf.PingPong(Time.unscaledTime, 1f));
 
-        DrawText(area, "Press any button to join...", size, alpha);
+        DrawText(area, GameText.Current.pressAnyButtonToJoin, size, alpha);
     }
 
     // Text with a dark shadow so it can be read over any part of the level.

@@ -102,6 +102,12 @@ public class LeverSwitch : InteractableObject
 
     public override bool Interact(Character interacter)
     {
+        if (!triggerCollider)
+        {
+            Debug.LogError($"{gameObject.name} has no Box Collider 2D to say how close a character has to be. Add one (set to Trigger) to the lever.", this);
+            return false;
+        }
+
         if (!triggerCollider.bounds.Contains(interacter.transform.position))
         {
             print($"{this.gameObject} is out of range");

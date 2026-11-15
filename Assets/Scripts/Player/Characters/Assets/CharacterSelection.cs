@@ -21,6 +21,15 @@ public class CharacterSelection : MonoBehaviour
         character.gameObject.SetActive(selected);
     }
 
+    // Puts the character in the party or takes them out of it straight away, and keeps the change from being seen again by
+    // Update below, which looks after the same thing for changes made to the checkbox in the inspector.
+    public void SetSelected(bool isSelected)
+    {
+        selected = isSelected;
+        previousSelection = isSelected;
+        character.gameObject.SetActive(isSelected);
+    }
+
     void Update()
     {
         if (previousSelection == selected)

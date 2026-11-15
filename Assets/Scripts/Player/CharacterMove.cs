@@ -92,6 +92,32 @@ public class CharacterMove : MonoBehaviour
         Vector2 moveValue = moveAction.ReadValue<Vector2>();
         Vector2 lookValue = lookAction.ReadValue<Vector2>();
 
+        // A hub menu this player has open takes all of their buttons, and their character stands still while it's open.
+        if (HubMenu.IsOpenFor(player))
+        {
+            currentCharacter.DirectionPress(Vector2.zero);
+            currentCharacter.Jump(false);
+            currentCharacter.Action(false);
+            currentCharacter.InteractHold(false);
+
+            HubMenu.Feed(
+                player,
+                moveValue,
+                jumpAction.WasPressedThisFrame(),
+                abilityAction.WasPressedThisFrame(),
+                interactAction.WasPressedThisFrame());
+
+            // Kept level with the buttons while the menu has them, so that one still held when it closes isn't taken for a new
+            // press, and one that was let go isn't taken for still down.
+            SetPressed(jumpAction, jumpAction.IsPressed());
+            SetPressed(abilityAction, abilityAction.IsPressed());
+            SetPressed(interactAction, interactAction.IsPressed());
+            SetPressed(prevAction, prevAction.IsPressed());
+            SetPressed(nextAction, nextAction.IsPressed());
+
+            return;
+        }
+
         currentCharacter.DirectionPress(moveValue);
 
         // Before the other buttons, so a character that wants one button held while another goes down sees it held when

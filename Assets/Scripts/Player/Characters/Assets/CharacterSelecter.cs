@@ -10,7 +10,45 @@ public class CharacterSelecter: MonoBehaviour
 
     [SerializeField]
     private CharacterScriptables characterScriptables;
-    
+
+    // The characters that have been found, whether or not they are in the party. The ones ticked in the CharacterScript
+    // asset are found from the start. The party is the ones that are in the game now, up to the most at once.
+    private readonly HashSet<Character> owned = new HashSet<Character>();
+    private readonly Dictionary<Character, CharacterSelection> selectionOf = new Dictionary<Character, CharacterSelection>();
+
+    public static CharacterSelecter Instance { get; private set; }
+
+    // Raised when a character is found.
+    public event System.Action<Character> Unlocked;
+
+    public IReadOnlyCollection<Character> Owned
+    {
+        get { return owned; }
+    }
+
+    public IReadOnlyList<Character> Party
+    {
+        get { return selections; }
+    }
+
+    public int MaxParty
+    {
+        get { return characterScriptables.GetMaxCharactersAtOnce(); }
+    }
+
+    void Awake()
+    {
+        Instance = this;
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
+
     void Start()
     {
         selections = new List<Character>();
@@ -19,6 +57,7 @@ public class CharacterSelecter: MonoBehaviour
         {
             var selection = gameObject.AddComponent<CharacterSelection>();
             selection.character = character;
+            selectionOf[character] = selection;
             bool add = false;
 
             switch (character.name.ToLower())
@@ -85,9 +124,78 @@ public class CharacterSelecter: MonoBehaviour
             selection.selected = add;
             if (add)
             {
+                owned.Add(character);
                 selections.Add(character);
             }
         }
+
+        // More are found from the start than the party holds: the rest wait with the others.
+        while (selections.Count > MaxParty)
+        {
+            var extra = selections[selections.Count - 1];
+
+            selections.RemoveAt(selections.Count - 1);
+            selectionOf[extra].selected = false;
+        }
+    }
+
+    public bool IsOwned(Character character)
+    {
+        return character && owned.Contains(character);
+    }
+
+    public bool IsInParty(Character character)
+    {
+        return character && selections != null && selections.Contains(character);
+    }
+
+    // Finds a character, so they can be chosen for the party. They aren't in the party until they're chosen. False if they
+    // had been found already.
+    public bool Unlock(Character character)
+    {
+        if (!character || !owned.Add(character))
+        {
+            return false;
+        }
+
+        Unlocked?.Invoke(character);
+        return true;
+    }
+
+    // Makes these characters the party: the ones that are in it are put in the game, and the rest are taken out of it. It
+    // has to be at least one, and no more than the most at once, of characters that have been found, each only once.
+    public bool SetParty(IList<Character> newParty)
+    {
+        if (newParty == null || newParty.Count < 1 || newParty.Count > MaxParty || newParty.Distinct().Count() != newParty.Count)
+        {
+            return false;
+        }
+
+        foreach (var character in newParty)
+        {
+            if (!IsOwned(character) || !selectionOf.ContainsKey(character))
+            {
+                return false;
+            }
+        }
+
+        foreach (var character in selections.ToList())
+        {
+            if (!newParty.Contains(character))
+            {
+                selectionOf[character].SetSelected(false);
+            }
+        }
+
+        selections.Clear();
+
+        foreach (var character in newParty)
+        {
+            selections.Add(character);
+            selectionOf[character].SetSelected(true);
+        }
+
+        return true;
     }
 
     void Update()

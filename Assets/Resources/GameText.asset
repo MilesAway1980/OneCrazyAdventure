@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cee873821ac28149a78df8579a2843f, type: 3}
+  m_Name: GameText
+  m_EditorClassIdentifier: Assembly-CSharp::GameText
+  swapCharacters: Swap Characters
+  bringEveryoneHere: Bring Everyone Here
+  closeMenu: Close
+  hintsOn: 'Hints: On'
+  hintsOff: 'Hints: Off'
+  mainHint: 'Jump: pick     Interact: close'
+  partyHeading: Party
+  foundHeading: Found
+  inParty: IN PARTY
+  staysHere: STAYS HERE
+  awayFromHub: AWAY
+  swapHint: 'Jump: add or remove     Action: done     Interact: back     Away from the hub: can''t be swapped'
+  partyBroughtToHub: The party has been brought to the hub.
+  partyChanged: The party has changed.
+  cantSwapAway: '{character} is away from the hub, so can''t be swapped here.'
+  mustStayPickAnother: Someone has to stay at the hub. Pick another character first.
+  mustStay: Someone has to stay at the hub.
+  hubReachedFirst: '{hub} reached! It''s your checkpoint now.'
+  hubCheckpoint: '{hub} is your checkpoint now.'
+  characterFound: Found {character}! They're waiting for you at the hub.
+  sentBackToHub: '{character} is back at {hub}.'
+  pressAnyButtonToJoin: Press any button to join...
+  playerLeaving: '{player} leaving...'
+  hintMove: Move with {move}.
+  hintJump: Press {jump} to jump.
+  hintSwitch: Press {next} or {previous} to switch to another character.
+  hintInteract: Press {interact} next to a lever to pull it.
+  hintCarry: Press {interact} next to a crate to pick it up, and again to put it down.
+  hintButton: Stand on a button to press it. The door only stays open while it's pressed.
+  hintSwitchOnButton: Leave one character on the button, press {next} to switch to another, and walk through.
+  hintTeamwork: Some doors need everyone. Put a character on each button, and send another through.
+  hintHub: A hub! Stand here and press {interact} to swap characters.
+  batteryFlat: FLAT

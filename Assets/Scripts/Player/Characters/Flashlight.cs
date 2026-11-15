@@ -515,7 +515,7 @@ namespace Characters
                 BatteryFraction,
                 Time.time < meterShowUntil,
                 flat ? ScreenMeter.Pulse(Color.red, new Color(0.45f, 0f, 0f)) : ScreenMeter.RedToGreen(BatteryFraction),
-                flat ? "FLAT" : ScreenMeter.Percent(BatteryFraction),
+                flat ? GameText.Current.batteryFlat : ScreenMeter.Percent(BatteryFraction),
                 flat ? restartFraction : -1f);
         }
 

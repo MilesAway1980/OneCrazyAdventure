@@ -71,6 +71,16 @@ public class DamageableEntity : MonoBehaviour
         {
             justDied = false;
             print($"{gameObject.name} is dead.");
+
+            // A character who dies comes back at the checkpoint, the hub that was reached last, with all their hit points. Only
+            // for one that has some: one with none can't be hurt without dying.
+            var character = GetComponent<Characters.Character>();
+
+            if (character && maxHitPoints > 0f && CharacterHub.Respawn(character))
+            {
+                currentHitPoints = maxHitPoints;
+                justDied = true;
+            }
         }
     }
 

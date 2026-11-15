@@ -185,6 +185,13 @@ namespace Characters
                         .ToList();
             }
             
+            // A character that can carry things needs somewhere to hold them. One that can't needs nothing.
+            if (ableToCarryObjects && !carryAttachmentPoint)
+            {
+                Debug.LogWarning($"{gameObject.name} is able to carry objects, but has no Carry Attachment Point to hold them by. " +
+                                 "Give it one, or untick Able To Carry Objects.", this);
+            }
+
             hitPoints = GetComponent<DamageableEntity>();
             if (!hitPoints)
             {
@@ -488,6 +495,25 @@ namespace Characters
             rigidBody2D.linearVelocity = Vector2.zero;
             rigidBody2D.angularVelocity = 0f;
             moveSpeed = 0;
+        }
+
+        // Puts him at a place straight away, at rest, and makes it the place he is put back to if he ever has to be: for being
+        // warped to a hub, or coming back to life at one. A character who has never been in the game yet has nothing to move
+        // but his transform, which is where he begins.
+        public void Teleport(Vector2 position)
+        {
+            if (!rigidBody2D)
+            {
+                transform.position = new Vector3(position.x, position.y, transform.position.z);
+                return;
+            }
+
+            SetPosition(position);
+            lastSafePosition = position;
+
+            rigidBody2D.linearVelocity = Vector2.zero;
+            rigidBody2D.angularVelocity = 0f;
+            moveSpeed = 0f;
         }
 
         protected void SetPosition(Vector2 position)

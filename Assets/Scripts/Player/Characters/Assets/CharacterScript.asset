@@ -16,19 +16,19 @@ MonoBehaviour:
   balloon: 0
   bouncyBall: 0
   bowlingBall: 0
-  brad: 0
+  brad: 1
   brick: 0
   bulb: 0
-  die: 0
+  die: 1
   drill: 0
   dynamite: 0
   flashlight: 0
   ladder: 0
   magnet: 0
-  paperclip: 0
+  paperclip: 1
   pebble: 0
-  pencil: 0
+  pencil: 1
   piton: 0
   suctionCup: 0
   torch: 0
-  umbrella: 1
+  umbrella: 0

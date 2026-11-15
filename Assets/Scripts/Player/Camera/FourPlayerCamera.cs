@@ -87,7 +87,7 @@ public class FourPlayerCamera : MonoBehaviour
             return;
         }
         
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 4; i++)
         {
             characters[i] = players[i].GetCharacter();
             if (!characters[i])
@@ -107,7 +107,7 @@ public class FourPlayerCamera : MonoBehaviour
         distance[2] = Vector3.Distance(characters[0].transform.position, characters[3].transform.position);
         distance[3] = Vector3.Distance(characters[1].transform.position, characters[2].transform.position);
         distance[4] = Vector3.Distance(characters[1].transform.position, characters[3].transform.position);
-        distance[5] = Vector3.Distance(characters[2].transform.position, characters[2].transform.position);
+        distance[5] = Vector3.Distance(characters[2].transform.position, characters[3].transform.position);
 
         float greatestDistance = float.MinValue;
         for (int i = 0; i < 6; i++)
@@ -144,6 +144,7 @@ public class FourPlayerCamera : MonoBehaviour
             SetTarget(0);
             SetTarget(1);
             SetTarget(2);
+            SetTarget(3);
         }
     }
 

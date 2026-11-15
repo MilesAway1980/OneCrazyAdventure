@@ -193,7 +193,7 @@ public class TwoPlayerCamera : MonoBehaviour
                         cam = 1;
                     }
 
-                    playerCam[cam].orthographicSize = zoomSettings[cam];
+                    playerCam[cam + 2].orthographicSize = zoomSettings[cam];
 
                     var zoomVal = zoomSettings[cam] / verticalMaxZoom;
                     var look = new Vector2(lookSettings[cam].x * lookDist * zoomVal,

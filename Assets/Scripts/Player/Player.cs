@@ -3,212 +3,54 @@ using System.Linq;
 using UnityEngine;
 using Characters;
 
+// A person playing, and the controller they're using. It exists only on the machine the person is sitting at. Which
+// character they are controlling is not kept here: CharacterControl has that, and this asks it.
 public class Player : MonoBehaviour
 {
-    public Character character;
     public CharacterMove characterMove;
     public int playerNum;
 
-    private static Dictionary<Player, Character> playerCharacters;
-    private static Dictionary<Character, Player> characterPlayers;
+    // Never changes while the player is in the game, unlike playerNum, which is renumbered when someone leaves. This is
+    // how CharacterControl knows the player.
+    public int id { get; private set; }
+
+    private static int nextId = 1;
     private static List<Player> players;
+
+    // The character this player is controlling, or null if they're not controlling one.
+    public Character character => CharacterControl.GetCharacter(id);
+
+    void Awake()
+    {
+        id = nextId++;
+    }
 
     void Start()
     {
         characterMove = GetComponent<CharacterMove>();
-        if (playerCharacters == null)
+        if (players == null)
         {
-            playerCharacters = new Dictionary<Player, Character>();
-            characterPlayers = new Dictionary<Character, Player>();
             players = new List<Player>();
         }
 
         players.Add(this);
     }
-    
+
     void OnDestroy()
     {
-        players.Remove(this);
-
-        Character character = null;
-        if (playerCharacters.ContainsKey(this))
-        {
-            character = playerCharacters[this];
-            playerCharacters.Remove(this);
-        }
-
-        if (character)
-        {
-            if (characterPlayers.ContainsKey(character))
-            {
-                characterPlayers.Remove(character);
-            }
-        }
-        
-        CleanupCharacterPlayerDictionaries();
+        players?.Remove(this);
+        CharacterControl.Release(id);
     }
 
     void Update()
     {
-        Character characterToAssign = null;
-        if (!playerCharacters.ContainsKey(this))
+        // Takes the first character nobody is controlling: when the player first arrives, and again if the one they were
+        // controlling is put away.
+        var current = character;
+        if (!current || !current.gameObject.activeSelf)
         {
-            //This player doesn't have a character yet.
-            var allCharacters = Character.GetCharacters(false);
-            foreach (var c in allCharacters)
-            {
-                if (characterPlayers.ContainsKey(c))
-                {
-                    //Someone else already has this character
-                    continue;
-                }
-                
-                characterToAssign = c;
-
-                break;
-            }
+            CharacterControl.Claim(id);
         }
-
-        if (!character || !character.gameObject.activeSelf)
-        {
-            characterToAssign = GetAvailableCharacter(this, true);
-        }
-
-        if (characterToAssign)
-        {
-            character = characterToAssign;
-            playerCharacters[this] = character;
-            characterPlayers[characterToAssign] = this;
-
-            characterMove.AssignCharacter(characterToAssign);
-        }
-    }
-
-    public void AssignCharacter(Character newCharacter)
-    {
-        if (character == newCharacter)
-        {
-            //Nothing has changed
-            return;
-        }
-
-        playerCharacters[this] = newCharacter;
-        characterPlayers.Remove(character);
-        
-        character = newCharacter;
-    }
-
-    public static Character GetAvailableCharacter(Player player, bool next)
-    {
-        Character available = null;
-        if (player)
-        {
-            int index;
-            var currentCharacter = player.character;
-            var allCharacters = Character.GetCharacters(true);
-            
-            if (!currentCharacter || !currentCharacter.gameObject.activeSelf)
-            {
-                CleanupCharacterPlayerDictionaries();
-                currentCharacter = null;
-                index = 0;
-            }
-            else
-            {
-                index = allCharacters.IndexOf(currentCharacter);    
-            }
-
-            while (!available)
-            {
-                if (next)
-                {
-                    index++;
-                    if (index >= allCharacters.Count)
-                    {
-                        index = 0;
-                    }
-                }
-                else
-                {
-                    index--;
-                    if (index < 0)
-                    {
-                        index = allCharacters.Count - 1;
-                    }
-                }
-
-                var tryChar = allCharacters[index];
-
-                if (!characterPlayers.ContainsKey(tryChar))
-                {
-                    available = tryChar;
-                }
-
-                if (tryChar == currentCharacter)
-                {
-                    //It's looped all the way around and there are no available characters
-                    return currentCharacter;
-                }
-            }
-        }
-        else
-        {
-            print ("ERROR: No available player found in GetAvailableCharacter()");
-        }
-
-        return available;
-    }
-
-    private static void CleanupCharacterPlayerDictionaries()
-    {
-        var newCPDict = new Dictionary<Character, Player>();
-        var newPCDict  = new Dictionary<Player, Character>();
-        foreach (var cp in characterPlayers)
-        {
-            var c = cp.Key;
-            var p = cp.Value;
-            
-            if (
-                !c ||
-                !c.gameObject ||
-                !c.gameObject.activeSelf ||
-                
-                !p ||
-                !p.gameObject ||
-                !p.gameObject.activeSelf
-            )
-            {
-                continue;
-            }
-
-            //Both the player and character are still active
-            newCPDict[cp.Key] = cp.Value;
-        }
-        
-        foreach (var pc in playerCharacters)
-        {
-            var p = pc.Key;
-            var c = pc.Value;
-            
-            if (
-                !c ||
-                !c.gameObject ||
-                !c.gameObject.activeSelf ||
-                
-                !p ||
-                !p.gameObject ||
-                !p.gameObject.activeSelf
-            )
-            {
-                continue;
-            }
-            
-            //Both the player and character are still active
-            newPCDict[pc.Key] = pc.Value;
-        }
-        
-        characterPlayers = newCPDict;
-        playerCharacters = newPCDict;
     }
 
     public static int GetCount()

@@ -219,6 +219,11 @@ public class SinglePlayerCamera : MonoBehaviour
         
         var character = player.GetCharacter();
 
+        if (!character)
+        {
+            return;
+        }
+
         if (lockedCharacters.Contains(character))
         {
             lockedCharacters.Remove(character);

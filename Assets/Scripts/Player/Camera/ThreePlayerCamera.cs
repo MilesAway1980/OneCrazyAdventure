@@ -107,20 +107,7 @@ public class ThreePlayerCamera : MonoBehaviour
         distance[1] = Vector3.Distance(characters[0].transform.position, characters[2].transform.position);
         distance[2] = Vector3.Distance(characters[1].transform.position, characters[2].transform.position);
 
-        float greatestDistance;
-
-        if (distance[0] > distance[1] && distance[0] > distance[2])
-        {
-            greatestDistance = distance[0];
-        }
-        else if (distance[1] > distance[0] && distance[1] > distance[2])
-        {
-            greatestDistance = distance[1];
-        }
-        else
-        {
-            greatestDistance = distance[2];
-        }
+        float greatestDistance = Mathf.Max(distance[0], distance[1], distance[2]);
 
         if (greatestDistance <= splitDistance)
         {

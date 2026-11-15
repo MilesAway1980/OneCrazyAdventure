@@ -20,8 +20,10 @@ public class CharacterMove : MonoBehaviour
     private InputAction lookLock;
     private InputAction leaveAction;
 
-    private Character currentCharacter;
     private Player player;
+
+    // Who this player is controlling. Not kept here: CharacterControl has the record of it.
+    private Character currentCharacter => player ? player.character : null;
     
     PlayerInput playerInput;
 
@@ -89,8 +91,14 @@ public class CharacterMove : MonoBehaviour
             return;
         }
 
-        Vector2 moveValue = moveAction.ReadValue<Vector2>();
-        Vector2 lookValue = lookAction.ReadValue<Vector2>();
+        // Read every frame, even when there's nothing to apply it to, so the record of which buttons are down stays level
+        // with the real ones. A button still held when a menu closes, or a character is taken over, isn't a new press.
+        var input = ReadInput();
+
+        if (!currentCharacter)
+        {
+            return;
+        }
 
         // A hub menu this player has open takes all of their buttons, and their character stands still while it's open.
         if (HubMenu.IsOpenFor(player))
@@ -100,136 +108,101 @@ public class CharacterMove : MonoBehaviour
             currentCharacter.Action(false);
             currentCharacter.InteractHold(false);
 
-            HubMenu.Feed(
-                player,
-                moveValue,
-                jumpAction.WasPressedThisFrame(),
-                abilityAction.WasPressedThisFrame(),
-                interactAction.WasPressedThisFrame());
-
-            // Kept level with the buttons while the menu has them, so that one still held when it closes isn't taken for a new
-            // press, and one that was let go isn't taken for still down.
-            SetPressed(jumpAction, jumpAction.IsPressed());
-            SetPressed(abilityAction, abilityAction.IsPressed());
-            SetPressed(interactAction, interactAction.IsPressed());
-            SetPressed(prevAction, prevAction.IsPressed());
-            SetPressed(nextAction, nextAction.IsPressed());
-
+            HubMenu.Feed(player, input.move, input.jumpPressed, input.abilityPressed, input.interactPressed);
             return;
         }
 
-        currentCharacter.DirectionPress(moveValue);
+        ApplyInput(currentCharacter, input);
 
-        // Before the other buttons, so a character that wants one button held while another goes down sees it held when
-        // both are pressed on the same frame.
-        currentCharacter.InteractHold(interactAction.IsPressed());
+        CameraManager.Look(player, lookAction.ReadValue<Vector2>());
 
-        CameraManager.Look(player, lookValue);
-
-        if (jumpAction.IsPressed())
+        if (prevPressed)
         {
-            currentCharacter.Jump(true);
-            SetPressed(jumpAction, true);
-        }
-        else
-        {
-            currentCharacter.Jump(false);
-            SetPressed(jumpAction, false);
+            CharacterControl.Switch(player.id, false);
         }
 
-        if (abilityAction.IsPressed())
+        if (nextPressed)
         {
-            if (!GetPressed(abilityAction))
-            {
-                SetPressed(abilityAction, true);
-                currentCharacter.FirstActionPress();
-            }
-
-            //WasPressedThisFrame is for the button press (instant)
-            //WasPerformedThisFrame has the DefaultHoldTime delay (default is 0.4 seconds).  Same as useAction.triggered
-            //WasCompletedThisFrame has a release timer (Need to confirm which value)
-            //WasReleasedThisFrame is for the button release (instant)
-            
-            currentCharacter.Action(true);
-        }
-        else
-        {
-            SetPressed(abilityAction, false);
-            currentCharacter.Action(false);
-        }
-
-        if (prevAction.IsPressed())
-        {
-            if (!GetPressed(prevAction))
-            {
-                SetCurrentCharacter(Player.GetAvailableCharacter(player, true));
-                player.AssignCharacter(currentCharacter);
-                SetPressed(prevAction, true);
-            }
-        }
-        else
-        {
-            SetPressed(prevAction, false);
-        }
-
-        if (nextAction.IsPressed())
-        {
-            if (!GetPressed(nextAction))
-            {
-                SetCurrentCharacter(Player.GetAvailableCharacter(player, false));
-                player.AssignCharacter(currentCharacter);
-                SetPressed(nextAction, true);
-            }
-        }
-        else
-        {
-            SetPressed(nextAction, false);
+            CharacterControl.Switch(player.id, true);
         }
 
         if (zoomInAction.IsPressed())
         {
             CameraManager.Zoom(player, 1);
-            SetPressed(zoomInAction, true);
-        }
-        else
-        {
-            SetPressed(zoomInAction, false);
         }
 
         if (zoomOutAction.IsPressed())
         {
             CameraManager.Zoom(player, -1);
-            SetPressed(zoomOutAction, true);
-        }
-        else
-        {
-            SetPressed(zoomOutAction, false);
-        }
-        
-        if (lookLock.IsPressed())
-        {
-            if (!GetPressed(lookLock))
-            {
-                CameraManager.Lock(player);
-                SetPressed(lookLock, true);
-            }
-        }
-        else
-        {
-            SetPressed(lookLock, false);
         }
 
-        if (interactAction.IsPressed())
+        if (lockPressed)
         {
-            if (!GetPressed(interactAction))
-            {
-                SetPressed(interactAction, true);
-                currentCharacter.Interact();
-            }
+            CameraManager.Lock(player);
         }
-        else
+    }
+
+    // Whether the buttons that only concern this player's own machine went down this frame. Set by ReadInput.
+    private bool prevPressed;
+    private bool nextPressed;
+    private bool lockPressed;
+
+    // Reads this player's controls. What the character needs goes in the frame; the buttons about this player's own screen
+    // and about switching are left in the fields above.
+    private PlayerInputFrame ReadInput()
+    {
+        var input = new PlayerInputFrame
         {
-            SetPressed(interactAction, false);
+            move = moveAction.ReadValue<Vector2>(),
+            jumpHeld = jumpAction.IsPressed(),
+            abilityHeld = abilityAction.IsPressed(),
+            interactHeld = interactAction.IsPressed()
+        };
+
+        input.jumpPressed = input.jumpHeld && !GetPressed(jumpAction);
+        input.abilityPressed = input.abilityHeld && !GetPressed(abilityAction);
+        input.interactPressed = input.interactHeld && !GetPressed(interactAction);
+
+        var prevHeld = prevAction.IsPressed();
+        var nextHeld = nextAction.IsPressed();
+        var lockHeld = lookLock.IsPressed();
+
+        prevPressed = prevHeld && !GetPressed(prevAction);
+        nextPressed = nextHeld && !GetPressed(nextAction);
+        lockPressed = lockHeld && !GetPressed(lookLock);
+
+        SetPressed(jumpAction, input.jumpHeld);
+        SetPressed(abilityAction, input.abilityHeld);
+        SetPressed(interactAction, input.interactHeld);
+        SetPressed(prevAction, prevHeld);
+        SetPressed(nextAction, nextHeld);
+        SetPressed(lookLock, lockHeld);
+
+        return input;
+    }
+
+    // Does what a frame of input says to a character. This is the part that will run on the host, whichever machine the
+    // player is really on.
+    private static void ApplyInput(Character character, PlayerInputFrame input)
+    {
+        character.DirectionPress(input.move);
+
+        // Before the other buttons, so a character that wants one button held while another goes down sees it held when
+        // both are pressed on the same frame.
+        character.InteractHold(input.interactHeld);
+
+        character.Jump(input.jumpHeld);
+
+        if (input.abilityPressed)
+        {
+            character.FirstActionPress();
+        }
+
+        character.Action(input.abilityHeld);
+
+        if (input.interactPressed)
+        {
+            character.Interact();
         }
     }
 
@@ -275,35 +248,13 @@ public class CharacterMove : MonoBehaviour
     public void ReleaseControl()
     {
         ReleaseEverything();
-        SetCurrentCharacter(null);
-    }
 
-    public void AssignCharacter(Character c)
-    {
-        SetCurrentCharacter(c);
-    }
-
-    // Changes who the player controls, telling the character they're leaving and the one they're taking over.
-    private void SetCurrentCharacter(Character c)
-    {
-        if (c == currentCharacter)
+        if (player)
         {
-            return;
-        }
-
-        if (currentCharacter)
-        {
-            currentCharacter.ControlLost();
-        }
-
-        currentCharacter = c;
-
-        if (currentCharacter)
-        {
-            currentCharacter.ControlGained();
+            CharacterControl.Release(player.id);
         }
     }
-    
+
     private bool GetPressed(InputAction action)
     {
         bool pressed;

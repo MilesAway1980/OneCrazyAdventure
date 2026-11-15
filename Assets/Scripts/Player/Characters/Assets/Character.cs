@@ -917,6 +917,12 @@ namespace Characters
 
         public static List<Character> GetCharacters(bool enabledOnly)
         {
+            // Nobody has started yet, so there aren't any.
+            if (characters == null)
+            {
+                return new List<Character>();
+            }
+
             if (enabledOnly)
             {
                 return characters

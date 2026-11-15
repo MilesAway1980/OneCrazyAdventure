@@ -5,12 +5,59 @@ namespace Characters
 {
     // Glows normally, and brighter while the action is held. He stays as bright as he was left if the player moves to
     // another character, as characters are meant to work together.
+    //
+    // Standing at a LightSocket, holding Interact and then pressing the action screws him into it. He turns as he goes
+    // in, and sits there, held still, with his light made far larger by the socket. While Interact is held the action
+    // doesn't light him: he is only lit by being screwed in. He stays that way, even if the player moves to another
+    // character, until he is played again and the action is pressed, which screws him out.
     public class Bulb : Character
     {
         [Tooltip("The bulb's light. Its unlit look is the normal glow, and its lit look is the brighter glow while the action is held.")]
         [FormerlySerializedAs("useBrightness")]
         [FormerlySerializedAs("brightTileSource")]
         public LightTileSource lightTileSource;
+
+        [Header("Light Sockets")]
+        [Tooltip("Seconds he takes to screw himself into a socket, and the same to screw himself out of it.")]
+        public float screwSeconds = 0.8f;
+
+        [Tooltip("How many times he turns right round as he screws in or out.")]
+        public float screwTurns = 3f;
+
+        [Tooltip("How far, in units, he sinks into the socket as he's screwed in, below where he sits in it. He rises the same, and a little more, to come out.")]
+        public float screwDepth = 0.1f;
+
+        private enum State
+        {
+            Free,
+            Screwing,
+            Socketed,
+            Unscrewing
+        }
+
+        // How far above where he sits, in units, he's lifted as he is unscrewed, before he is let go.
+        private const float LiftOut = 0.2f;
+
+        private State state;
+        private LightSocket socket;
+        private Collider2D bodyCollider;
+
+        private bool interactHeld;
+        private bool actionHeld;
+
+        // Set when the action goes down while Interact is held, until the action is let go. That press is for the socket,
+        // so it doesn't light him.
+        private bool lightSuppressed;
+
+        // How far through screwing in or out he is, from 0 to 1.
+        private float progress;
+        private Vector2 startPosition;
+        private Vector2 seatedPosition;
+        private RigidbodyType2D bodyTypeBefore;
+
+        // His picture, which is what turns, and how it sat before.
+        private Transform picture;
+        private Vector3 pictureScale;
 
         protected override void Start()
         {
@@ -29,6 +76,65 @@ namespace Characters
             }
 
             base.Start();
+
+            bodyCollider = GetComponent<Collider2D>();
+
+            // Only the picture turns as he screws in. If it's on the same object as his body, that would turn the physics as
+            // well, so it is left alone.
+            if (spriteRenderer && spriteRenderer.transform != transform)
+            {
+                picture = spriteRenderer.transform;
+                pictureScale = picture.localScale;
+            }
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            switch (state)
+            {
+                case State.Screwing:
+                    UpdateScrewing();
+                    break;
+
+                case State.Socketed:
+                    // A socket that has gone, with him in it, lets him go.
+                    if (!socket)
+                    {
+                        FinishUnscrewing();
+                    }
+                    else
+                    {
+                        SetPosition(seatedPosition + Vector2.down * screwDepth);
+                    }
+
+                    break;
+
+                case State.Unscrewing:
+                    UpdateUnscrewing();
+                    break;
+            }
+        }
+
+        protected override void FixedUpdate()
+        {
+            base.FixedUpdate();
+
+            // He's moved by hand while he's in a socket, and the base class's gravity would otherwise carry him off.
+            if (state != State.Free)
+            {
+                rigidBody2D.linearVelocity = Vector2.zero;
+            }
+        }
+
+        // Taken out of the game while in a socket, he lets go of it so that it isn't left holding him.
+        void OnDisable()
+        {
+            if (state != State.Free)
+            {
+                FinishUnscrewing();
+            }
         }
 
         public override void DirectionPress(Vector2 directionValue)
@@ -39,20 +145,274 @@ namespace Characters
             }
         }
 
-        // Called every frame with whether the button is held, so the light is only told when that changes.
-        public override void Action(bool active)
+        public override void InteractHold(bool held)
         {
-            if (active == performingAction)
+            interactHeld = held;
+        }
+
+        // Interact does nothing while he is in a socket or going into or out of one, as it would try to pick up or work
+        // whatever is near.
+        public override void Interact()
+        {
+            if (state == State.Free)
+            {
+                base.Interact();
+            }
+        }
+
+        // Called once each time the action goes down. In a socket it unscrews him. With Interact held, it screws him into a
+        // socket he is at, if there is one, and either way doesn't light him.
+        public override void FirstActionPress()
+        {
+            if (state == State.Socketed)
+            {
+                StartUnscrewing();
+                return;
+            }
+
+            if (state != State.Free)
             {
                 return;
             }
 
-            performingAction = active;
+            lightSuppressed = interactHeld;
+
+            if (interactHeld)
+            {
+                var found = FindSocket();
+
+                if (found)
+                {
+                    StartScrewing(found);
+                }
+            }
+        }
+
+        // Called every frame with whether the button is held, so the light is only told when that changes. While he is
+        // screwed in, or going in or out, the light is the socket's, and the button only decides how he is once he's free.
+        public override void Action(bool active)
+        {
+            actionHeld = active;
+
+            if (!active)
+            {
+                lightSuppressed = false;
+            }
+
+            if (state != State.Free)
+            {
+                return;
+            }
+
+            var lit = active && !lightSuppressed;
+
+            if (lit == performingAction)
+            {
+                return;
+            }
+
+            performingAction = lit;
 
             if (lightTileSource)
             {
-                lightTileSource.SetLit(active);
+                lightTileSource.SetLit(lit);
             }
+        }
+
+        // The player has moved on to another character, so the buttons they were holding will never be seen let go. He
+        // stays screwed in.
+        public override void ControlLost()
+        {
+            actionHeld = false;
+            interactHeld = false;
+            lightSuppressed = false;
+        }
+
+        // The nearest free socket he is at, or null.
+        private LightSocket FindSocket()
+        {
+            if (!bodyCollider)
+            {
+                return null;
+            }
+
+            var bounds = bodyCollider.bounds;
+            LightSocket nearest = null;
+            var nearestDistance = float.MaxValue;
+
+            foreach (var candidate in LightSocket.Active)
+            {
+                if (!candidate || !candidate.IsFree || !candidate.Reaches(bounds))
+                {
+                    continue;
+                }
+
+                var distance = Vector2.Distance(candidate.SeatFor(bounds), bounds.center);
+
+                if (distance < nearestDistance)
+                {
+                    nearest = candidate;
+                    nearestDistance = distance;
+                }
+            }
+
+            return nearest;
+        }
+
+        private void StartScrewing(LightSocket target)
+        {
+            if (!target.TryOccupy(this))
+            {
+                return;
+            }
+
+            socket = target;
+            state = State.Screwing;
+            progress = 0f;
+            startPosition = rigidBody2D.position;
+
+            // The socket says where the middle of him goes, and what is moved is where his body is anchored, which may not
+            // be the middle of his collider.
+            var bounds = bodyCollider.bounds;
+            seatedPosition = socket.SeatFor(bounds) - ((Vector2)bounds.center - rigidBody2D.position);
+
+            // He's held by hand while he is in it, so the physics leaves him alone.
+            bodyTypeBefore = rigidBody2D.bodyType;
+            rigidBody2D.bodyType = RigidbodyType2D.Kinematic;
+            rigidBody2D.linearVelocity = Vector2.zero;
+            moveSpeed = 0f;
+
+            // He isn't lit while he is going in: his light waits until he is all the way in.
+            canMove = false;
+            performingAction = false;
+
+            if (lightTileSource)
+            {
+                lightTileSource.SetLit(false);
+            }
+        }
+
+        // All the way in. His light eases from how he glows when he's not lit up to the full brightness of the socket, over
+        // the socket's time.
+        private void FinishScrewing()
+        {
+            state = State.Socketed;
+            performingAction = true;
+
+            if (lightTileSource)
+            {
+                lightTileSource.SetLit(true, socket.boostSeconds);
+                lightTileSource.SetBoost(socket.radiusMultiplier, socket.intensityMultiplier, socket.boostSeconds);
+            }
+        }
+
+        private void UpdateScrewing()
+        {
+            if (!socket)
+            {
+                FinishUnscrewing();
+                return;
+            }
+
+            progress = Mathf.Min(1f, progress + Time.deltaTime / Mathf.Max(screwSeconds, 0.01f));
+
+            // Slides over to the socket and down into it, turning as he goes.
+            var ease = Mathf.SmoothStep(0f, 1f, progress);
+            SetPosition(Vector2.Lerp(startPosition, seatedPosition + Vector2.down * screwDepth, ease));
+            Turn(progress);
+
+            if (progress >= 1f)
+            {
+                FinishScrewing();
+            }
+        }
+
+        private void StartUnscrewing()
+        {
+            if (!socket)
+            {
+                FinishUnscrewing();
+                return;
+            }
+
+            state = State.Unscrewing;
+            progress = 0f;
+
+            // He's no longer lit as soon as he starts to come out: his light eases back to how he glows when he's not lit
+            // up, over the socket's time.
+            performingAction = false;
+
+            if (lightTileSource)
+            {
+                lightTileSource.SetLit(false, socket.boostSeconds);
+                lightTileSource.SetBoost(1f, 1f, socket.boostSeconds);
+            }
+        }
+
+        private void UpdateUnscrewing()
+        {
+            progress = Mathf.Min(1f, progress + Time.deltaTime / Mathf.Max(screwSeconds, 0.01f));
+
+            // Turns the other way, and rises up out of it.
+            var ease = Mathf.SmoothStep(0f, 1f, progress);
+            var from = seatedPosition + Vector2.down * screwDepth;
+            var to = seatedPosition + Vector2.up * LiftOut;
+
+            SetPosition(Vector2.Lerp(from, to, ease));
+            Turn(1f - progress);
+
+            if (progress >= 1f)
+            {
+                FinishUnscrewing();
+            }
+        }
+
+        // Lets go of the socket and is free again, with the light as the button says it should be.
+        private void FinishUnscrewing()
+        {
+            // His light settles back, over the socket's time, from wherever it has got to.
+            var settleSeconds = socket ? socket.boostSeconds : 0.3f;
+
+            if (socket)
+            {
+                socket.Release(this);
+                socket = null;
+            }
+
+            if (state != State.Free)
+            {
+                rigidBody2D.bodyType = bodyTypeBefore;
+                rigidBody2D.linearVelocity = Vector2.zero;
+            }
+
+            state = State.Free;
+            canMove = true;
+            Turn(0f);
+
+            var lit = actionHeld && !lightSuppressed;
+
+            performingAction = lit;
+
+            if (lightTileSource)
+            {
+                lightTileSource.SetLit(lit);
+                lightTileSource.SetBoost(1f, 1f, settleSeconds);
+            }
+        }
+
+        // Turns his picture about, as if he were being screwed round: it's squeezed in and flipped across as he goes round,
+        // 0 being upright and 1 being all the turns done.
+        private void Turn(float amount)
+        {
+            if (!picture)
+            {
+                return;
+            }
+
+            var scale = pictureScale;
+
+            scale.x = pictureScale.x * Mathf.Cos(amount * screwTurns * 2f * Mathf.PI);
+            picture.localScale = scale;
         }
     }
 }

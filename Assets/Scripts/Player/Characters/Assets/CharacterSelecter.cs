@@ -44,6 +44,9 @@ public class CharacterSelecter: MonoBehaviour
                 case "die":
                     add = characterScriptables.die;
                     break;
+                case "drill":
+                    add = characterScriptables.drill;
+                    break;
                 case "dynamite":
                     add = characterScriptables.dynamite;
                     break;

@@ -375,6 +375,35 @@ public class Map : MonoBehaviour
     // Raised just before a tile comes back, so that anything standing in its space can be moved out first.
     public static event Action<Vector2Int> TileCreating;
 
+    // Says that a tile is about to become solid where it is, without it being placed, for a tile that is already there and
+    // is only about to start colliding. Anything standing in its space is moved out first, as it would be for a new tile.
+    public static void AnnounceSolidTile(Vector2Int tilePosition)
+    {
+        TileCreating?.Invoke(tilePosition);
+    }
+
+    // Whether a tile that collides is in a space, on any of the tilemaps that collide. A tile whose collider has been
+    // switched off doesn't count.
+    public static bool HasSolidTile(int x, int y)
+    {
+        if (destructibleTilemaps == null)
+        {
+            return false;
+        }
+
+        var cell = new Vector3Int(x, y, 0);
+
+        foreach (var tilemap in destructibleTilemaps)
+        {
+            if (tilemap.HasTile(cell) && tilemap.GetColliderType(cell) != Tile.ColliderType.None)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static void CreateTile(int x, int y, List<(Tilemap, TileBase)> tiles)
     {
         TileCreating?.Invoke(new Vector2Int(x, y));

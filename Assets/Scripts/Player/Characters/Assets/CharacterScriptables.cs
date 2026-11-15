@@ -14,6 +14,7 @@ public class CharacterScriptables : ScriptableObject
         brick,
         bulb,
         die,
+        drill,
         dynamite,
         flashlight,
         ladder,

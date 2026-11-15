@@ -20,6 +20,7 @@ public static class TileBreakEffects
     public struct DebrisPlan
     {
         public Sprite[] pieces;
+        public Sprite whole;
         public Vector3 centre;
         public Vector3 quarterSize;
         public Vector3 scale;
@@ -29,8 +30,98 @@ public static class TileBreakEffects
         public int sortingOrder;
     }
 
+    // A tile's picture laid over it, to be darkened or shaken without touching the tile, whose solid part has to stay as it is.
+    public class TileOverlay
+    {
+        public Transform transform;
+        public SpriteRenderer renderer;
+        public Vector3 home;
+        public Color color;
+    }
+
+    // The picture of the tile on a tilemap, over the tile itself. Null if there is no picture to lay.
+    public static TileOverlay CreateOverlay(Tilemap tilemap, Vector3Int cell)
+    {
+        var sprite = tilemap.GetSprite(cell);
+        if (!sprite)
+        {
+            return null;
+        }
+
+        var pivot = tilemap.CellToWorld(cell) + tilemap.tileAnchor;
+
+        var overlayObject = new GameObject("Tile Warning");
+        overlayObject.transform.position = pivot;
+        overlayObject.transform.localScale = tilemap.transform.lossyScale;
+
+        var overlayRenderer = overlayObject.AddComponent<SpriteRenderer>();
+        overlayRenderer.sprite = sprite;
+        overlayRenderer.color = tilemap.GetColor(cell) * tilemap.color;
+
+        var tilemapRenderer = tilemap.GetComponent<TilemapRenderer>();
+        if (tilemapRenderer)
+        {
+            overlayRenderer.sortingLayerID = tilemapRenderer.sortingLayerID;
+            overlayRenderer.sortingOrder = tilemapRenderer.sortingOrder + 1;
+        }
+
+        return new TileOverlay
+        {
+            transform = overlayObject.transform,
+            renderer = overlayRenderer,
+            home = pivot,
+            color = overlayRenderer.color
+        };
+    }
+
+    // How many steps in front of the tilemap an effect is drawn, which puts it in front of the picture laid over a tile when
+    // it is showing a warning, which is one step in front of it.
+    private const int EffectsAhead = 2;
+
+    // Puts an effect in front of the tilemaps it is for. As it is made it is drawn at the sorting layer and order its prefab
+    // was given, usually the default, which is behind a tilemap, so it would not be seen. The order its parts have among
+    // themselves is kept.
+    public static void SortInFront(GameObject effect, IEnumerable<Tilemap> tilemaps)
+    {
+        var found = false;
+        var layerId = 0;
+        var order = 0;
+
+        // The front-most of the tilemaps, by layer first and then by order.
+        foreach (var tilemap in tilemaps)
+        {
+            var tilemapRenderer = tilemap.GetComponent<TilemapRenderer>();
+            if (!tilemapRenderer)
+            {
+                continue;
+            }
+
+            var layerValue = SortingLayer.GetLayerValueFromID(tilemapRenderer.sortingLayerID);
+
+            if (!found ||
+                layerValue > SortingLayer.GetLayerValueFromID(layerId) ||
+                (layerValue == SortingLayer.GetLayerValueFromID(layerId) && tilemapRenderer.sortingOrder > order))
+            {
+                found = true;
+                layerId = tilemapRenderer.sortingLayerID;
+                order = tilemapRenderer.sortingOrder;
+            }
+        }
+
+        if (!found)
+        {
+            return;
+        }
+
+        foreach (var part in effect.GetComponentsInChildren<Renderer>())
+        {
+            part.sortingLayerID = layerId;
+            part.sortingOrder = order + EffectsAhead + part.sortingOrder;
+        }
+    }
+
     // An effect where the tile was, removed once it has finished playing.
-    public static void Particles(GameObject prefab, Vector3 centre)
+    public static void Particles(GameObject prefab, Vector3 centre, IEnumerable<Tilemap> tilemaps)
     {
         if (!prefab)
         {
@@ -38,6 +129,7 @@ public static class TileBreakEffects
         }
 
         var effect = Object.Instantiate(prefab, centre, Quaternion.identity);
+        SortInFront(effect, tilemaps);
 
         var seconds = 0f;
         foreach (var system in effect.GetComponentsInChildren<ParticleSystem>())
@@ -86,6 +178,7 @@ public static class TileBreakEffects
         var pivot = tilemap.CellToWorld(cell) + tilemap.tileAnchor;
 
         plan.pieces = QuartersOf(sprite);
+        plan.whole = sprite;
         plan.scale = scale;
         plan.centre = pivot + Vector3.Scale(sprite.bounds.center, scale);
         plan.quarterSize = new Vector3(sprite.bounds.size.x * 0.25f * scale.x, sprite.bounds.size.y * 0.25f * scale.y, 0f);
@@ -103,8 +196,9 @@ public static class TileBreakEffects
     }
 
     // The tile's own sprite as four pieces. If something hit it, they are thrown the way it was going, a little either way.
-    // If nothing did, they are thrown out from the middle of the tile in random directions.
-    public static void ThrowDebris(DebrisPlan plan, DamageableTileOptions options, Vector2 impact)
+    // If nothing did, they are thrown out from the middle of the tile in random directions. If they are to drop, they are
+    // not thrown at all, and just fall.
+    public static void ThrowDebris(DebrisPlan plan, DamageableTileOptions options, Vector2 impact, bool drop)
     {
         var layer = LayerMask.NameToLayer(DebrisLayerName);
 
@@ -121,39 +215,13 @@ public static class TileBreakEffects
             var side = new Vector3(i % 2 == 0 ? -1f : 1f, i / 2 == 0 ? -1f : 1f, 0f);
             var offset = Vector3.Scale(side, plan.quarterSize);
 
-            var pieceObject = new GameObject("Tile Debris");
-            pieceObject.transform.position = plan.centre + offset;
+            var body = MakePiece(plan, plan.pieces[i], plan.centre + offset, options, layer);
 
-            // The picture is a child of its own, on the default layer, so that every camera draws it however its culling
-            // mask is set. Only the body, which the physics sees, is on the debris layer.
-            var pictureObject = new GameObject("Picture");
-            pictureObject.transform.SetParent(pieceObject.transform, false);
-            pictureObject.transform.localScale = plan.scale;
-
-            var pieceRenderer = pictureObject.AddComponent<SpriteRenderer>();
-            pieceRenderer.sprite = plan.pieces[i];
-            pieceRenderer.color = plan.color;
-
-            if (plan.sorted)
+            // A floor giving way under someone isn't thrown anywhere: it just drops, still spinning a little.
+            if (drop)
             {
-                pieceRenderer.sortingLayerID = plan.sortingLayerID;
-                pieceRenderer.sortingOrder = plan.sortingOrder;
+                continue;
             }
-
-            if (layer >= 0)
-            {
-                pieceObject.layer = layer;
-
-                var box = pieceObject.AddComponent<BoxCollider2D>();
-                box.size = Vector2.Scale(plan.pieces[i].bounds.size, plan.scale);
-            }
-
-            var body = pieceObject.AddComponent<Rigidbody2D>();
-            body.gravityScale = options.debrisGravityScale;
-            body.angularVelocity = Random.Range(-options.debrisSpin, options.debrisSpin);
-
-            // A small piece thrown fast at something thin could go straight through it.
-            body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
             // The way it was hit, or out from the middle of the tile if it wasn't, a little either way, and always with a
             // kick upward, so that a piece from the bottom doesn't just drop. When it was hit, some of the speed it hit
@@ -169,9 +237,63 @@ public static class TileBreakEffects
             var direction = new Vector2(Mathf.Cos(heading * Mathf.Deg2Rad), Mathf.Sin(heading * Mathf.Deg2Rad));
             var thrown = speed + impact.magnitude * options.debrisImpactShare;
             body.linearVelocity = direction * thrown + Vector2.up * speed * 0.5f;
-
-            pieceObject.AddComponent<TileDebris>().Begin(pieceRenderer, options.debrisSeconds);
         }
+    }
+
+    // One piece of a broken tile, or all of it: a body on the debris layer with its picture on a child of its own, which falls
+    // and fades away in the debris time. It's made with a spin, and falls with the gravity, set on the options.
+    private static Rigidbody2D MakePiece(DebrisPlan plan, Sprite sprite, Vector3 position, DamageableTileOptions options, int layer)
+    {
+        var pieceObject = new GameObject("Tile Debris");
+        pieceObject.transform.position = position;
+
+        // The picture is a child of its own, on the default layer, so that every camera draws it however its culling
+        // mask is set. Only the body, which the physics sees, is on the debris layer.
+        var pictureObject = new GameObject("Picture");
+        pictureObject.transform.SetParent(pieceObject.transform, false);
+        pictureObject.transform.localScale = plan.scale;
+
+        var pieceRenderer = pictureObject.AddComponent<SpriteRenderer>();
+        pieceRenderer.sprite = sprite;
+        pieceRenderer.color = plan.color;
+
+        if (plan.sorted)
+        {
+            pieceRenderer.sortingLayerID = plan.sortingLayerID;
+            pieceRenderer.sortingOrder = plan.sortingOrder;
+        }
+
+        if (layer >= 0)
+        {
+            pieceObject.layer = layer;
+
+            var box = pieceObject.AddComponent<BoxCollider2D>();
+            box.size = Vector2.Scale(sprite.bounds.size, plan.scale);
+        }
+
+        var body = pieceObject.AddComponent<Rigidbody2D>();
+        body.gravityScale = options.debrisGravityScale;
+        body.angularVelocity = Random.Range(-options.debrisSpin, options.debrisSpin);
+
+        // A small piece thrown fast at something thin could go straight through it.
+        body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+
+        pieceObject.AddComponent<TileDebris>().Begin(pieceRenderer, options.debrisSeconds);
+
+        return body;
+    }
+
+    // The whole of the tile as one solid block, knocked loose by a blast: it is thrown at the speed given, which is the
+    // blast's push divided by the block's mass, falls, lands on the ground, and fades away in the debris time.
+    public static void ThrowBlock(DebrisPlan plan, DamageableTileOptions options, Vector2 push)
+    {
+        var layer = LayerMask.NameToLayer(DebrisLayerName);
+
+        var body = MakePiece(plan, plan.whole, plan.centre, options, layer);
+
+        // A mass of nothing would send it off at an endless speed.
+        body.mass = options.dynamiteMass > 0.01f ? options.dynamiteMass : 1f;
+        body.linearVelocity = push / body.mass;
     }
 
     // A sprite cut into four: bottom left, bottom right, top left, top right. Each is turned about its own middle. They

@@ -106,6 +106,8 @@ namespace Characters
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
             rigidBody2D = GetComponent<Rigidbody2D>();
 
+            CanTriggerFloorCollapse.EnsureOn(gameObject);
+
             lastSafePosition = rigidBody2D.position;
 
             // Every character starts this, but it's taken off first so that it's never on twice.
@@ -396,6 +398,26 @@ namespace Characters
 
         // Called just before a tile comes back, so that whoever is where it is going is dealt with before it has a
         // collider that would push them out somewhere else.
+        // Whether any character is in the space of a cell, by the very test that decides a returning tile has to make room
+        // for them, so that a tile which waits for the space to be clear waits for exactly the characters it would push.
+        public static bool AnyCharacterInCell(Vector2Int cell)
+        {
+            if (characters == null)
+            {
+                return false;
+            }
+
+            foreach (var character in characters)
+            {
+                if (character && character.isActiveAndEnabled && character.ReachesIntoCell(cell))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static void MakeRoomForTile(Vector2Int cell)
         {
             if (characters == null)
@@ -756,6 +778,12 @@ namespace Characters
             }
 
             return CameraManager.GetCameraForPlayer(lastPlayer);
+        }
+
+        // Called every frame with whether the Interact button is held, for a character that does something with it held down,
+        // such as in combination with another button. Interact() below is called once as it goes down.
+        public virtual void InteractHold(bool held)
+        {
         }
 
         public virtual void Interact()

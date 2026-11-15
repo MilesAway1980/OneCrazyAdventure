@@ -882,6 +882,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &22184164
 GameObject:
   m_ObjectHideFlags: 0
@@ -1011,6 +1016,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1001 &37953456
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1150,6 +1160,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &40944142
 GameObject:
   m_ObjectHideFlags: 0
@@ -1196,6 +1211,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &42001188
 GameObject:
   m_ObjectHideFlags: 0
@@ -1253,6 +1273,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 8222420645925065664, guid: 719461a63f8f4a24492cf9c62bf2f101, type: 3}
   ableToClimbObjects: 0
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 0}
   canJump: 0
   isJumping: 0
@@ -1260,6 +1281,11 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  safePushSpeed: 6
+  solidMass: 50
+  blockedFlashSeconds: 0.3
+  blockedColor: {r: 1, g: 0, b: 0, a: 1}
+  blockedShakeDistance: 0.06
 --- !u!60 &42001191
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -2661,6 +2687,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &108932349
 GameObject:
   m_ObjectHideFlags: 0
@@ -3362,6 +3393,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &133011310
 GameObject:
   m_ObjectHideFlags: 0
@@ -3408,6 +3444,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &134261320
 GameObject:
   m_ObjectHideFlags: 0
@@ -3648,6 +3689,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &141533234
 Sprite:
   serializedVersion: 2
@@ -4726,6 +4772,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &160104847
 GameObject:
   m_ObjectHideFlags: 0
@@ -4772,6 +4823,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &165513485
 GameObject:
   m_ObjectHideFlags: 0
@@ -4818,6 +4874,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 0
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &173846894
 GameObject:
   m_ObjectHideFlags: 0
@@ -5861,6 +5922,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &211083012
 GameObject:
   m_ObjectHideFlags: 0
@@ -7361,6 +7427,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &254366025
 GameObject:
   m_ObjectHideFlags: 0
@@ -7914,6 +7985,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 270
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &271762261
 Sprite:
   serializedVersion: 2
@@ -8174,6 +8250,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 1503633885216737041, guid: e7c99765b55578c468a17a6f20161b9e, type: 3}
   ableToClimbObjects: 1
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 0}
   canJump: 0
   isJumping: 0
@@ -8181,7 +8258,9 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  safePushSpeed: 6
   magneticField: {fileID: 17233890}
+  pullStrength: 500
 --- !u!61 &283898230
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -8390,6 +8469,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &286774234
 GameObject:
   m_ObjectHideFlags: 0
@@ -8436,6 +8520,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &287358055
 GameObject:
   m_ObjectHideFlags: 0
@@ -8546,6 +8635,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &300328581
 GameObject:
   m_ObjectHideFlags: 0
@@ -8729,6 +8823,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &303424438
 GameObject:
   m_ObjectHideFlags: 0
@@ -8775,6 +8874,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 0
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &306362034
 Sprite:
   serializedVersion: 2
@@ -9167,6 +9271,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &330207680
 GameObject:
   m_ObjectHideFlags: 0
@@ -9213,6 +9322,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &331027522
 GameObject:
   m_ObjectHideFlags: 0
@@ -9756,6 +9870,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &342280454
 Sprite:
   serializedVersion: 2
@@ -10022,6 +10141,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 180
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &343543742
 GameObject:
   m_ObjectHideFlags: 0
@@ -10068,6 +10192,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &350892695
 GameObject:
   m_ObjectHideFlags: 0
@@ -10114,6 +10243,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &352807742
 GameObject:
   m_ObjectHideFlags: 0
@@ -10225,6 +10359,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &375568892
 GameObject:
   m_ObjectHideFlags: 0
@@ -16243,6 +16382,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &393638769
 GameObject:
   m_ObjectHideFlags: 0
@@ -27217,6 +27361,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &427469915
 GameObject:
   m_ObjectHideFlags: 0
@@ -28284,6 +28433,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &443140342
 GameObject:
   m_ObjectHideFlags: 0
@@ -29076,6 +29230,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 0
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &478346198
 GameObject:
   m_ObjectHideFlags: 0
@@ -29156,6 +29315,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!114 &483239335
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29236,6 +29400,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 180
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &483658660
 GameObject:
   m_ObjectHideFlags: 0
@@ -29962,6 +30131,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: -9040066027271528005, guid: 2643f3182bdcfd842a1f3a43ba456a54, type: 3}
   ableToClimbObjects: 0
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 952813415}
   canJump: 0
   isJumping: 0
@@ -29969,6 +30139,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  safePushSpeed: 6
 --- !u!50 &495229748
 Rigidbody2D:
   serializedVersion: 5
@@ -30064,8 +30235,37 @@ MonoBehaviour:
   fire: 0
   dynamite: 0
   timeStayDestroyed: 1
+  breakEffect: 0
+  breakParticles: {fileID: 0}
+  breakSound: {fileID: 0}
+  debrisMinSpeed: 2
+  debrisMaxSpeed: 5
+  debrisSpread: 45
+  debrisImpactShare: 0.3
+  debrisSpin: 360
+  debrisGravityScale: 1
+  debrisSeconds: 3
   rollSpeedNeeded: 4
   standOnTimeNeeded: 0
+  standOnWeightNeeded: 0
+  standOnWeightsAdd: 1
+  digHardness: 5
+  fireIntensityNeeded: 0
+  fireReach: 0
+  fireIgniteSeconds: 1
+  fireCoolSeconds: 2
+  fireSpreadSeconds: 0.5
+  fireBurnIntensity: 0
+  fireBurnSeconds: 2
+  fireWarning: 0
+  fireGlowAmount: 0.7
+  fireCharAmount: 0.8
+  fireFlames: {fileID: 0}
+  touchTimeNeeded: 0
+  crumbleWarning: 0
+  crumbleWarningType: 0
+  warningDarkness: 0.5
+  warningShake: 0.04
   dynamiteMass: 0
   dynamiteForceNeeded: 0
   All: 1
@@ -32396,6 +32596,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -32673,6 +32878,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 90
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &537163426
 Sprite:
   serializedVersion: 2
@@ -33099,6 +33309,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &558345286
 GameObject:
   m_ObjectHideFlags: 0
@@ -33212,6 +33427,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &572145265
 Sprite:
   serializedVersion: 2
@@ -34266,6 +34486,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &587490226
 GameObject:
   m_ObjectHideFlags: 0
@@ -34551,6 +34776,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 0}
   ableToClimbObjects: 1
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 0}
   canJump: 0
   isJumping: 0
@@ -34558,6 +34784,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  safePushSpeed: 6
 --- !u!114 &588356885
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34768,6 +34995,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &599690469
 GameObject:
   m_ObjectHideFlags: 0
@@ -35358,6 +35590,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &608628000
 GameObject:
   m_ObjectHideFlags: 0
@@ -36117,6 +36354,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 0
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &627732656
 GameObject:
   m_ObjectHideFlags: 0
@@ -36209,9 +36451,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba647ae0b1bdd05459d00980563bacb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightSource
-  maxBrightness: 6
-  minBrightness: 4
-  glowSpeedSeconds: 5
+  litLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  unlitLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  fadeSeconds: 0
+  timeUntilGoOut: 0
+  timeLeftUntilSnuff: 0
+  randomizeStart: 1
+  overrideGlobalShadows: 0
+  castShadows: 1
+  shadowStrength: 0.75
+  shadowSoftness: 0.3
+  shadowFalloffStrength: 0.5
+  lit: 1
 --- !u!114 &627732659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -36224,9 +36505,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba647ae0b1bdd05459d00980563bacb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightSource
-  maxBrightness: 0.3
-  minBrightness: 0.1
-  glowSpeedSeconds: 5
+  litLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  unlitLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  fadeSeconds: 0
+  timeUntilGoOut: 0
+  timeLeftUntilSnuff: 0
+  randomizeStart: 1
+  overrideGlobalShadows: 0
+  castShadows: 1
+  shadowStrength: 0.75
+  shadowSoftness: 0.3
+  shadowFalloffStrength: 0.5
+  lit: 1
 --- !u!114 &627732660
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -36239,14 +36559,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8795ad32536a22479c79c1fc122373c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  lit: 0
   unlitSprite: {fileID: 1695584319382367903, guid: 1bdd2f62c51e22a4db3c5f66c2223837, type: 3}
   litSprite: {fileID: 5687100583578570338, guid: d0e1f9f50b9dc5d4f9ef7bbcb62f0c5b, type: 3}
-  BrightTileSourceOn: {fileID: 627732658}
-  BrightTileSourceOff: {fileID: 627732659}
-  lightColorOn: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  lightColorOff: {r: 0.3, g: 0.3, b: 0.3, a: 1}
-  timeUntilGoOut: 10
+  lightTileSource: {fileID: 0}
 --- !u!4 &627732661
 Transform:
   m_ObjectHideFlags: 0
@@ -36340,6 +36655,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 90
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &635913763
 GameObject:
   m_ObjectHideFlags: 0
@@ -36650,6 +36970,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &646256872
 GameObject:
   m_ObjectHideFlags: 0
@@ -36729,6 +37054,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &650302257
 GameObject:
   m_ObjectHideFlags: 0
@@ -36775,6 +37105,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &655214729
 Sprite:
   serializedVersion: 2
@@ -37364,6 +37699,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &658574217
 GameObject:
   m_ObjectHideFlags: 0
@@ -37410,6 +37750,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &660195478
 GameObject:
   m_ObjectHideFlags: 0
@@ -37456,6 +37801,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &660856366
 GameObject:
   m_ObjectHideFlags: 0
@@ -37502,6 +37852,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 180
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &663780437
 GameObject:
   m_ObjectHideFlags: 0
@@ -38066,6 +38421,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &706151652
 GameObject:
   m_ObjectHideFlags: 0
@@ -38456,9 +38816,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba647ae0b1bdd05459d00980563bacb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightSource
-  maxBrightness: 12
-  minBrightness: 10
-  glowSpeedSeconds: 5
+  litLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  unlitLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  fadeSeconds: 0
+  timeUntilGoOut: 0
+  timeLeftUntilSnuff: 0
+  randomizeStart: 1
+  overrideGlobalShadows: 0
+  castShadows: 1
+  shadowStrength: 0.75
+  shadowSoftness: 0.3
+  shadowFalloffStrength: 0.5
+  lit: 1
 --- !u!114 &707728838
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38471,9 +38870,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba647ae0b1bdd05459d00980563bacb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  maxBrightness: 8
-  minBrightness: 8
-  glowSpeedSeconds: 5
+  litLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  unlitLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  fadeSeconds: 0
+  timeUntilGoOut: 0
+  timeLeftUntilSnuff: 0
+  randomizeStart: 1
+  overrideGlobalShadows: 0
+  castShadows: 1
+  shadowStrength: 0.75
+  shadowSoftness: 0.3
+  shadowFalloffStrength: 0.5
+  lit: 1
 --- !u!50 &707728839
 Rigidbody2D:
   serializedVersion: 5
@@ -38520,6 +38958,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 74028513331018032, guid: b5dc49fecc4e5594b82e241402867f5f, type: 3}
   ableToClimbObjects: 1
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 0}
   canJump: 0
   isJumping: 0
@@ -38527,6 +38966,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  safePushSpeed: 6
   chargeValueIncreaseSpeed: 1
   maximumChargeValue: 3
   chargeValue: 0
@@ -38534,13 +38974,16 @@ MonoBehaviour:
   explosionDistance: 8
   explosionResetTimeSeconds: 5
   exploded: 0
-  charging: 0
   explodingTime: 0
   explodedSprite: {fileID: 6028646901463868241, guid: 4f7701af401040448a9bcf8968d0f994, type: 3}
-  explodedJumpSprite: {fileID: 0}
   explosionPiece: {fileID: 847311710}
   numExplosionPieces: 20
-  pieceCount: 0
+  chargeMeter:
+    show: 1
+    width: 0.2
+    height: 0.04
+    margin: 0.03
+    showSeconds: 0.5
 --- !u!114 &707728841
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38602,6 +39045,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &709241946
 GameObject:
   m_ObjectHideFlags: 0
@@ -39285,6 +39733,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!114 &729538615
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -39365,6 +39818,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 90
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &747724480
 GameObject:
   m_ObjectHideFlags: 0
@@ -39411,6 +39869,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 270
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &748711359
 GameObject:
   m_ObjectHideFlags: 0
@@ -39549,6 +40012,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &764569010
 GameObject:
   m_ObjectHideFlags: 0
@@ -39651,6 +40119,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &772088120
 GameObject:
   m_ObjectHideFlags: 0
@@ -39729,6 +40202,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &778486448
 GameObject:
   m_ObjectHideFlags: 0
@@ -39775,6 +40253,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &780149695
 GameObject:
   m_ObjectHideFlags: 0
@@ -39821,6 +40304,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &782394653
 GameObject:
   m_ObjectHideFlags: 0
@@ -39867,6 +40355,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &783959280
 GameObject:
   m_ObjectHideFlags: 0
@@ -40555,6 +41048,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 90
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &827040684
 GameObject:
   m_ObjectHideFlags: 0
@@ -40727,6 +41225,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &836787205
 Sprite:
   serializedVersion: 2
@@ -42015,8 +42518,37 @@ MonoBehaviour:
   fire: 0
   dynamite: 0
   timeStayDestroyed: 5
+  breakEffect: 0
+  breakParticles: {fileID: 0}
+  breakSound: {fileID: 0}
+  debrisMinSpeed: 2
+  debrisMaxSpeed: 5
+  debrisSpread: 45
+  debrisImpactShare: 0.3
+  debrisSpin: 360
+  debrisGravityScale: 1
+  debrisSeconds: 3
   rollSpeedNeeded: 0
   standOnTimeNeeded: 0.25
+  standOnWeightNeeded: 0
+  standOnWeightsAdd: 1
+  digHardness: 5
+  fireIntensityNeeded: 0
+  fireReach: 0
+  fireIgniteSeconds: 1
+  fireCoolSeconds: 2
+  fireSpreadSeconds: 0.5
+  fireBurnIntensity: 0
+  fireBurnSeconds: 2
+  fireWarning: 0
+  fireGlowAmount: 0.7
+  fireCharAmount: 0.8
+  fireFlames: {fileID: 0}
+  touchTimeNeeded: 0
+  crumbleWarning: 0
+  crumbleWarningType: 0
+  warningDarkness: 0.5
+  warningShake: 0.04
   dynamiteMass: 0
   dynamiteForceNeeded: 0
   All: 0
@@ -42406,6 +42938,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!114 &865521320
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43096,9 +43633,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba647ae0b1bdd05459d00980563bacb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightSource
-  maxBrightness: 6
-  minBrightness: 4
-  glowSpeedSeconds: 5
+  litLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  unlitLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  fadeSeconds: 0
+  timeUntilGoOut: 0
+  timeLeftUntilSnuff: 0
+  randomizeStart: 1
+  overrideGlobalShadows: 0
+  castShadows: 1
+  shadowStrength: 0.75
+  shadowSoftness: 0.3
+  shadowFalloffStrength: 0.5
+  lit: 1
 --- !u!114 &881650674
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43111,9 +43687,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba647ae0b1bdd05459d00980563bacb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightSource
-  maxBrightness: 0.3
-  minBrightness: 0.1
-  glowSpeedSeconds: 5
+  litLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  unlitLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  fadeSeconds: 0
+  timeUntilGoOut: 0
+  timeLeftUntilSnuff: 0
+  randomizeStart: 1
+  overrideGlobalShadows: 0
+  castShadows: 1
+  shadowStrength: 0.75
+  shadowSoftness: 0.3
+  shadowFalloffStrength: 0.5
+  lit: 1
 --- !u!114 &881650675
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43126,14 +43741,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8795ad32536a22479c79c1fc122373c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  lit: 0
   unlitSprite: {fileID: 1695584319382367903, guid: 1bdd2f62c51e22a4db3c5f66c2223837, type: 3}
   litSprite: {fileID: 5687100583578570338, guid: d0e1f9f50b9dc5d4f9ef7bbcb62f0c5b, type: 3}
-  BrightTileSourceOn: {fileID: 881650673}
-  BrightTileSourceOff: {fileID: 881650674}
-  lightColorOn: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  lightColorOff: {r: 0.3, g: 0.3, b: 0.3, a: 1}
-  timeUntilGoOut: 10
+  lightTileSource: {fileID: 0}
 --- !u!4 &881650676
 Transform:
   m_ObjectHideFlags: 0
@@ -43195,6 +43805,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 180
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &888981562
 Sprite:
   serializedVersion: 2
@@ -43461,6 +44076,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &915184737
 GameObject:
   m_ObjectHideFlags: 0
@@ -43507,6 +44127,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &915216105
 GameObject:
   m_ObjectHideFlags: 0
@@ -43665,9 +44290,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba647ae0b1bdd05459d00980563bacb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightSource
-  maxBrightness: 0.3
-  minBrightness: 0.1
-  glowSpeedSeconds: 5
+  litLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  unlitLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  fadeSeconds: 0
+  timeUntilGoOut: 0
+  timeLeftUntilSnuff: 0
+  randomizeStart: 1
+  overrideGlobalShadows: 0
+  castShadows: 1
+  shadowStrength: 0.75
+  shadowSoftness: 0.3
+  shadowFalloffStrength: 0.5
+  lit: 1
 --- !u!114 &917302870
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43680,14 +44344,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8795ad32536a22479c79c1fc122373c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  lit: 0
   unlitSprite: {fileID: 1695584319382367903, guid: 1bdd2f62c51e22a4db3c5f66c2223837, type: 3}
   litSprite: {fileID: 5687100583578570338, guid: d0e1f9f50b9dc5d4f9ef7bbcb62f0c5b, type: 3}
-  BrightTileSourceOn: {fileID: 917302873}
-  BrightTileSourceOff: {fileID: 917302869}
-  lightColorOn: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  lightColorOff: {r: 0.3, g: 0.3, b: 0.3, a: 1}
-  timeUntilGoOut: 10
+  lightTileSource: {fileID: 0}
 --- !u!4 &917302871
 Transform:
   m_ObjectHideFlags: 0
@@ -43775,9 +44434,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba647ae0b1bdd05459d00980563bacb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightSource
-  maxBrightness: 6
-  minBrightness: 4
-  glowSpeedSeconds: 5
+  litLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  unlitLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  fadeSeconds: 0
+  timeUntilGoOut: 0
+  timeLeftUntilSnuff: 0
+  randomizeStart: 1
+  overrideGlobalShadows: 0
+  castShadows: 1
+  shadowStrength: 0.75
+  shadowSoftness: 0.3
+  shadowFalloffStrength: 0.5
+  lit: 1
 --- !u!114 &917302874
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43792,6 +44490,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HeatSource
   heatLevel: 0
   heatRange: 0
+  fireIntensity: 0
 --- !u!1 &922478177
 GameObject:
   m_ObjectHideFlags: 0
@@ -43838,6 +44537,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1001 &922818206
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -43972,6 +44676,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &926566472
 GameObject:
   m_ObjectHideFlags: 0
@@ -44205,6 +44914,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 8449846327658253523, guid: 31c0a889eb919f74f9a085029e04efa4, type: 3}
   ableToClimbObjects: 1
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 0}
   canJump: 0
   isJumping: 0
@@ -44212,7 +44922,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
-  rotationDampening: 0.6
+  safePushSpeed: 6
 --- !u!58 &939940528
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -44316,6 +45026,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e4dd5e407ca33942a78e1e31740b688, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  speedMemorySeconds: 0.1
 --- !u!114 &939940535
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -45013,6 +45724,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &968257915
 GameObject:
   m_ObjectHideFlags: 0
@@ -45059,6 +45775,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &970062741
 GameObject:
   m_ObjectHideFlags: 0
@@ -45150,6 +45871,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 0}
   ableToClimbObjects: 1
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 0}
   canJump: 0
   isJumping: 0
@@ -45157,6 +45879,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  safePushSpeed: 6
 --- !u!114 &979788440
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -45340,6 +46063,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 5266067843512441219, guid: 9a96b84297b0af64480c0f364f21c51c, type: 3}
   ableToClimbObjects: 0
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 0}
   canJump: 0
   isJumping: 0
@@ -45347,13 +46071,20 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  safePushSpeed: 6
   topSprite: {fileID: 9194697038958268012, guid: eb258c72312855c48b23dbe24ba83e9f, type: 3}
   middleSprite: {fileID: 2230356097183057040, guid: 49bda06bd348a5847a923cbe91345b2c, type: 3}
   bottomSprite: {fileID: 7131158389173710736, guid: 0fccf38930264a24fa9f5558c633dbca, type: 3}
   maxLength: 20
   extendSpeed: 3
   addLadderDistance: 2.5
-  extendLength: 0
+  doubleTapSeconds: 0.3
+  heightMeter:
+    show: 1
+    width: 0.2
+    height: 0.04
+    margin: 0.03
+    showSeconds: 1.5
 --- !u!61 &985510096
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -45631,6 +46362,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &992178313
 GameObject:
   m_ObjectHideFlags: 0
@@ -45677,6 +46413,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &993109698
 GameObject:
   m_ObjectHideFlags: 0
@@ -45884,6 +46625,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 0}
   ableToClimbObjects: 1
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 483658662}
   canJump: 0
   isJumping: 0
@@ -45891,6 +46633,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  safePushSpeed: 6
 --- !u!114 &1017972212
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46125,6 +46868,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 270
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1028670838
 GameObject:
   m_ObjectHideFlags: 0
@@ -46171,6 +46919,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!114 &1029021171
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46251,6 +47004,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1050289735
 GameObject:
   m_ObjectHideFlags: 0
@@ -46376,8 +47134,37 @@ MonoBehaviour:
   fire: 1
   dynamite: 1
   timeStayDestroyed: 5
+  breakEffect: 0
+  breakParticles: {fileID: 0}
+  breakSound: {fileID: 0}
+  debrisMinSpeed: 2
+  debrisMaxSpeed: 5
+  debrisSpread: 45
+  debrisImpactShare: 0.3
+  debrisSpin: 360
+  debrisGravityScale: 1
+  debrisSeconds: 3
   rollSpeedNeeded: 0
   standOnTimeNeeded: 0
+  standOnWeightNeeded: 0
+  standOnWeightsAdd: 1
+  digHardness: 5
+  fireIntensityNeeded: 0
+  fireReach: 0
+  fireIgniteSeconds: 1
+  fireCoolSeconds: 2
+  fireSpreadSeconds: 0.5
+  fireBurnIntensity: 0
+  fireBurnSeconds: 2
+  fireWarning: 0
+  fireGlowAmount: 0.7
+  fireCharAmount: 0.8
+  fireFlames: {fileID: 0}
+  touchTimeNeeded: 0
+  crumbleWarning: 0
+  crumbleWarningType: 0
+  warningDarkness: 0.5
+  warningShake: 0.04
   dynamiteMass: 20
   dynamiteForceNeeded: 500
   All: 0
@@ -47678,6 +48465,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1090181007
 GameObject:
   m_ObjectHideFlags: 0
@@ -47724,6 +48516,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1093459963
 GameObject:
   m_ObjectHideFlags: 0
@@ -47770,6 +48567,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &1097818390
 Sprite:
   serializedVersion: 2
@@ -48356,6 +49158,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1110231891
 GameObject:
   m_ObjectHideFlags: 0
@@ -48402,6 +49209,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1114407075
 GameObject:
   m_ObjectHideFlags: 0
@@ -48700,6 +49512,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 270
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1144373266
 GameObject:
   m_ObjectHideFlags: 0
@@ -50172,6 +50989,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!114 &1169773943
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -50252,6 +51074,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &1176365926
 Sprite:
   serializedVersion: 2
@@ -50849,6 +51676,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 180
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1186756297
 GameObject:
   m_ObjectHideFlags: 0
@@ -51509,6 +52341,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1204795379
 GameObject:
   m_ObjectHideFlags: 0
@@ -52029,6 +52866,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 0
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1223737002
 GameObject:
   m_ObjectHideFlags: 0
@@ -52717,6 +53559,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 0
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!114 &1261635071
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -52797,6 +53644,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 90
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1272020383
 GameObject:
   m_ObjectHideFlags: 0
@@ -52921,6 +53773,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 180
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &1280936127
 Sprite:
   serializedVersion: 2
@@ -53255,6 +54112,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1288970536
 GameObject:
   m_ObjectHideFlags: 0
@@ -53511,6 +54373,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 866321261500228947, guid: 548e7aa85b1b9094b94a0977112c6c77, type: 3}
   ableToClimbObjects: 0
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 0}
   canJump: 0
   isJumping: 0
@@ -53518,7 +54381,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
-  floatGravity: 0
+  safePushSpeed: 6
 --- !u!50 &1291881455
 Rigidbody2D:
   serializedVersion: 5
@@ -53676,6 +54539,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 5235885327376912685, guid: 195e04babd213b64583c90254e561956, type: 3}
   ableToClimbObjects: 1
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 850779131}
   canJump: 0
   isJumping: 0
@@ -53683,8 +54547,8 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
-  normalBrightness: {fileID: 1292292092}
-  useBrightness: {fileID: 1292292091}
+  safePushSpeed: 6
+  lightTileSource: {fileID: 1292292091}
 --- !u!114 &1292292091
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -53697,9 +54561,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba647ae0b1bdd05459d00980563bacb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightSource
-  maxBrightness: 12
-  minBrightness: 10
-  glowSpeedSeconds: 5
+  litLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  unlitLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  fadeSeconds: 0
+  timeUntilGoOut: 0
+  timeLeftUntilSnuff: 0
+  randomizeStart: 1
+  overrideGlobalShadows: 0
+  castShadows: 1
+  shadowStrength: 0.75
+  shadowSoftness: 0.3
+  shadowFalloffStrength: 0.5
+  lit: 1
 --- !u!114 &1292292092
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -53712,9 +54615,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba647ae0b1bdd05459d00980563bacb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  maxBrightness: 8
-  minBrightness: 8
-  glowSpeedSeconds: 5
+  litLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  unlitLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  fadeSeconds: 0
+  timeUntilGoOut: 0
+  timeLeftUntilSnuff: 0
+  randomizeStart: 1
+  overrideGlobalShadows: 0
+  castShadows: 1
+  shadowStrength: 0.75
+  shadowSoftness: 0.3
+  shadowFalloffStrength: 0.5
+  lit: 1
 --- !u!50 &1292292095
 Rigidbody2D:
   serializedVersion: 5
@@ -54225,6 +55167,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1306162521
 GameObject:
   m_ObjectHideFlags: 0
@@ -54271,6 +55218,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1312491990
 GameObject:
   m_ObjectHideFlags: 0
@@ -54317,6 +55269,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1316909404
 GameObject:
   m_ObjectHideFlags: 0
@@ -54543,6 +55500,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 0
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!114 &1325074555
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -55078,8 +56040,37 @@ MonoBehaviour:
   fire: 0
   dynamite: 0
   timeStayDestroyed: 3
+  breakEffect: 0
+  breakParticles: {fileID: 0}
+  breakSound: {fileID: 0}
+  debrisMinSpeed: 2
+  debrisMaxSpeed: 5
+  debrisSpread: 45
+  debrisImpactShare: 0.3
+  debrisSpin: 360
+  debrisGravityScale: 1
+  debrisSeconds: 3
   rollSpeedNeeded: 0
   standOnTimeNeeded: 1
+  standOnWeightNeeded: 0
+  standOnWeightsAdd: 1
+  digHardness: 5
+  fireIntensityNeeded: 0
+  fireReach: 0
+  fireIgniteSeconds: 1
+  fireCoolSeconds: 2
+  fireSpreadSeconds: 0.5
+  fireBurnIntensity: 0
+  fireBurnSeconds: 2
+  fireWarning: 0
+  fireGlowAmount: 0.7
+  fireCharAmount: 0.8
+  fireFlames: {fileID: 0}
+  touchTimeNeeded: 0
+  crumbleWarning: 0
+  crumbleWarningType: 0
+  warningDarkness: 0.5
+  warningShake: 0.04
   dynamiteMass: 0
   dynamiteForceNeeded: 0
   All: 0
@@ -55328,6 +56319,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!114 &1350114287
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -56018,6 +57014,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 90
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1389825853
 GameObject:
   m_ObjectHideFlags: 0
@@ -56064,6 +57065,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1389827561
 GameObject:
   m_ObjectHideFlags: 0
@@ -56576,6 +57582,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1421122855
 GameObject:
   m_ObjectHideFlags: 0
@@ -56871,6 +57882,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1425846085
 GameObject:
   m_ObjectHideFlags: 0
@@ -56917,6 +57933,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 0
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1430507071
 GameObject:
   m_ObjectHideFlags: 0
@@ -56963,6 +57984,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 270
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1434076701
 GameObject:
   m_ObjectHideFlags: 0
@@ -57009,6 +58035,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1437231303
 GameObject:
   m_ObjectHideFlags: 0
@@ -57055,6 +58086,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1437834325
 GameObject:
   m_ObjectHideFlags: 0
@@ -57112,6 +58148,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 0}
   ableToClimbObjects: 1
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 0}
   canJump: 0
   isJumping: 0
@@ -57119,6 +58156,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  safePushSpeed: 6
 --- !u!114 &1437834328
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -57499,7 +58537,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1446124233
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -57683,6 +58721,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1457384565
 GameObject:
   m_ObjectHideFlags: 0
@@ -57795,6 +58838,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1474766265
 GameObject:
   m_ObjectHideFlags: 0
@@ -57841,6 +58889,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 270
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1477676195
 GameObject:
   m_ObjectHideFlags: 0
@@ -58457,6 +59510,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1489215263
 GameObject:
   m_ObjectHideFlags: 0
@@ -58503,6 +59561,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &1491753804
 Sprite:
   serializedVersion: 2
@@ -58803,6 +59866,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1500867021
 GameObject:
   m_ObjectHideFlags: 0
@@ -58849,6 +59917,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1502164121
 GameObject:
   m_ObjectHideFlags: 0
@@ -58927,6 +60000,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1506585372
 GameObject:
   m_ObjectHideFlags: 0
@@ -59018,6 +60096,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 0
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1513372901
 GameObject:
   m_ObjectHideFlags: 0
@@ -59064,6 +60147,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1515662074
 GameObject:
   m_ObjectHideFlags: 0
@@ -59287,6 +60375,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1522327231
 GameObject:
   m_ObjectHideFlags: 0
@@ -59366,6 +60459,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 180
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!114 &1532557374
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59595,6 +60693,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 180
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1562469050
 GameObject:
   m_ObjectHideFlags: 0
@@ -59680,6 +60783,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 2291528623683182155, guid: 752fabae243ebbe46ba9d18f2e6e7801, type: 3}
   ableToClimbObjects: 1
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 0}
   canJump: 0
   isJumping: 0
@@ -59687,13 +60791,21 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  safePushSpeed: 6
   inflateSize: 1.25
-  maxHeight: 0
   bouncyShell: {fileID: 1477676195}
   chargeSprite: {fileID: 6499598916298177826, guid: 53d845494d64bce40aeb7ba4e59f39d1, type: 3}
   chargeValueIncreaseSpeed: 1.5
   maximumChargeValue: 3
-  chargeValue: 0
+  chargingColliderHeight: 0.12
+  doubleTapSeconds: 0.3
+  deflateDelaySeconds: 0.25
+  chargeMeter:
+    show: 1
+    width: 0.2
+    height: 0.04
+    margin: 0.03
+    showSeconds: 0.5
 --- !u!70 &1562469060
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -59799,8 +60911,37 @@ MonoBehaviour:
   fire: 0
   dynamite: 0
   timeStayDestroyed: 1
+  breakEffect: 0
+  breakParticles: {fileID: 0}
+  breakSound: {fileID: 0}
+  debrisMinSpeed: 2
+  debrisMaxSpeed: 5
+  debrisSpread: 45
+  debrisImpactShare: 0.3
+  debrisSpin: 360
+  debrisGravityScale: 1
+  debrisSeconds: 3
   rollSpeedNeeded: 3
   standOnTimeNeeded: 0
+  standOnWeightNeeded: 0
+  standOnWeightsAdd: 1
+  digHardness: 5
+  fireIntensityNeeded: 0
+  fireReach: 0
+  fireIgniteSeconds: 1
+  fireCoolSeconds: 2
+  fireSpreadSeconds: 0.5
+  fireBurnIntensity: 0
+  fireBurnSeconds: 2
+  fireWarning: 0
+  fireGlowAmount: 0.7
+  fireCharAmount: 0.8
+  fireFlames: {fileID: 0}
+  touchTimeNeeded: 0
+  crumbleWarning: 0
+  crumbleWarningType: 0
+  warningDarkness: 0.5
+  warningShake: 0.04
   dynamiteMass: 0
   dynamiteForceNeeded: 0
   All: 1
@@ -59909,8 +61050,37 @@ MonoBehaviour:
   fire: 1
   dynamite: 1
   timeStayDestroyed: 5
+  breakEffect: 0
+  breakParticles: {fileID: 0}
+  breakSound: {fileID: 0}
+  debrisMinSpeed: 2
+  debrisMaxSpeed: 5
+  debrisSpread: 45
+  debrisImpactShare: 0.3
+  debrisSpin: 360
+  debrisGravityScale: 1
+  debrisSeconds: 3
   rollSpeedNeeded: 0
   standOnTimeNeeded: 0
+  standOnWeightNeeded: 0
+  standOnWeightsAdd: 1
+  digHardness: 5
+  fireIntensityNeeded: 0
+  fireReach: 0
+  fireIgniteSeconds: 1
+  fireCoolSeconds: 2
+  fireSpreadSeconds: 0.5
+  fireBurnIntensity: 0
+  fireBurnSeconds: 2
+  fireWarning: 0
+  fireGlowAmount: 0.7
+  fireCharAmount: 0.8
+  fireFlames: {fileID: 0}
+  touchTimeNeeded: 0
+  crumbleWarning: 0
+  crumbleWarningType: 0
+  warningDarkness: 0.5
+  warningShake: 0.04
   dynamiteMass: 20
   dynamiteForceNeeded: 500
   All: 0
@@ -60527,6 +61697,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1588857106
 GameObject:
   m_ObjectHideFlags: 0
@@ -64680,6 +65855,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1596060431
 GameObject:
   m_ObjectHideFlags: 0
@@ -65170,6 +66350,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &1605007842
 Sprite:
   serializedVersion: 2
@@ -65436,6 +66621,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 270
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1609553766
 GameObject:
   m_ObjectHideFlags: 0
@@ -65629,6 +66819,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1611505132
 GameObject:
   m_ObjectHideFlags: 0
@@ -65859,6 +67054,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 180
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1625562906
 GameObject:
   m_ObjectHideFlags: 0
@@ -65905,6 +67105,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1629706073
 GameObject:
   m_ObjectHideFlags: 0
@@ -65982,6 +67187,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 270
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1631991035
 GameObject:
   m_ObjectHideFlags: 0
@@ -66072,9 +67282,7 @@ MonoBehaviour:
   darkest: {r: 0, g: 0, b: 0, a: 1}
   lightest: {r: 0, g: 0, b: 0, a: 1}
   colorChangeSpeed: 10
-  tilemap: {fileID: 1588857109}
-  glowDiffuse: 0.2
-  limitToObjectBounds: 0
+  globalLight: {fileID: 0}
 --- !u!114 &1632795640
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66090,9 +67298,7 @@ MonoBehaviour:
   darkest: {r: 0, g: 0, b: 0, a: 1}
   lightest: {r: 0, g: 0, b: 0, a: 1}
   colorChangeSpeed: 10
-  tilemap: {fileID: 512762187}
-  glowDiffuse: 0.1
-  limitToObjectBounds: 0
+  globalLight: {fileID: 0}
 --- !u!114 &1632795641
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66420,6 +67626,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1665309771
 GameObject:
   m_ObjectHideFlags: 0
@@ -66631,9 +67842,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba647ae0b1bdd05459d00980563bacb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightSource
-  maxBrightness: 6
-  minBrightness: 4
-  glowSpeedSeconds: 5
+  litLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  unlitLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  fadeSeconds: 0
+  timeUntilGoOut: 0
+  timeLeftUntilSnuff: 0
+  randomizeStart: 1
+  overrideGlobalShadows: 0
+  castShadows: 1
+  shadowStrength: 0.75
+  shadowSoftness: 0.3
+  shadowFalloffStrength: 0.5
+  lit: 1
 --- !u!114 &1668517996
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66646,9 +67896,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba647ae0b1bdd05459d00980563bacb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightSource
-  maxBrightness: 0.3
-  minBrightness: 0.1
-  glowSpeedSeconds: 5
+  litLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  unlitLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  fadeSeconds: 0
+  timeUntilGoOut: 0
+  timeLeftUntilSnuff: 0
+  randomizeStart: 1
+  overrideGlobalShadows: 0
+  castShadows: 1
+  shadowStrength: 0.75
+  shadowSoftness: 0.3
+  shadowFalloffStrength: 0.5
+  lit: 1
 --- !u!114 &1668517997
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66661,14 +67950,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8795ad32536a22479c79c1fc122373c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  lit: 0
   unlitSprite: {fileID: 1695584319382367903, guid: 1bdd2f62c51e22a4db3c5f66c2223837, type: 3}
   litSprite: {fileID: 5687100583578570338, guid: d0e1f9f50b9dc5d4f9ef7bbcb62f0c5b, type: 3}
-  BrightTileSourceOn: {fileID: 1668517995}
-  BrightTileSourceOff: {fileID: 1668517996}
-  lightColorOn: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  lightColorOff: {r: 0.3, g: 0.3, b: 0.3, a: 1}
-  timeUntilGoOut: 3
+  lightTileSource: {fileID: 0}
 --- !u!4 &1668517998
 Transform:
   m_ObjectHideFlags: 0
@@ -66811,6 +68095,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 0
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1675676537
 GameObject:
   m_ObjectHideFlags: 0
@@ -66857,6 +68146,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!114 &1677578699
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66937,6 +68231,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1682306734
 GameObject:
   m_ObjectHideFlags: 0
@@ -66983,6 +68282,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1686529871
 GameObject:
   m_ObjectHideFlags: 0
@@ -67027,8 +68331,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5601257893e0a0c4682721f7f25093bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  numPlayers: 1
+  maxPlayers: 1
   playerPrefab: {fileID: 8363229853835632322, guid: a455e3aa69f9a304a8f4f3b3cadb4526, type: 3}
+  allowJoining: 1
+  testPlayers: 0
 --- !u!1 &1694921249
 GameObject:
   m_ObjectHideFlags: 0
@@ -67289,6 +68595,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 90
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1706034945
 GameObject:
   m_ObjectHideFlags: 0
@@ -67842,6 +69153,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1711479471
 GameObject:
   m_ObjectHideFlags: 0
@@ -68054,6 +69370,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1716109471
 GameObject:
   m_ObjectHideFlags: 0
@@ -68100,6 +69421,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1726049610
 GameObject:
   m_ObjectHideFlags: 0
@@ -69049,6 +70375,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1786383812
 GameObject:
   m_ObjectHideFlags: 0
@@ -69178,6 +70509,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 90
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1787663861
 GameObject:
   m_ObjectHideFlags: 0
@@ -69435,6 +70771,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 270
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1799186692
 GameObject:
   m_ObjectHideFlags: 0
@@ -69814,6 +71155,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1809363342
 GameObject:
   m_ObjectHideFlags: 0
@@ -69894,6 +71240,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 90
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1818399665
 GameObject:
   m_ObjectHideFlags: 0
@@ -70154,6 +71505,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1819017768
 GameObject:
   m_ObjectHideFlags: 0
@@ -70623,6 +71979,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1846199701
 GameObject:
   m_ObjectHideFlags: 0
@@ -71423,6 +72784,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 0
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1876952401
 GameObject:
   m_ObjectHideFlags: 0
@@ -71469,6 +72835,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1878094532
 GameObject:
   m_ObjectHideFlags: 0
@@ -72096,9 +73467,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba647ae0b1bdd05459d00980563bacb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BrightTileSource
-  maxBrightness: 4
-  minBrightness: 2
-  glowSpeedSeconds: 1
+  litLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  unlitLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  fadeSeconds: 0
+  timeUntilGoOut: 0
+  timeLeftUntilSnuff: 0
+  randomizeStart: 1
+  overrideGlobalShadows: 0
+  castShadows: 1
+  shadowStrength: 0.75
+  shadowSoftness: 0.3
+  shadowFalloffStrength: 0.5
+  lit: 1
 --- !u!1 &1889826916
 GameObject:
   m_ObjectHideFlags: 0
@@ -72879,6 +74289,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 90
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1897641438
 GameObject:
   m_ObjectHideFlags: 0
@@ -72925,6 +74340,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 180
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!114 &1897730870
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -73045,6 +74465,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 5718856624956200651, guid: a15d08662c7de434c95a54e7b9fcc332, type: 3}
   ableToClimbObjects: 1
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 0}
   canJump: 0
   isJumping: 0
@@ -73052,8 +74473,10 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  safePushSpeed: 6
   unlitStand: {fileID: 3564000502510323386, guid: 461d0010e04f2294685bc138f6bad203, type: 3}
   unlitJump: {fileID: 3681169168281293195, guid: ffc5828b33795d34fa88d4fc56e72673, type: 3}
+  sconceReach: 0.5
 --- !u!114 &1907840644
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -73066,9 +74489,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba647ae0b1bdd05459d00980563bacb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  maxBrightness: 5
-  minBrightness: 3
-  glowSpeedSeconds: 2
+  litLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  unlitLook:
+    radius:
+      min: 0
+      max: 0
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    intensity:
+      min: 1
+      max: 1
+      periodSeconds: 0
+      shape: 1
+      strobeOnFraction: 0.5
+    tint: 0
+    dimColor: {r: 1, g: 0.4, b: 0, a: 1}
+    brightColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  fadeSeconds: 0
+  timeUntilGoOut: 0
+  timeLeftUntilSnuff: 0
+  randomizeStart: 1
+  overrideGlobalShadows: 0
+  castShadows: 1
+  shadowStrength: 0.75
+  shadowSoftness: 0.3
+  shadowFalloffStrength: 0.5
+  lit: 1
 --- !u!114 &1907840645
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -73083,6 +74545,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   heatLevel: 25
   heatRange: 3
+  fireIntensity: 0
 --- !u!60 &1907840648
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -73325,6 +74788,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1941301153
 GameObject:
   m_ObjectHideFlags: 0
@@ -73371,6 +74839,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1949793093
 GameObject:
   m_ObjectHideFlags: 0
@@ -73448,6 +74921,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1951314668
 GameObject:
   m_ObjectHideFlags: 0
@@ -73562,6 +75040,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1958997799
 GameObject:
   m_ObjectHideFlags: 0
@@ -73608,6 +75091,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 180
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1959545280
 GameObject:
   m_ObjectHideFlags: 0
@@ -73762,6 +75250,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 270
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &1971106034
 GameObject:
   m_ObjectHideFlags: 0
@@ -74004,6 +75497,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 0}
   ableToClimbObjects: 1
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 0}
   canJump: 0
   isJumping: 0
@@ -74011,6 +75505,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  safePushSpeed: 6
 --- !u!114 &1974790656
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -74994,6 +76489,7 @@ MonoBehaviour:
     m_Bits: 64
   pathCellSize: 0.75
   maxSearchNodes: 300
+  failedMoveMemorySeconds: 120
   unreachableMemorySeconds: 30
   logProblems: 1
   logPlanning: 0
@@ -75233,6 +76729,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 270
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &2003098510
 GameObject:
   m_ObjectHideFlags: 0
@@ -75279,6 +76780,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 270
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &2005714112
 GameObject:
   m_ObjectHideFlags: 0
@@ -75325,6 +76831,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &2011184276
 GameObject:
   m_ObjectHideFlags: 0
@@ -75977,6 +77488,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 6920986524175352426, guid: 20db3930c0b6511498f48cd92f9e3d4b, type: 3}
   ableToClimbObjects: 1
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 0}
   canJump: 0
   isJumping: 0
@@ -75984,10 +77496,13 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  safePushSpeed: 6
   wallHoldSprite: {fileID: 4445262642900537928, guid: 990b79332704bae48a4b59c8f773f1b8, type: 3}
   ceilingHoldSprite: {fileID: -8460753449235108017, guid: 7e307ebe9b1e463418a477c8df62f064, type: 3}
+  wallSlopeLimit: 45
+  suctionPull: 1
   wallDrag: 75
-  wallClimbForce: 800
+  wallClimbSpeed: 3
 --- !u!50 &2018774660
 Rigidbody2D:
   serializedVersion: 5
@@ -76402,6 +77917,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 90
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!213 &2041743833
 Sprite:
   serializedVersion: 2
@@ -76760,6 +78280,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 0
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &2049324881
 GameObject:
   m_ObjectHideFlags: 0
@@ -76806,6 +78331,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &2050353245
 GameObject:
   m_ObjectHideFlags: 0
@@ -77911,6 +79441,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &2060933917
 GameObject:
   m_ObjectHideFlags: 0
@@ -77957,6 +79492,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 180
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &2060985621
 GameObject:
   m_ObjectHideFlags: 0
@@ -77966,8 +79506,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2060985622}
-  - component: {fileID: 2060985626}
   - component: {fileID: 2060985625}
+  - component: {fileID: 2060985626}
   - component: {fileID: 2060985623}
   - component: {fileID: 2060985627}
   m_Layer: 3
@@ -78099,6 +79639,7 @@ MonoBehaviour:
   jumpUseSprite: {fileID: 0}
   ableToClimbObjects: 1
   ableToCarryObjects: 1
+  ableToGrabObjects: 1
   carryAttachmentPoint: {fileID: 0}
   canJump: 0
   isJumping: 0
@@ -78106,14 +79647,38 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
-  maxRopeLength: 5
-  throwPointer: {fileID: 1353514169}
-  throwAngleChangeSpeed: 5
+  safePushSpeed: 6
+  maxLinks: 6
   feet: {fileID: -8257340229632707990, guid: cb2448e4098970e4ebbb6d53fc6aad5f, type: 3}
   head: {fileID: 5163655366800918358, guid: 70382e36c07fdd145ad1d2f464ba1003, type: 3}
-  throwForce: 3
-  ropeHead: {fileID: 2074030204}
-  ropeTail: {fileID: 221256}
+  neck: {fileID: 0}
+  throwSpeed: 12
+  softThrowSpeed: 4
+  aimArrowLength: 1.5
+  aimArrowShortLength: 0.5
+  aimArrowColor: {r: 1, g: 0.9, b: 0.3, a: 1}
+  headGravityScale: 2
+  retractSpeed: 25
+  doubleTapSeconds: 0.35
+  movementAfterThrow: 0
+  linkTemplate: {fileID: 0}
+  ropeSlack: 0.05
+  ropeLineColor: {r: 0.55, g: 0.4, b: 0.25, a: 1}
+  ropeLineWidth: 0.06
+  linkMass: 40
+  linkLinearDamping: 15
+  linkGravityScale: 0.1
+  looseLinkMass: 0.5
+  looseLinkLinearDamping: 0.5
+  looseLinkGravityScale: 1
+  carriedRopeStart: {fileID: 0}
+  carriedRopeEnd: {fileID: 0}
+  carriedLinks: 8
+  carriedRopeSlack: 0.5
+  carriedLinkMass: 50
+  carriedLinkLinearDamping: 200
+  carriedLinkAngularDamping: 1
+  carriedLinkGravityScale: 5
 --- !u!114 &2060985627
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -78175,6 +79740,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &2074030204
 GameObject:
   m_ObjectHideFlags: 0
@@ -78314,6 +79884,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &2086279411
 GameObject:
   m_ObjectHideFlags: 0
@@ -78394,6 +79969,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &2103637989
 GameObject:
   m_ObjectHideFlags: 0
@@ -78440,6 +80020,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &2105480591
 GameObject:
   m_ObjectHideFlags: 0
@@ -78521,6 +80106,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 1
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &2127259050
 GameObject:
   m_ObjectHideFlags: 0
@@ -78793,6 +80383,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 0
   angle: -1
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1 &2146384677
 GameObject:
   m_ObjectHideFlags: 0
@@ -78839,6 +80434,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Detector
   type: 2
   angle: 90
+  hit:
+    hasHit: 0
+    position: {x: 0, y: 0}
+    distance: 0
+    angle: 0
 --- !u!1001 &114703115731843490
 PrefabInstance:
   m_ObjectHideFlags: 0

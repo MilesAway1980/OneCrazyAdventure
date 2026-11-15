@@ -220,7 +220,8 @@ public class LightTileSource : MonoBehaviour
         UpdateBurning();
 
         var target = lit ? 1f : 0f;
-        var step = fadeSeconds > 0f ? Time.deltaTime / fadeSeconds : 1f;
+        var seconds = fadeOverride ?? fadeSeconds;
+        var step = seconds > 0f ? Time.deltaTime / seconds : 1f;
 
         // Whatever the other scripts set it to as they started is how it begins, not something to fade to.
         if (!updated)
@@ -230,6 +231,14 @@ public class LightTileSource : MonoBehaviour
         }
 
         litBlend = Mathf.MoveTowards(litBlend, target, step);
+
+        if (Mathf.Approximately(litBlend, target))
+        {
+            fadeOverride = null;
+        }
+
+        radiusBoost = Mathf.MoveTowards(radiusBoost, radiusBoostTarget, radiusBoostRate * Time.deltaTime);
+        intensityBoost = Mathf.MoveTowards(intensityBoost, intensityBoostTarget, intensityBoostRate * Time.deltaTime);
 
         ApplyLook();
 
@@ -243,6 +252,37 @@ public class LightTileSource : MonoBehaviour
     public void SetLit(bool isLit)
     {
         lit = isLit;
+    }
+
+    // Lit or unlit, taking these seconds to ease from one look to the other this once, whatever Fade Seconds is.
+    public void SetLit(bool isLit, float seconds)
+    {
+        lit = isLit;
+        fadeOverride = Mathf.Max(seconds, 0f);
+    }
+
+    // The time to fade for just the change that is under way, if one was asked for. It's let go of once the change is done.
+    private float? fadeOverride;
+
+    // How many times its radius and its intensity are multiplied, over what its looks give, and where they are going. A
+    // light that something has plugged into, for instance, is made much brighter than it looks when it's lit by itself.
+    private float radiusBoost = 1f;
+    private float intensityBoost = 1f;
+    private float radiusBoostTarget = 1f;
+    private float intensityBoostTarget = 1f;
+    private float radiusBoostRate;
+    private float intensityBoostRate;
+
+    // Eases the radius and intensity to a multiple of what the looks give, over the seconds, and holds them there until it is
+    // told otherwise. 1 and 1 is no change. It adds to the lit and unlit looks, whichever it's showing.
+    public void SetBoost(float radiusMultiplier, float intensityMultiplier, float seconds)
+    {
+        radiusBoostTarget = Mathf.Max(radiusMultiplier, 0f);
+        intensityBoostTarget = Mathf.Max(intensityMultiplier, 0f);
+
+        var time = Mathf.Max(seconds, 0.0001f);
+        radiusBoostRate = Mathf.Abs(radiusBoostTarget - radiusBoost) / time;
+        intensityBoostRate = Mathf.Abs(intensityBoostTarget - intensityBoost) / time;
     }
 
     // Lights it, and if it was lit already, starts the time until it goes out over.
@@ -349,13 +389,13 @@ public class LightTileSource : MonoBehaviour
 
         var time = Time.time + timeOffset;
 
-        sourceLight.intensity = Mathf.Lerp(Intensity(unlitLook, time), Intensity(litLook, time), litBlend);
+        sourceLight.intensity = Mathf.Lerp(Intensity(unlitLook, time), Intensity(litLook, time), litBlend) * intensityBoost;
 
         sourceLight.color = Color.Lerp(Tint(unlitLook, time), Tint(litLook, time), litBlend);
 
         if (sourceLight.lightType == Light2D.LightType.Point)
         {
-            var radius = Mathf.Lerp(Radius(unlitLook, false, time), Radius(litLook, true, time), litBlend);
+            var radius = Mathf.Lerp(Radius(unlitLook, false, time), Radius(litLook, true, time), litBlend) * radiusBoost;
 
             if (!Mathf.Approximately(sourceLight.pointLightOuterRadius, radius))
             {

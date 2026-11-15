@@ -2,10 +2,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-// TODO Tiles that are damaged by standing on them (standOn) should have an optional weight to go with it: how heavy what
-// stands on them has to be. A character of a mass of 20 could then cross, where a mass of 50 would break them.
 public class DamageableTileSection : DamageableTileOptions
 {
+    // How far, in units, the trigger of a tile reaches past the tile on every side. Whatever stands on, or touches, a tile
+    // only touches its edge, which a trigger just the size of the tile doesn't overlap.
+    private const float ContactReach = 0.1f;
+
     //private Dictionary<Vector2, List<(Tilemap, TileBase)>> tiles;
 
     public bool onlyOnCollidableTilemaps = true;
@@ -91,11 +93,16 @@ public class DamageableTileSection : DamageableTileOptions
                 bc.isTrigger = true;
                 bc.offset = new Vector2(0.5f, 0.5f);
                 bc.size = new Vector2(1 + triggerAreaBuffer.x * 2, 1 + triggerAreaBuffer.y * 2);
-                
+
+                // The trigger reaches a little past the tile on every side, whatever the tile is set to, so that the sides
+                // and kinds of damage can be changed while playing and still be felt.
+                bc.size += Vector2.one * (ContactReach * 2f);
+
                 var dt = damageableTile.AddComponent<DamageableTile>();
                 dt.roll = roll;
                 dt.standOn = standOn;
-                
+                dt.touch = touch;
+
                 dt.rollSpeedNeeded = rollSpeedNeeded;
                 dt.standOnTimeNeeded = standOnTimeNeeded;
 
@@ -105,35 +112,8 @@ public class DamageableTileSection : DamageableTileOptions
                 // changed while playing.
                 dt.section = this;
 
-                dt.dynamite = dynamite;
-                dt.dynamiteMass = dynamiteMass;
-                dt.dynamiteForceNeeded = dynamiteForceNeeded;
+                // Dynamite is read from the section as it is when a blast comes, like the rest, so it isn't copied.
 
-                if (dt.dynamite)
-                {
-                    var rb = dt.gameObject.AddComponent<Rigidbody2D>();
-                    rb.bodyType = RigidbodyType2D.Kinematic;
-
-                    var spriteObj = new GameObject();
-                    spriteObj.transform.SetParent(damageableTile.transform);
-                    spriteObj.transform.localPosition = new Vector3(0.5f, 0.5f, 0);
-                    var spriteRenderer = spriteObj.AddComponent<SpriteRenderer>();
-
-                    rb.mass = dynamiteMass;
-
-                    foreach (var t in tiles)
-                    {
-                        var tile = (Tile)t.Item2;
-                        if (tile)
-                        {
-                            spriteRenderer.sprite = tile.sprite;
-                            spriteRenderer.enabled = false;
-                        }
-                    }
-
-                    //spriteObj.SetActive(false);
-                }
-                
                 dt.position = new Vector2Int(x, y);
 
                 if (All)

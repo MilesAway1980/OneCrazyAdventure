@@ -7,4 +7,9 @@ using UnityEngine;
 // Give the object's Rigidbody2D a zero-friction material, or whatever stands on it will drag it along as they walk.
 public class PushableSolid : MonoBehaviour
 {
+    // Something that can be pushed weighs on a floor that crumbles like anything else does.
+    void Start()
+    {
+        CanTriggerFloorCollapse.EnsureOn(gameObject);
+    }
 }

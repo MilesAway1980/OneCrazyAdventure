@@ -13,8 +13,12 @@ public class DamageableTileOptionsEditor : Editor
     private static readonly HashSet<string> Drawn = new HashSet<string>
     {
         "m_Script",
-        "roll", "wood", "standOn", "touch", "dig", "fire", "dynamite",
-        "rollSpeedNeeded", "standOnTimeNeeded", "dynamiteMass", "dynamiteForceNeeded",
+        "roll", /*"wood",*/ "standOn", "touch", "dig", "fire", "dynamite",
+        "rollSpeedNeeded", "standOnTimeNeeded", "dynamiteResult", "dynamiteMass", "dynamiteForceNeeded",
+        "standOnWeightNeeded", "standOnWeightsAdd", "touchTimeNeeded",
+        "crumbleWarning", "crumbleWarningType", "warningDarkness", "warningShake",
+        "fireIgniteSeconds", "fireSpreadSeconds", "fireBurnSeconds", "fireCharAmount", "fireFlames",
+        "fireWarning", "fireGlowAmount", "fireReach", "fireCoolSeconds", "fireIntensityNeeded", "fireBurnIntensity", "digHardness", "digRadius",
         "All", "Up", "Down", "Left", "Right",
         "timeStayDestroyed",
         "breakEffect", "breakParticles", "breakSound",
@@ -33,21 +37,31 @@ public class DamageableTileOptionsEditor : Editor
         EditorGUILayout.LabelField("Damaged By", EditorStyles.boldLabel);
 
         DamageType("roll", "rollSpeedNeeded");
-        DamageType("wood");
-        DamageType("standOn", "standOnTimeNeeded");
-        DamageType("touch");
-        DamageType("dig");
-        DamageType("fire");
-        DamageType("dynamite", "dynamiteMass", "dynamiteForceNeeded");
+        //DamageType("wood");
+        DrawStandOn();
+        DamageType("touch", "touchTimeNeeded");
+        DamageType("dig", "digHardness", "digRadius");
+        DrawFire();
+        DrawDynamite();
 
-        // Dynamite doesn't care which side it is on, but the rest are things that come from somewhere.
-        if (IsOn("roll") || IsOn("wood") || IsOn("standOn") || IsOn("touch") || IsOn("dig") || IsOn("fire"))
+        // Dynamite and fire don't care which side they are on, and standing on a tile is always the top of it. The rest are
+        // things that come from somewhere.
+        if (IsOn("roll") || /*IsOn("wood") ||*/ IsOn("touch") || IsOn("dig"))
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("From Which Sides", EditorStyles.boldLabel);
             EditorGUILayout.LabelField("Click the sides it can be damaged from.", EditorStyles.miniLabel);
 
             DrawSides();
+        }
+
+        // The kinds that wait to crumble can show it coming, and digging shows how far through it is the same way.
+        if (IsOn("standOn") || IsOn("touch") || IsOn("dig"))
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Before It Crumbles", EditorStyles.boldLabel);
+
+            DrawCrumbleWarning();
         }
 
         EditorGUILayout.Space();
@@ -58,18 +72,40 @@ public class DamageableTileOptionsEditor : Editor
         var effect = serializedObject.FindProperty("breakEffect");
         EditorGUILayout.PropertyField(effect);
 
+        // A blast that breaks a tile shows nothing but what is chosen here, so with none chosen it just vanishes.
+        if (effect.enumValueIndex == (int)DamageableTileOptions.BreakEffect.None && IsOn("dynamite") &&
+            serializedObject.FindProperty("dynamiteResult").enumValueIndex == (int)DamageableTileOptions.DynamiteResult.Break)
+        {
+            EditorGUILayout.HelpBox(
+                "Dynamite is set to Break, and Break Effect is None, so a blasted tile just vanishes. Choose Particles or " +
+                "Debris to show it breaking, or set Dynamite to Fly.",
+                MessageType.Info);
+        }
+
         EditorGUI.indentLevel++;
 
         if (effect.enumValueIndex == (int)DamageableTileOptions.BreakEffect.Particles)
         {
             EditorGUILayout.PropertyField(serializedObject.FindProperty("breakParticles"));
         }
-        else if (effect.enumValueIndex == (int)DamageableTileOptions.BreakEffect.Debris)
+
+        // A block blown loose by a blast falls as debris does, so it uses the same gravity, spin, and time.
+        var flies = IsOn("dynamite") &&
+                    serializedObject.FindProperty("dynamiteResult").enumValueIndex == (int)DamageableTileOptions.DynamiteResult.Fly;
+
+        var debris = effect.enumValueIndex == (int)DamageableTileOptions.BreakEffect.Debris;
+
+        if (debris || flies)
         {
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("debrisMinSpeed"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("debrisMaxSpeed"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("debrisSpread"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("debrisImpactShare"));
+            // How the pieces are thrown is for debris. The block that is blown loose is thrown by the blast itself.
+            if (debris)
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("debrisMinSpeed"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("debrisMaxSpeed"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("debrisSpread"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("debrisImpactShare"));
+            }
+
             EditorGUILayout.PropertyField(serializedObject.FindProperty("debrisSpin"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("debrisGravityScale"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("debrisSeconds"));
@@ -82,6 +118,33 @@ public class DamageableTileOptionsEditor : Editor
         DrawRemaining();
 
         serializedObject.ApplyModifiedProperties();
+    }
+
+    // The block's mass is only for a tile that flies, and the debris settings below are for a tile that flies or breaks into
+    // debris, so only the settings for what it does are shown.
+    private void DrawDynamite()
+    {
+        var toggle = serializedObject.FindProperty("dynamite");
+        EditorGUILayout.PropertyField(toggle);
+
+        if (!toggle.boolValue)
+        {
+            return;
+        }
+
+        EditorGUI.indentLevel++;
+
+        var result = serializedObject.FindProperty("dynamiteResult");
+        EditorGUILayout.PropertyField(result);
+
+        if (result.enumValueIndex == (int)DamageableTileOptions.DynamiteResult.Fly)
+        {
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("dynamiteMass"));
+        }
+
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("dynamiteForceNeeded"));
+
+        EditorGUI.indentLevel--;
     }
 
     private bool IsOn(string flag)
@@ -199,6 +262,95 @@ public class DamageableTileOptionsEditor : Editor
         }
 
         return false;
+    }
+
+    // Stand On has settings of its own under it, and the warning has some under that, for the kinds of warning that use them.
+    private void DrawStandOn()
+    {
+        var standOn = serializedObject.FindProperty("standOn");
+        EditorGUILayout.PropertyField(standOn);
+
+        if (!standOn.boolValue)
+        {
+            return;
+        }
+
+        EditorGUI.indentLevel++;
+
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("standOnTimeNeeded"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("standOnWeightNeeded"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("standOnWeightsAdd"));
+
+        EditorGUI.indentLevel--;
+    }
+
+    // Fire has its times, and a warning of its own, with the amount it glows under that.
+    private void DrawFire()
+    {
+        var fire = serializedObject.FindProperty("fire");
+        EditorGUILayout.PropertyField(fire);
+
+        if (!fire.boolValue)
+        {
+            return;
+        }
+
+        EditorGUI.indentLevel++;
+
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("fireIntensityNeeded"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("fireReach"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("fireIgniteSeconds"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("fireCoolSeconds"));
+
+        var warning = serializedObject.FindProperty("fireWarning");
+        EditorGUILayout.PropertyField(warning);
+
+        if (warning.boolValue)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("fireGlowAmount"));
+            EditorGUI.indentLevel--;
+        }
+
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("fireSpreadSeconds"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("fireBurnIntensity"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("fireBurnSeconds"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("fireCharAmount"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("fireFlames"));
+
+        EditorGUI.indentLevel--;
+    }
+
+    // The warning that it is about to give way, which Stand On and Touch share, with the settings for the kinds of warning
+    // that use them.
+    private void DrawCrumbleWarning()
+    {
+        var warning = serializedObject.FindProperty("crumbleWarning");
+        EditorGUILayout.PropertyField(warning);
+
+        if (!warning.boolValue)
+        {
+            return;
+        }
+
+        EditorGUI.indentLevel++;
+
+        var type = serializedObject.FindProperty("crumbleWarningType");
+        EditorGUILayout.PropertyField(type);
+
+        var kind = (DamageableTileOptions.WarningType)type.enumValueIndex;
+
+        if (kind != DamageableTileOptions.WarningType.Shake)
+        {
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("warningDarkness"));
+        }
+
+        if (kind != DamageableTileOptions.WarningType.Darken)
+        {
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("warningShake"));
+        }
+
+        EditorGUI.indentLevel--;
     }
 
     // A tick box for a kind of damage, with its settings under it while it is ticked.

@@ -11,6 +11,8 @@ public class Enemy : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         enemyMovement = GetComponent<EnemyMovement>();
         rigidBody2D = GetComponent<Rigidbody2D>();
+
+        CanTriggerFloorCollapse.EnsureOn(gameObject);
     }
 
     protected virtual void Update()

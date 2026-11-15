@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -90,6 +91,19 @@ namespace Characters
 
         public float refusedSeconds = 0.3f;
 
+        [Header("Hidden Tiles")]
+        [Tooltip("How far his beam reveals hidden tiles at the dimmest level that shines, as a fraction of how far it reveals them at the brightest. The levels between are spread evenly. A dim light has to be close.")]
+        [Range(0f, 1f)]
+        public float revealReachAtDimmest = 0.4f;
+
+        [Tooltip("How completely his beam shows hidden tiles at the dimmest level that shines, from 0 (not at all) to 1 (as if they weren't hidden). The brightest level always shows them completely. The levels between are spread evenly.")]
+        [Range(0f, 1f)]
+        public float revealStrengthAtDimmest = 0.3f;
+
+        [Tooltip("How much of the way out to the end of the beam hidden tiles fade away over, as a fraction of its reach. At 0 they are shown fully right up to the end.")]
+        [Range(0f, 1f)]
+        public float revealFadeFraction = 0.4f;
+
         [Header("Shadows")]
         [Tooltip("Off: the beam follows the project's Global Light Settings. On: it uses the shadow settings below instead. Either way, these override whatever is set on the Light2D's own Shadows section, including a light you placed yourself.")]
         public bool overrideGlobalShadows;
@@ -123,6 +137,96 @@ namespace Characters
 
         // Ignores a stick that's hardly off centre.
         private const float AimDeadZone = 0.2f;
+
+        // Every flashlight that is switched on in the scene, whether or not its beam is shining, so that what the beam
+        // reveals, such as hidden tiles, can ask without searching the scene for them.
+        private static readonly List<Flashlight> active = new List<Flashlight>();
+
+        public static IReadOnlyList<Flashlight> Active
+        {
+            get { return active; }
+        }
+
+        void OnEnable()
+        {
+            active.Add(this);
+        }
+
+        void OnDisable()
+        {
+            active.Remove(this);
+        }
+
+        // What his beam reveals right now. Angles are half the beam's width, in degrees: everything within the inner angle of
+        // where it points is at full strength, and it fades to nothing at the outer angle. The steady figures are for when
+        // the battery isn't flickering, for things that shouldn't flicker with it.
+        public struct Beam
+        {
+            public Vector2 origin;
+            public Vector2 direction;
+            public float innerHalfAngle;
+            public float outerHalfAngle;
+            public float reach;
+            public float strength;
+            public float steadyReach;
+            public float steadyStrength;
+            public float fadeFraction;
+        }
+
+        // His beam as it is now, or false if it isn't shining. How far it reaches, and how completely it shows what it
+        // lights, both fall with the brightness level: the dimmest level that shines has to be close to show anything, and
+        // shows it only part way. The flicker of a low battery weakens both.
+        public bool TryGetBeam(out Beam beam)
+        {
+            beam = new Beam();
+
+            if (!spotLight || !IsLightOn())
+            {
+                return false;
+            }
+
+            var position = BrightnessPosition();
+            var flicker = FlickerFactor();
+
+            beam.origin = spotLight.transform.position;
+            beam.direction = spotLight.transform.up;
+            beam.steadyReach = beamRadius * Mathf.Lerp(revealReachAtDimmest, 1f, position);
+            beam.steadyStrength = Mathf.Lerp(revealStrengthAtDimmest, 1f, position);
+            beam.reach = beam.steadyReach * flicker;
+            beam.strength = beam.steadyStrength * flicker;
+            beam.fadeFraction = revealFadeFraction;
+
+            if (spotLight.lightType == Light2D.LightType.Point)
+            {
+                beam.innerHalfAngle = spotLight.pointLightInnerAngle * 0.5f;
+                beam.outerHalfAngle = spotLight.pointLightOuterAngle * 0.5f;
+            }
+            else
+            {
+                beam.innerHalfAngle = 180f;
+                beam.outerHalfAngle = 180f;
+            }
+
+            return true;
+        }
+
+        // Where the current level sits between the dimmest level that shines (0) and the brightest (1).
+        private float BrightnessPosition()
+        {
+            var dimmest = float.MaxValue;
+            var brightest = 0f;
+
+            foreach (var brightness in brightnessLevels)
+            {
+                if (brightness > 0f)
+                {
+                    dimmest = Mathf.Min(dimmest, brightness);
+                    brightest = Mathf.Max(brightest, brightness);
+                }
+            }
+
+            return brightest > dimmest ? Mathf.InverseLerp(dimmest, brightest, GetBrightness()) : 1f;
+        }
 
         private SpriteRenderer headRenderer;
 

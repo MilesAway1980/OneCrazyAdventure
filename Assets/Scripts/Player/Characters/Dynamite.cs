@@ -23,15 +23,11 @@ namespace Characters
         [Tooltip("A bar in the upper right of the view of the player using him, showing how close the fuse is to going off. It appears while he charges, drains when the action is let go, and fades just after an explosion.")]
         public MeterLayout chargeMeter = new MeterLayout { showSeconds = 0.5f };
 
-        // How far from him a fallen tile has to be before it's put back, which also hides it from view.
-        private const float TileResetDistance = 25f;
-
         // The pieces shrink by this much each frame at 60 frames per second, and by the same amount per second at any other rate.
         private const float PieceShrinkPerFrame = 0.95f;
         private const float PieceGoneScale = 0.001f;
 
         private List<GameObject> explodedPieces;
-        private List<DamageableTile> explodedTiles;
 
         private ScreenMeter meter;
         private float meterShowUntil;
@@ -42,7 +38,6 @@ namespace Characters
         protected override void Start()
         {
             explodedPieces = new List<GameObject>();
-            explodedTiles = new List<DamageableTile>();
 
             if (explosionPiece)
             {
@@ -170,28 +165,9 @@ namespace Characters
                 }
             }
 
-            foreach (var dynamiteTile in DamageableTile.GetDynamiteTiles())
-            {
-                var dTile = dynamiteTile.Key;
-                var position = dynamiteTile.Value;
-
-                if (Vector2.Distance(transform.position, position) > explosionDistance)
-                {
-                    continue;
-                }
-
-                // A tile that is still falling from an earlier blast is only pushed again.
-                if (!explodedTiles.Contains(dTile))
-                {
-                    Map.DestroyTile(position);
-                    dTile.GetRigidbody2D().bodyType = RigidbodyType2D.Dynamic;
-                    dTile.EnableSpriteRenderer(true);
-                    explodedTiles.Add(dTile);
-                }
-
-                // A set, so a tile already found above isn't pushed twice.
-                bodies.Add(dTile.GetRigidbody2D());
-            }
+            // The tiles the blast reaches, with the same push as everything else: strongest where he is, and fading to
+            // nothing at the edge of the blast. Each decides for itself what it does with it.
+            DamageableTile.Blast(transform.position, explosionDistance, explosionForce);
 
             foreach (var body in bodies)
             {
@@ -236,34 +212,6 @@ namespace Characters
                 {
                     Destroy(piece);
                     explodedPieces.RemoveAt(i);
-                }
-            }
-
-            for (int i = explodedTiles.Count - 1; i >= 0; i--)
-            {
-                var explodedTile = explodedTiles[i];
-
-                if (!explodedTile)
-                {
-                    explodedTiles.RemoveAt(i);
-                    continue;
-                }
-
-                var distance = Vector2.Distance(transform.position, explodedTile.transform.position);
-                if (distance > TileResetDistance)
-                {
-                    explodedTile.EnableSpriteRenderer(false);
-                    explodedTile.GetRigidbody2D().bodyType = RigidbodyType2D.Kinematic;
-                    explodedTile.transform.position = new Vector3(
-                        explodedTile.position.x,
-                        explodedTile.position.y,
-                        explodedTile.transform.position.z
-                    );
-
-                    explodedTile.GetRigidbody2D().linearVelocity = Vector2.zero;
-                    explodedTile.SetDestroyed();
-
-                    explodedTiles.RemoveAt(i);
                 }
             }
         }

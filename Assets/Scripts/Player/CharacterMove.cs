@@ -93,6 +93,11 @@ public class CharacterMove : MonoBehaviour
         Vector2 lookValue = lookAction.ReadValue<Vector2>();
 
         currentCharacter.DirectionPress(moveValue);
+
+        // Before the other buttons, so a character that wants one button held while another goes down sees it held when
+        // both are pressed on the same frame.
+        currentCharacter.InteractHold(interactAction.IsPressed());
+
         CameraManager.Look(player, lookValue);
 
         if (jumpAction.IsPressed())
@@ -235,6 +240,7 @@ public class CharacterMove : MonoBehaviour
             currentCharacter.DirectionPress(Vector2.zero);
             currentCharacter.Jump(false);
             currentCharacter.Action(false);
+            currentCharacter.InteractHold(false);
         }
     }
 

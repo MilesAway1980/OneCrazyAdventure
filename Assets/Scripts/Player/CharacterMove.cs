@@ -86,44 +86,53 @@ public class CharacterMove : MonoBehaviour
             return;
         }
 
-        if (!currentCharacter)
-        {
-            return;
-        }
-
         // Read every frame, even when there's nothing to apply it to, so the record of which buttons are down stays level
         // with the real ones. A button still held when a menu closes, or a character is taken over, isn't a new press.
         var input = ReadInput();
 
-        if (!currentCharacter)
+        var joined = GameSession.IsClientOnly;
+
+        if (joined)
         {
-            return;
+            // In someone else's game the host decides everything, so what the controls say goes to it, and nothing is done to a
+            // character here. This player's own screen, and asking to switch character, are still theirs to do.
+            if (ConnectionPlayer.Local)
+            {
+                ConnectionPlayer.Local.SendInput(player, input);
+            }
         }
-
-        // A hub menu this player has open takes all of their buttons, and their character stands still while it's open.
-        if (HubMenu.IsOpenFor(player))
+        else
         {
-            currentCharacter.DirectionPress(Vector2.zero);
-            currentCharacter.Jump(false);
-            currentCharacter.Action(false);
-            currentCharacter.InteractHold(false);
+            if (!currentCharacter)
+            {
+                return;
+            }
 
-            HubMenu.Feed(player, input.move, input.jumpPressed, input.abilityPressed, input.interactPressed);
-            return;
+            // A hub menu this player has open takes all of their buttons, and their character stands still while it's open.
+            if (HubMenu.IsOpenFor(player))
+            {
+                currentCharacter.DirectionPress(Vector2.zero);
+                currentCharacter.Jump(false);
+                currentCharacter.Action(false);
+                currentCharacter.InteractHold(false);
+
+                HubMenu.Feed(player, input.move, input.jumpPressed, input.abilityPressed, input.interactPressed);
+                return;
+            }
+
+            ApplyInput(currentCharacter, input);
         }
-
-        ApplyInput(currentCharacter, input);
 
         CameraManager.Look(player, lookAction.ReadValue<Vector2>());
 
         if (prevPressed)
         {
-            CharacterControl.Switch(player.id, false);
+            SwitchCharacter(false);
         }
 
         if (nextPressed)
         {
-            CharacterControl.Switch(player.id, true);
+            SwitchCharacter(true);
         }
 
         if (zoomInAction.IsPressed())
@@ -181,9 +190,26 @@ public class CharacterMove : MonoBehaviour
         return input;
     }
 
-    // Does what a frame of input says to a character. This is the part that will run on the host, whichever machine the
-    // player is really on.
-    private static void ApplyInput(Character character, PlayerInputFrame input)
+    // Asks for the next or previous character nobody else has: of the host if this player has joined someone else's game, which
+    // decides, and of the record here if not.
+    private void SwitchCharacter(bool next)
+    {
+        if (GameSession.IsClientOnly)
+        {
+            if (ConnectionPlayer.Local)
+            {
+                ConnectionPlayer.Local.RequestSwitch(player, next);
+            }
+        }
+        else
+        {
+            CharacterControl.Switch(player.id, next);
+        }
+    }
+
+    // Does what a frame of input says to a character. This is the part that runs on the host, whichever machine the player is
+    // really on.
+    public static void ApplyInput(Character character, PlayerInputFrame input)
     {
         character.DirectionPress(input.move);
 
@@ -234,7 +260,15 @@ public class CharacterMove : MonoBehaviour
             }
         }
 
-        if (currentCharacter)
+        if (GameSession.IsClientOnly)
+        {
+            // The character is the host's to stop, so it's told nothing is held.
+            if (player && ConnectionPlayer.Local)
+            {
+                ConnectionPlayer.Local.SendInput(player, new PlayerInputFrame());
+            }
+        }
+        else if (currentCharacter)
         {
             currentCharacter.DirectionPress(Vector2.zero);
             currentCharacter.Jump(false);
@@ -249,7 +283,19 @@ public class CharacterMove : MonoBehaviour
     {
         ReleaseEverything();
 
-        if (player)
+        if (!player)
+        {
+            return;
+        }
+
+        if (GameSession.IsClientOnly)
+        {
+            if (ConnectionPlayer.Local)
+            {
+                ConnectionPlayer.Local.ReleaseSeat(player);
+            }
+        }
+        else
         {
             CharacterControl.Release(player.id);
         }

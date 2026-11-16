@@ -311,7 +311,7 @@ public class GroupCamera : MonoBehaviour
 
             var character = player.character;
 
-            if (character && character.gameObject.activeSelf)
+            if (character && character.InGame)
             {
                 entries.Add(new Entry { player = player, character = character });
             }
@@ -346,7 +346,7 @@ public class GroupCamera : MonoBehaviour
     // oldest pins give way.
     private void DropBadPins()
     {
-        pins.RemoveAll(p => !p.pinned || !p.pinned.gameObject.activeSelf);
+        pins.RemoveAll(p => !p.pinned || !p.pinned.InGame);
 
         var capacity = PinCapacity();
         while (pins.Count > capacity)

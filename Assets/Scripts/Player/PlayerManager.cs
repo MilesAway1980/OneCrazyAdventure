@@ -74,7 +74,7 @@ public class PlayerManager : MonoBehaviour
     {
         // A test player takes whichever device is free, rather than waiting for a button to be pressed. They're only
         // added once, so a test player who leaves stays gone.
-        if (testPlayersAdded < testPlayers && players.Count < maxPlayers && inputManager.joiningEnabled)
+        if (testPlayersAdded < testPlayers && players.Count + ConnectionPlayer.RemoteSeatCount() < maxPlayers && inputManager.joiningEnabled)
         {
             if (inputManager.JoinPlayer())
             {
@@ -89,7 +89,7 @@ public class PlayerManager : MonoBehaviour
     // switched off while the game is full.
     private void UpdateJoining()
     {
-        var canJoin = allowJoining && players.Count < maxPlayers;
+        var canJoin = allowJoining && players.Count + ConnectionPlayer.RemoteSeatCount() < maxPlayers;
 
         if (canJoin && !inputManager.joiningEnabled)
         {
@@ -186,5 +186,11 @@ public class PlayerManager : MonoBehaviour
     public static int GetJoinedPlayerCount()
     {
         return instance ? players.Count : 0;
+    }
+
+    // The most players there can be at once, on every machine in the game together.
+    public static int MaxPlayers
+    {
+        get { return instance ? instance.maxPlayers : 4; }
     }
 }

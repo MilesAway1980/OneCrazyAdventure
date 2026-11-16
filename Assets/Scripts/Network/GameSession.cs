@@ -91,8 +91,22 @@ public class GameSession : MonoBehaviour
         StartLocal();
     }
 
+    private string lastLoggedState = "";
+
     void Update()
     {
+        // Temporary: says in the Console each time the state of a join changes, to find out where one gets stuck.
+        if (Mode == SessionMode.Joined)
+        {
+            var state = $"{(NetworkClient.isConnected ? "connected" : NetworkClient.isConnecting ? "connecting" : "disconnected")}, ready {NetworkClient.ready}, {NetworkClient.spawned.Count} objects";
+
+            if (state != lastLoggedState)
+            {
+                lastLoggedState = state;
+                Debug.Log($"Game session: join state is now {state}.");
+            }
+        }
+
         // A game that was joined has gone: it couldn't be reached, or the host left. Back to playing locally.
         if (Mode == SessionMode.Joined && !switching && !NetworkClient.active)
         {
@@ -105,10 +119,23 @@ public class GameSession : MonoBehaviour
     // own players.
     private void Configure()
     {
-        // Mirror isn't to make a player for each connection. The players on a machine come from the controllers plugged into it,
-        // and the characters are the game's own.
-        manager.autoCreatePlayer = false;
-        manager.playerPrefab = null;
+        // Each connection gets one object, made by the Network Manager, which is how its machine talks to the host. Without it the
+        // host sends the machine nothing at all. It's not a person playing: those come from the controllers plugged into the
+        // machine, and the characters are the game's own.
+        var connectionPlayer = Resources.Load<GameObject>("ConnectionPlayer");
+
+        if (connectionPlayer)
+        {
+            manager.playerPrefab = connectionPlayer;
+            manager.autoCreatePlayer = true;
+        }
+        else
+        {
+            Debug.LogError("There is no ConnectionPlayer prefab, so the host can't send anything to other machines. " +
+                           "Make it with Tools > Network > Create Connection Player Prefab.");
+            manager.playerPrefab = null;
+            manager.autoCreatePlayer = false;
+        }
 
         // The buttons it puts on the screen are replaced by the panel below, or by the game's own menus later.
         var hud = manager.GetComponent<NetworkManagerHUD>();
@@ -213,7 +240,13 @@ public class GameSession : MonoBehaviour
                 return $"Hosting{port}: {NetworkServer.connections.Count} connected (counting this machine)";
 
             case SessionMode.Joined:
-                return NetworkClient.isConnected ? $"Joined to {joinAddress}" : $"Connecting to {joinAddress}...";
+                if (!NetworkClient.isConnected)
+                {
+                    return $"Connecting to {joinAddress}... ({(NetworkClient.isConnecting ? "connecting" : "not connecting")})";
+                }
+
+                return $"Joined to {joinAddress}: {(NetworkClient.ready ? "ready" : "not ready")}, " +
+                       $"{NetworkClient.spawned.Count} objects from the host";
 
             default:
                 return "Starting...";

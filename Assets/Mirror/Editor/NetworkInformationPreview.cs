@@ -60,7 +60,9 @@ namespace Mirror
         }
 
         GUIContent title;
-        Styles styles = new Styles();
+        // Made in OnPreviewGUI, when Unity's editor styles are ready. Making it here threw an exception whenever the Inspector built
+        // this preview. (Changed from "= new Styles()" for this project, and it may come back with a Mirror update.)
+        Styles styles;
 
         public override GUIContent GetPreviewTitle()
         {

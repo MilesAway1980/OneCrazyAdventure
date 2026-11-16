@@ -123,7 +123,7 @@ public static class CharacterControl
 
     private static bool IsAvailable(Character character)
     {
-        return character && character.gameObject.activeSelf && !playerOfCharacter.ContainsKey(character);
+        return character && character.InGame && !playerOfCharacter.ContainsKey(character);
     }
 
     // Makes the player the controller of this character, telling the one they're leaving and the one they're taking over.
@@ -162,7 +162,7 @@ public static class CharacterControl
         {
             var character = pair.Value;
 
-            if (!character || !character.gameObject.activeSelf)
+            if (!character || !character.InGame)
             {
                 stalePlayers.Add(pair.Key);
             }

@@ -18,7 +18,7 @@ public class CharacterSelection : MonoBehaviour
 
         previousSelection = selected;
 
-        character.gameObject.SetActive(selected);
+        character.SetInGame(selected);
     }
 
     // Puts the character in the party or takes them out of it straight away, and keeps the change from being seen again by
@@ -27,7 +27,7 @@ public class CharacterSelection : MonoBehaviour
     {
         selected = isSelected;
         previousSelection = isSelected;
-        character.gameObject.SetActive(isSelected);
+        character.SetInGame(isSelected);
     }
 
     void Update()
@@ -46,7 +46,7 @@ public class CharacterSelection : MonoBehaviour
             selected = mainSelecter.AddCharacter(character);
         }
         
-        character.gameObject.SetActive(selected);
+        character.SetInGame(selected);
         previousSelection = selected;
     }
 }

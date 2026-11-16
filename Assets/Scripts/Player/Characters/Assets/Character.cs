@@ -514,6 +514,13 @@ namespace Characters
             rigidBody2D.linearVelocity = Vector2.zero;
             rigidBody2D.angularVelocity = 0f;
             moveSpeed = 0f;
+
+            // On every other machine too, and straight there, rather than sliding across from where they were.
+            var sync = GetComponent<Mirror.NetworkTransformBase>();
+            if (sync && sync.isServer)
+            {
+                sync.ServerTeleport(transform.position, transform.rotation);
+            }
         }
 
         protected void SetPosition(Vector2 position)
@@ -634,48 +641,50 @@ namespace Characters
 
         private void SetSprite()
         {
-            if (facing == CharacterFacing.Left)
-            {
-                spriteRenderer.flipX = true;
-            }
-            else
-            {
-                spriteRenderer.flipX = false;
-            }
-            
             isJumping = distFromGround >= 0.2f;
 
-            if (isJumping)
+            ShowSprite(facing == CharacterFacing.Left, isJumping, IsPerformingAction());
+        }
+
+        // The three things that decide which picture a character is shown with: which way they face, whether they're in the air,
+        // and whether they're using their action. They're what is sent to the other machines in a networked game.
+        public bool FacingLeft
+        {
+            get { return facing == CharacterFacing.Left; }
+        }
+
+        public bool Airborne
+        {
+            get { return isJumping; }
+        }
+
+        // Shows the character's picture for those three things. A character the game is simulating works them out for itself every
+        // frame. One that is only being shown, on a machine that joined someone else's game, is given them.
+        public void ShowSprite(bool facingLeft, bool airborne, bool performing)
+        {
+            if (!spriteRenderer)
             {
-                if (IsPerformingAction())
+                spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
+                if (!spriteRenderer)
                 {
-                    spriteRenderer.sprite = jumpUseSprite;
-                }
-                else
-                {
-                    spriteRenderer.sprite = jumpSprite;
+                    return;
                 }
             }
-            else
+
+            spriteRenderer.flipX = facingLeft;
+
+            if (airborne)
             {
-                if (IsPerformingAction())
-                {
-                    if (actionSprite)
-                    {
-                        spriteRenderer.sprite = actionSprite;
-                    }
-                    else
-                    {
-                        spriteRenderer.sprite = null;
-                    }
-                }
-                else
-                {
-                    if (walkSprite)
-                    {
-                        spriteRenderer.sprite = walkSprite;
-                    }
-                }
+                spriteRenderer.sprite = performing ? jumpUseSprite : jumpSprite;
+            }
+            else if (performing)
+            {
+                spriteRenderer.sprite = actionSprite ? actionSprite : null;
+            }
+            else if (walkSprite)
+            {
+                spriteRenderer.sprite = walkSprite;
             }
         }
 
@@ -926,11 +935,44 @@ namespace Characters
             if (enabledOnly)
             {
                 return characters
-                        .Where(c => c.gameObject.activeSelf)
-                        .ToList();                
+                        .Where(c => c.InGame)
+                        .ToList();
             }
 
             return characters;
+        }
+
+        // Whether the character is in the game. One that isn't is put away: still there, but hidden, solid to nothing, and doing
+        // nothing, until they're brought back. They are never made inactive, since a character has to exist all the time to be
+        // part of a game played over a network.
+        public bool InGame { get; private set; } = true;
+
+        // Puts the character into the game, or puts them away. This changes at once; they're hidden or shown by the end of the
+        // frame.
+        public void SetInGame(bool inGame)
+        {
+            InGame = inGame;
+
+            GetParking().SetParked(!inGame);
+        }
+
+        // For a machine that has joined someone else's game: the character is only shown, where the host says they are, doing
+        // what the host says. Nothing of them is simulated here. Undone if the machine goes back to playing by itself.
+        public void SetShownOnly(bool shownOnly)
+        {
+            GetParking().SetShownOnly(shownOnly);
+        }
+
+        private CharacterParking GetParking()
+        {
+            var parking = GetComponent<CharacterParking>();
+
+            if (!parking)
+            {
+                parking = gameObject.AddComponent<CharacterParking>();
+            }
+
+            return parking;
         }
 
         protected void ShiftFloorDetectors(Vector2 shift)

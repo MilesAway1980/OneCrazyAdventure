@@ -280,6 +280,12 @@ public static class TileBreakEffects
 
         pieceObject.AddComponent<TileDebris>().Begin(pieceRenderer, options.debrisSeconds);
 
+        // A machine that has joined someone else's game has no physics, so the piece is moved by hand, falling the same way.
+        if (GameSession.IsClientOnly)
+        {
+            pieceObject.AddComponent<ClientDebris>().Begin(body, options.debrisGravityScale);
+        }
+
         return body;
     }
 

@@ -78,8 +78,20 @@ the main editor and "Joined" means the second. Tick each box when what's said ha
 - [ ] While one machine's menu is open, the other machine's player can still open their own.
 - [ ] Walk into a tutorial prompt's area with the hints on, on each editor: the hint shows on the editor where hints are on, naming that player's own buttons, and goes away on leaving.
 
+## 12. Tiles that break
+(Run **Make World Networked** and save: it adds a "Tile Network" object to a scene that has damageable tiles. Tiles on a moving tilemap aren't included.)
+- [ ] A tile that crumbles when stood on, from the host's player: it shows the warning (darkening and shaking) on **both** editors, then breaks with the debris, sound or particles on both, and is gone on both.
+- [ ] The same standing on it as the **joined** player: the warning shows on the joined editor too, and the tile goes on both.
+- [ ] A tile with a time to come back returns on both editors, at the same time, and anything in its space is moved out.
+- [ ] A tile that stays broken stays broken on both.
+- [ ] Heat a tile with something that gives off heat: it glows, catches fire with the flames, burns blacker, spreads to the tiles beside it, and falls, all matching on both.
+- [ ] A tile hit by something that breaks it by touch, or rolling into it, breaks on both.
+- [ ] The debris on the joined editor falls and fades. It falls through the ground instead of landing on it, which is expected.
+- [ ] Break some tiles, then join with the second editor: the tiles that were broken are already gone there, with no break effects.
+- [ ] Tiles that have a Dig setting (Drill) and Dynamite settings (Dynamite) break on both when those characters are used, once those characters are networked (not yet).
+
 ## Known gaps: not expected to work yet
-- Tiles breaking, the rope bridge, and enemies.
+- The rope bridge, and enemies.
 - Ability effects of every character except the Flashlight and the Bulb.
 
 ## When something fails

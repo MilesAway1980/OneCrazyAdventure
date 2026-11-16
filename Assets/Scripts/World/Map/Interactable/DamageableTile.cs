@@ -258,8 +258,140 @@ public class DamageableTile : DamageableTileOptions
         get { return section ? section : this; }
     }
 
+    // ----- Over the network -----
+    //
+    // The host decides everything that happens to a tile. A machine that has joined someone else's game does none of it, and is told what
+    // the tile is doing (see TileNetwork).
+
+    // A tile is known to the other machines by where it is in the world.
+    public static uint KeyOf(Vector2Int place)
+    {
+        return (uint)((place.x + 32768) & 0xFFFF) << 16 | (uint)((place.y + 32768) & 0xFFFF);
+    }
+
+    public static Vector2Int PositionOf(uint key)
+    {
+        return new Vector2Int((int)(key >> 16) - 32768, (int)(key & 0xFFFF) - 32768);
+    }
+
+    // Whether the tile has been taken off here, on a machine that has joined.
+    public bool IsGoneHere
+    {
+        get { return destroyed; }
+    }
+
+    // The host says the tile broke: it goes, and, if it has only just broken, it shows how it broke.
+    public void ApplyBroken(TileBreakInfo info, bool showBreakEffects)
+    {
+        if (destroyed)
+        {
+            return;
+        }
+
+        ClearWarning();
+
+        if (showBreakEffects)
+        {
+            Color tint = info.tint;
+
+            if (info.hasPush)
+            {
+                ShowBlock(info.push, tint);
+            }
+            else
+            {
+                ShowBreak(info.impact, info.drop, tint);
+            }
+        }
+
+        PutOutFire();
+        destroyedTime = Time.time;
+        destroyed = true;
+        RemoveTiles();
+    }
+
+    // The host says the tile has come back.
+    public void ApplyRestored()
+    {
+        if (!destroyed)
+        {
+            return;
+        }
+
+        PlaceTiles();
+        destroyed = false;
+    }
+
+    // The host says what the tile is showing: nothing, a glow, a warning that it will crumble, or burning, and how far it has got.
+    public void ApplyShowing(ushort value)
+    {
+        if (destroyed)
+        {
+            return;
+        }
+
+        var kind = value >> 8;
+        var progress = (value & 63) / 63f;
+
+        switch (kind)
+        {
+            case 1:
+                ShowGlow(Options, progress);
+                break;
+
+            case 2:
+                ShowWarning(Options, progress);
+                break;
+
+            case 3:
+                ShowBurning(Options, progress);
+                ShowFlames();
+                break;
+
+            default:
+                ClearWarning();
+                PutOutFire();
+                break;
+        }
+    }
+
+    // What was last said to the other machines about what the tile is showing.
+    private ushort lastReportedShowing;
+
+    // Tells the other machines what the tile is showing, if that has changed in a way they would notice.
+    private void ReportShowing(int kind, float progress)
+    {
+        var value = kind == 0 ? (ushort)0 : (ushort)((kind << 8) | Mathf.RoundToInt(Mathf.Clamp01(progress) * 63f));
+
+        if (value != lastReportedShowing)
+        {
+            lastReportedShowing = value;
+            TileNetwork.Showing(this, value);
+        }
+    }
+
+    // The flames on the tile, if it burns with any.
+    private void ShowFlames()
+    {
+        var options = Options;
+
+        if (flames || !options.fireFlames)
+        {
+            return;
+        }
+
+        flames = Instantiate(options.fireFlames, new Vector3(position.x + 0.5f, position.y + 0.5f, 0f), Quaternion.identity);
+        TileBreakEffects.SortInFront(flames, tiles.Select(tile => tile.Item1));
+    }
+
     void Update()
     {
+        // In someone else's game the host decides what happens to the tile, and says so.
+        if (GameSession.IsClientOnly)
+        {
+            return;
+        }
+
         var options = Options;
 
         if (destroyed)
@@ -281,6 +413,7 @@ public class DamageableTile : DamageableTileOptions
                 {
 
                     PlaceTiles();
+                    TileNetwork.Restored(this);
                     destroyed = false;
                     ResetContacts();
                 }
@@ -306,12 +439,18 @@ public class DamageableTile : DamageableTileOptions
     //private void OnTriggerStay2D(Collider2D other)
     private void OnTriggerEnter2D(Collider2D collider)
     {
-        HandleCollision(collider);
+        if (!GameSession.IsClientOnly)
+        {
+            HandleCollision(collider);
+        }
     }
 
     private void OnTriggerStay2D(Collider2D collider)
     {
-        HandleCollision(collider);
+        if (!GameSession.IsClientOnly)
+        {
+            HandleCollision(collider);
+        }
     }
 
     private void ResetContacts()
@@ -451,6 +590,7 @@ public class DamageableTile : DamageableTileOptions
     // Glows red, more as the heat goes on, by laying its picture over it.
     private void ShowGlow(DamageableTileOptions options, float progress)
     {
+        ReportShowing(1, progress);
         EnsureOverlays();
 
         warningTint = FireGlow(options, progress);
@@ -566,6 +706,7 @@ public class DamageableTile : DamageableTileOptions
     // Burnt blacker the longer it has burned, by laying its picture over it, as when it is about to crumble.
     private void ShowBurning(DamageableTileOptions options, float progress)
     {
+        ReportShowing(3, progress);
         EnsureOverlays();
 
         // It goes on from as red as it glowed, if it was glowing, and burns to black from there.
@@ -700,6 +841,7 @@ public class DamageableTile : DamageableTileOptions
             return;
         }
 
+        ReportShowing(2, progress);
         EnsureOverlays();
 
         var darken = options.crumbleWarningType != WarningType.Shake;
@@ -720,6 +862,8 @@ public class DamageableTile : DamageableTileOptions
 
     private void ClearWarning()
     {
+        ReportShowing(0, 0f);
+
         warningTint = Color.white;
 
         if (warning == null)
@@ -745,6 +889,7 @@ public class DamageableTile : DamageableTileOptions
     {
         // The debris is as dark as the tile was, if it was showing that it was going.
         var tint = warningTint;
+        TileNetwork.Broken(this, impact, drop, tint, blockPush);
         ClearWarning();
 
         // Before the tile is taken away, as the debris is made from its picture.

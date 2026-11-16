@@ -91,8 +91,8 @@ public class GameSession : MonoBehaviour
         StartLocal();
     }
 
-    [Tooltip("Leave off. A machine that has joined someone else's game then runs no physics of its own, and only shows what the host sends. Turn it on to compare, or if something there is found to need it.")]
-    public bool simulatePhysicsWhenJoined;
+    [Tooltip("Whether a machine that has joined someone else's game runs physics. On, which is how it's best left: the broken pieces of tiles then land and bounce as they do on the host. Everything that is moved by the host is only moved there (kinematic) and nothing decides anything, so there is nothing for it to duplicate. Off, nothing is simulated there at all, and pieces of tiles fall through the ground.")]
+    public bool simulatePhysicsWhenJoined = true;
 
     // How physics ran before it was turned off, to put it back.
     private SimulationMode2D? normalPhysicsMode;
@@ -137,6 +137,12 @@ public class GameSession : MonoBehaviour
                 lastLoggedState = state;
                 Debug.Log($"Game session: join state is now {state}.");
             }
+        }
+
+        // The tickbox can be changed while playing, to compare.
+        if (Mode == SessionMode.Joined && !switching)
+        {
+            SetPhysics(simulatePhysicsWhenJoined);
         }
 
         // A game that was joined has gone: it couldn't be reached, or the host left. Back to playing locally.
@@ -211,8 +217,8 @@ public class GameSession : MonoBehaviour
 
         Configure();
 
-        // On a machine that has joined, nothing is simulated by physics: the host does it, and everything is moved to where the host
-        // says. With it off, nothing falls, collides, pushes or touches there, so there is no second version of what the host decides.
+        // On a machine that has joined, what the host moves is only moved there, and the host decides everything. Physics still runs, for
+        // what is made there only to be seen, such as the pieces of a broken tile, but it can be turned off (see the tickbox).
         SetPhysics(target != SessionMode.Joined || simulatePhysicsWhenJoined);
 
         switch (target)
@@ -320,6 +326,17 @@ public class GameSession : MonoBehaviour
             }
             else if (Mode != SessionMode.None)
             {
+                // The extra editors can't change anything in the Inspector, so this is where it's switched, for comparing.
+                if (Mode == SessionMode.Joined)
+                {
+                    var label = simulatePhysicsWhenJoined ? "Physics here: on (click to turn off)" : "Physics here: off (click to turn on)";
+
+                    if (GUILayout.Button(label))
+                    {
+                        simulatePhysicsWhenJoined = !simulatePhysicsWhenJoined;
+                    }
+                }
+
                 if (GUILayout.Button("Back to playing locally"))
                 {
                     GoLocal();

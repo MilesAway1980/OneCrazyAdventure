@@ -189,6 +189,17 @@ public static class NetworkCharactersMenu
             count += NetworkPosition(go, go.transform) ? 1 : 0;
         }
 
+        // One object for all the tiles that can be destroyed in the scene.
+        if (Object.FindFirstObjectByType<DamageableTileSection>(FindObjectsInactive.Include) &&
+            !Object.FindFirstObjectByType<TileNetwork>(FindObjectsInactive.Include))
+        {
+            var tiles = new GameObject("Tile Network");
+            Undo.RegisterCreatedObjectUndo(tiles, "Make World Networked");
+            tiles.AddComponent<NetworkIdentity>();
+            tiles.AddComponent<TileNetwork>();
+            count++;
+        }
+
         foreach (var hub in Object.FindObjectsByType<CharacterHub>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             count += NetworkWith<HubNetwork>(hub.gameObject) ? 1 : 0;
@@ -324,6 +335,11 @@ public static class NetworkCharactersMenu
         }
 
         objects.AddRange(FindMovers());
+
+        foreach (var tiles in Object.FindObjectsByType<TileNetwork>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            Undo.DestroyObjectImmediate(tiles.gameObject);
+        }
 
         foreach (var hub in Object.FindObjectsByType<CharacterHub>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {

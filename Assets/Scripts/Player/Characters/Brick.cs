@@ -186,12 +186,59 @@ namespace Characters
             pushable.enabled = solid;
         }
 
+        // How many times he has shuddered, which another machine goes by to shudder when he does.
+        public int BlockedCount { get; private set; }
+
+        // ----- On a machine that has joined someone else's game -----
+
+        private bool shownFlashing;
+        private float shownFlashUntil;
+
+        // The host says he has just shuddered.
+        public void StartShownFlash()
+        {
+            if (blockedFlashSeconds <= 0f || !spriteRenderer)
+            {
+                return;
+            }
+
+            if (!shownFlashing)
+            {
+                originalColor = spriteRenderer.color;
+                originalSpritePosition = spriteRenderer.transform.localPosition;
+                shownFlashing = true;
+            }
+
+            shownFlashUntil = Time.time + blockedFlashSeconds;
+        }
+
+        // Called every frame, after his picture has been chosen, to go on shuddering until the time is up.
+        public void UpdateShownFlash()
+        {
+            if (!shownFlashing)
+            {
+                return;
+            }
+
+            if (Time.time >= shownFlashUntil)
+            {
+                shownFlashing = false;
+                EndFlash();
+            }
+            else
+            {
+                ShowBlocked();
+            }
+        }
+
         private void FlashBlocked()
         {
             if (blockedFlashSeconds <= 0f)
             {
                 return;
             }
+
+            BlockedCount++;
 
             if (flashTimeRemaining <= 0f)
             {

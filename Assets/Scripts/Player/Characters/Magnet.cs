@@ -46,6 +46,15 @@ namespace Characters
             }
         }
 
+        // On a machine that has joined someone else's game: the field is shown while the host says he's using it.
+        public void ShowField(bool on)
+        {
+            if (magneticField && magneticField.activeSelf != on)
+            {
+                magneticField.SetActive(on);
+            }
+        }
+
         // Called every frame with whether the button is held.
         public override void Action(bool active)
         {

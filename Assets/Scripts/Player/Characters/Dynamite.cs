@@ -138,6 +138,64 @@ namespace Characters
             performingAction = active;
         }
 
+        // The pieces that fly out of him as he goes off, which only show it: they push nothing.
+        private void SpawnPieces()
+        {
+            if (!explosionPiece)
+            {
+                return;
+            }
+
+            for (int i = 0; i < numExplosionPieces; i++)
+            {
+                var piece = Instantiate(explosionPiece);
+                piece.SetActive(true);
+                var vector = GameMath.GetMagnitudeFromAngle(Random.Range(0f, 360f), 0.25f);
+                piece.transform.position = transform.position + (Vector3)vector;
+
+                var rb = piece.GetComponent<Rigidbody2D>();
+                rb.AddForce(
+                    vector * (explosionForce * 15),
+                    ForceMode2D.Impulse
+                );
+
+                explodedPieces.Add(piece);
+            }
+        }
+
+        // ----- On a machine that has joined someone else's game -----
+        //
+        // The host works out when he goes off, what the blast pushes and which tiles it breaks, and sends when he goes off and how far the fuse
+        // is burned. This machine shows it: his exploded picture, the pieces flying out, and the fuse bar.
+
+        // How far the fuse has burned, from 0 to 1.
+        public float ChargeFraction
+        {
+            get { return maximumChargeValue > 0f ? Mathf.Clamp01(chargeValue / maximumChargeValue) : 0f; }
+        }
+
+        // He has just gone off, as the host says.
+        public void ShowExplosion()
+        {
+            SpawnPieces();
+        }
+
+        // Called every frame, after his picture has been chosen for walking and jumping.
+        public void ShowState(bool isExploded, float chargeFraction)
+        {
+            exploded = isExploded;
+            chargeValue = chargeFraction * maximumChargeValue;
+
+            CalculateExplosionPieces();
+
+            if (isExploded && spriteRenderer)
+            {
+                spriteRenderer.sprite = explodedSprite;
+            }
+
+            UpdateMeter();
+        }
+
         private void Explode()
         {
             exploded = true;
@@ -146,24 +204,7 @@ namespace Characters
             // Everything the blast can push, found before his own pieces exist so they aren't pushed a second time.
             var bodies = new HashSet<Rigidbody2D>(FindObjectsByType<Rigidbody2D>(FindObjectsInactive.Exclude));
 
-            if (explosionPiece)
-            {
-                for (int i = 0; i < numExplosionPieces; i++)
-                {
-                    var piece = Instantiate(explosionPiece);
-                    piece.SetActive(true);
-                    var vector = GameMath.GetMagnitudeFromAngle(Random.Range(0f, 360f), 0.25f);
-                    piece.transform.position = transform.position + (Vector3)vector;
-
-                    var rb = piece.GetComponent<Rigidbody2D>();
-                    rb.AddForce(
-                        vector * (explosionForce * 15),
-                        ForceMode2D.Impulse
-                    );
-
-                    explodedPieces.Add(piece);
-                }
-            }
+            SpawnPieces();
 
             // The tiles the blast reaches, with the same push as everything else: strongest where he is, and fading to
             // nothing at the edge of the blast. Each decides for itself what it does with it.

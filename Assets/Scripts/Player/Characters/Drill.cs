@@ -285,6 +285,57 @@ namespace Characters
             TurnPicture(-90f * value.x);
         }
 
+        // ----- On a machine that has joined someone else's game -----
+        //
+        // Which way the drill points is all it needs to show him: up, down, left or right (0 to 3).
+
+        public byte PointingForNetwork
+        {
+            get
+            {
+                if (pointing == Vector2Int.down)
+                {
+                    return 1;
+                }
+
+                if (pointing == Vector2Int.left)
+                {
+                    return 2;
+                }
+
+                return pointing == Vector2Int.right ? (byte)3 : (byte)0;
+            }
+        }
+
+        private Vector2Int shownPointing = Vector2Int.up;
+
+        // Turns his picture, and him if he's upside down, to match the host. Only the picture, and the way up, as the host does the rest.
+        public void ShowPointing(byte way)
+        {
+            Vector2Int value;
+
+            switch (way)
+            {
+                case 1: value = Vector2Int.down; break;
+                case 2: value = Vector2Int.left; break;
+                case 3: value = Vector2Int.right; break;
+                default: value = Vector2Int.up; break;
+            }
+
+            if (value == shownPointing)
+            {
+                return;
+            }
+
+            shownPointing = value;
+
+            var scale = transform.localScale;
+            scale.y = Mathf.Abs(scale.y) * (value.y < 0 ? -1f : 1f);
+            transform.localScale = scale;
+
+            TurnPicture(-90f * value.x);
+        }
+
         // Turns the picture on his side by an angle, about the middle of him, leaving the rest of him as he is.
         private void TurnPicture(float angle)
         {

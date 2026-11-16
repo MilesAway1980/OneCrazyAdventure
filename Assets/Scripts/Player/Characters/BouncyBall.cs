@@ -90,6 +90,58 @@ namespace Characters
             meter = gameObject.AddComponent<ScreenMeter>();
         }
 
+        // ----- On a machine that has joined someone else's game -----
+        //
+        // The host works out which form he's in and how far his jump is charged, and sends them. This machine shows him in that form, with
+        // his charge bar. His shape for the physics, and how he bounces, are the host's.
+
+        // Which form he's in: 0 normal, 1 charging, 2 inflated.
+        public byte FormForNetwork
+        {
+            get { return (byte)(IsInflated() ? Form.Inflated : (charging ? Form.Charging : Form.Normal)); }
+        }
+
+        // How far his jump is charged, from 0 to 1.
+        public float ChargeFraction
+        {
+            get { return maximumChargeValue > 0f ? Mathf.Clamp01(chargeValue / maximumChargeValue) : 0f; }
+        }
+
+        // Called every frame, after his picture has been chosen for walking and jumping.
+        public void ShowForm(byte form, float chargeFraction)
+        {
+            if (!spriteRenderer || !bouncyShell)
+            {
+                return;
+            }
+
+            var shown = (Form)form;
+            var inflatedNow = shown == Form.Inflated;
+
+            spriteRenderer.transform.localScale = inflatedNow
+                ? new Vector3(originalSpriteSize.x * inflateSize, originalSpriteSize.y * inflateSize, originalSpriteSize.z)
+                : originalSpriteSize;
+
+            if (bouncyShell.activeSelf != inflatedNow)
+            {
+                bouncyShell.SetActive(inflatedNow);
+            }
+
+            if (inflatedNow)
+            {
+                bouncyShell.transform.position = transform.position;
+            }
+            else if (shown == Form.Charging)
+            {
+                spriteRenderer.sprite = chargeSprite;
+            }
+
+            // The charge bar, for the player using him.
+            charging = shown == Form.Charging;
+            chargeValue = chargeFraction * maximumChargeValue;
+            UpdateMeter();
+        }
+
         protected override void Update()
         {
             // Before the base class works out his movement settings, which depend on whether he's charging or inflated.

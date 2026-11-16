@@ -78,6 +78,19 @@ the main editor and "Joined" means the second. Tick each box when what's said ha
 - [ ] While one machine's menu is open, the other machine's player can still open their own.
 - [ ] Walk into a tutorial prompt's area with the hints on, on each editor: the hint shows on the editor where hints are on, naming that player's own buttons, and goes away on leaving.
 
+## 13. The other characters
+(Run **Make Characters Networked** again and save: it adds a small script to each of these. Each is played by the host's player, then the joined player. Compare the two editors.)
+- [ ] **Torch:** put him in water: his light goes out and his unlit pictures show, on both. Out of the water he lights again. He still lights a sconce he stands by, on both.
+- [ ] **Magnet:** hold the action: the magnetic field shows on both, and goes when the action is let go. A crate near him is pulled on both.
+- [ ] **Bowling Ball:** hold the action to roll: his picture turns round as he moves, on both, the right way for the direction, and stops turning when he stops. Rolling into a tile that breaks by rolling breaks it on both.
+- [ ] **Brick:** press the action to go solid (the action picture shows on both), and again to turn back. With something in the way, he shudders red on both.
+- [ ] **Suction Cup:** hold the action against a wall: his wall picture shows on both, facing the right way, and climbs with the stick. On a ceiling, his ceiling picture shows. Let go and he drops, on both.
+- [ ] **Drill:** hold the action in a tile that can be dug: the tiles darken and break on both. Jump, push down and hold the action: he flips upside down on both. Run and press the action: he turns on his side on both.
+- [ ] **Bouncy Ball:** hold the action: he inflates, with his shell, on both, and bounces. Hold the action and down: he squashes (his charging picture) and the charge bar fills for the player using him, then he jumps on release, on both. Double-tap the action: he stays inflated, on both.
+- [ ] **Dynamite:** hold the action: his fuse bar fills for the player using him. When he goes off: his exploded picture shows and the pieces fly out on both, and tiles in reach break on both, and crates in reach are pushed on both.
+- [ ] **Ladder:** hold the action and press up: the ladder extends on both, with its rungs and its height bar. Press down to retract. A double tap makes it carry on by itself. Another character can climb it, from either machine.
+- [ ] **Umbrella** and **Balloon:** hold the action: the open picture shows on both. (The Balloon has no string in any scene yet, so there's nothing more to check on him.)
+
 ## 12. Tiles that break
 (Run **Make World Networked** and save: it adds a "Tile Network" object to a scene that has damageable tiles. Tiles on a moving tilemap aren't included.)
 - [ ] A tile that crumbles when stood on, from the host's player: it shows the warning (darkening and shaking) on **both** editors, then breaks with the debris, sound or particles on both, and is gone on both.

@@ -59,6 +59,40 @@ namespace Characters
             groundFilter.SetLayerMask(LayerMask.GetMask("Ground"));
         }
 
+        // ----- On a machine that has joined someone else's game -----
+
+        // What he's stuck to, 0 for nothing, 1 for a wall and 2 for a ceiling, and which way he faces on a wall.
+        public byte HoldForNetwork
+        {
+            get { return (byte)hold; }
+        }
+
+        public bool FacesRightOnWall
+        {
+            get { return surfaceNormal.x > 0; }
+        }
+
+        // Shows him as the host says he's holding on. Called after his picture has been chosen for walking and jumping.
+        public void ShowHold(byte kind, bool facesRight)
+        {
+            if (!spriteRenderer)
+            {
+                return;
+            }
+
+            var shown = (Hold)kind;
+
+            if (shown == Hold.Wall)
+            {
+                spriteRenderer.sprite = wallHoldSprite;
+                spriteRenderer.flipX = facesRight;
+            }
+            else if (shown == Hold.Ceiling)
+            {
+                spriteRenderer.sprite = ceilingHoldSprite;
+            }
+        }
+
         protected override void Update()
         {
             base.Update();

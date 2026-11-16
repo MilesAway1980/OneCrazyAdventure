@@ -26,6 +26,29 @@ namespace Characters
             heatSource = GetComponent<HeatSource>();
         }
 
+        // ----- On a machine that has joined someone else's game -----
+
+        // Whether he's burning, which is all another machine needs to show him: he's put out in liquid.
+        public bool IsBurning
+        {
+            get { return !inLiquid; }
+        }
+
+        // Shows him lit, or put out, as the host says: his light, and his unlit pictures. Called after the picture has been chosen
+        // for the way he's facing and whether he's in the air.
+        public void ShowLit(bool lit)
+        {
+            if (lightTileSource)
+            {
+                lightTileSource.SetLit(lit);
+            }
+
+            if (!lit && spriteRenderer)
+            {
+                spriteRenderer.sprite = isJumping ? unlitJump : unlitStand;
+            }
+        }
+
         protected override void Update()
         {
             base.Update();

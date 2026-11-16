@@ -98,6 +98,85 @@ namespace Characters
             meter = gameObject.AddComponent<ScreenMeter>();
         }
 
+        // ----- On a machine that has joined someone else's game -----
+        //
+        // The host works out how far out he is, and sends it, in hundredths of a unit. This machine shows the ladder that long. Climbing it,
+        // and what is in the way, are the host's.
+
+        public ushort LengthForNetwork
+        {
+            get { return (ushort)Mathf.Clamp(Mathf.RoundToInt(extendLength * 100f), 0, ushort.MaxValue); }
+        }
+
+        // Called every frame, after he has been moved.
+        public void ShowLength(float length)
+        {
+            if (!topLadderObject || !bottomLadderObject || !spriteRenderer)
+            {
+                // Not started.
+                return;
+            }
+
+            extendLength = length;
+
+            if (length > 0f)
+            {
+                spriteRenderer.enabled = false;
+                bottomLadderObject.SetActive(true);
+                topLadderObject.SetActive(true);
+                bottomLadderObject.transform.position = transform.position;
+                topLadderObject.transform.position = new Vector3(transform.position.x, transform.position.y + length, transform.position.z);
+
+                var neededLadders = Mathf.FloorToInt(length / Mathf.Max(addLadderDistance, 0.01f));
+
+                while (middleLadderObjects.Count < neededLadders)
+                {
+                    var newLadderMiddle = new GameObject("Middle Ladder " + (middleLadderObjects.Count + 1));
+                    newLadderMiddle.transform.parent = transform;
+                    newLadderMiddle.transform.localScale = Vector3.one;
+                    newLadderMiddle.AddComponent<SpriteRenderer>().sprite = middleSprite;
+                    middleLadderObjects.Add(newLadderMiddle);
+                }
+
+                var points = length / (neededLadders + 1);
+
+                for (int i = 0; i < middleLadderObjects.Count; i++)
+                {
+                    var needed = i < neededLadders;
+
+                    if (middleLadderObjects[i].activeSelf != needed)
+                    {
+                        middleLadderObjects[i].SetActive(needed);
+                    }
+
+                    if (needed)
+                    {
+                        middleLadderObjects[i].transform.position = new Vector3(
+                            transform.position.x,
+                            transform.position.y + points * (i + 1),
+                            transform.position.z
+                        );
+                    }
+                }
+            }
+            else
+            {
+                spriteRenderer.enabled = true;
+                bottomLadderObject.SetActive(false);
+                topLadderObject.SetActive(false);
+
+                foreach (var middle in middleLadderObjects)
+                {
+                    if (middle.activeSelf)
+                    {
+                        middle.SetActive(false);
+                    }
+                }
+            }
+
+            UpdateMeter();
+        }
+
         // Update is called once per frame
         protected override void Update()
         {

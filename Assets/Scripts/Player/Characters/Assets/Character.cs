@@ -686,6 +686,9 @@ namespace Characters
 
             spriteRenderer.flipX = facingLeft;
 
+            // So that what is shown for a character that is only being shown, which goes by whether he's in the air, can tell.
+            isJumping = airborne;
+
             if (airborne)
             {
                 spriteRenderer.sprite = performing ? jumpUseSprite : jumpSprite;

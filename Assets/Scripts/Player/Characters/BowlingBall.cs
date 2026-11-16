@@ -59,6 +59,46 @@ namespace Characters
             spriteRenderer.transform.localRotation = Quaternion.Euler(0, 0, rotationAngle);
         }
 
+        // ----- On a machine that has joined someone else's game -----
+        //
+        // He has no speed of his own there, so how far he has rolled is worked out from how far he has moved.
+
+        private float shownLastX;
+        private bool shownHasLast;
+
+        // Called every frame with whether the host says he's rolling.
+        public void ShowRolling(bool rolling)
+        {
+            if (!ready)
+            {
+                return;
+            }
+
+            if (!rolling)
+            {
+                rotationAngle = 0f;
+                shownHasLast = false;
+                spriteRenderer.transform.localRotation = Quaternion.identity;
+                return;
+            }
+
+            var x = transform.position.x;
+
+            if (shownHasLast)
+            {
+                var radius = circleCollider.radius * Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.y));
+
+                if (radius > 0f)
+                {
+                    rotationAngle = Mathf.Repeat(rotationAngle - (x - shownLastX) / radius * Mathf.Rad2Deg, 360f);
+                    spriteRenderer.transform.localRotation = Quaternion.Euler(0, 0, rotationAngle);
+                }
+            }
+
+            shownLastX = x;
+            shownHasLast = true;
+        }
+
         public override void DirectionPress(Vector2 directionValue)
         {
             if (canMove)

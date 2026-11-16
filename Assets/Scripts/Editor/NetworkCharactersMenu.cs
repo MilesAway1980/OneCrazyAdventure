@@ -84,6 +84,16 @@ public static class NetworkCharactersMenu
                 changed++;
             }
 
+            changed += AddCharacterNetwork<Torch, TorchNetwork>(go);
+            changed += AddCharacterNetwork<Magnet, MagnetNetwork>(go);
+            changed += AddCharacterNetwork<BowlingBall, BowlingBallNetwork>(go);
+            changed += AddCharacterNetwork<Brick, BrickNetwork>(go);
+            changed += AddCharacterNetwork<SuctionCup, SuctionCupNetwork>(go);
+            changed += AddCharacterNetwork<Drill, DrillNetwork>(go);
+            changed += AddCharacterNetwork<BouncyBall, BouncyBallNetwork>(go);
+            changed += AddCharacterNetwork<Dynamite, DynamiteNetwork>(go);
+            changed += AddCharacterNetwork<Ladder, LadderNetwork>(go);
+
             EditorUtility.SetDirty(go);
         }
 
@@ -91,6 +101,20 @@ public static class NetworkCharactersMenu
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
 
         Debug.Log($"Made {characters.Length} characters networked ({changed} components added). Save the scene.");
+    }
+
+    // Gives a character the script that sends what is special to it, if it is that kind of character and hasn't got it. 1 if added.
+    private static int AddCharacterNetwork<TCharacter, TNetwork>(GameObject go)
+        where TCharacter : Component
+        where TNetwork : Component
+    {
+        if (go.GetComponent<TCharacter>() && !go.GetComponent<TNetwork>())
+        {
+            Undo.AddComponent<TNetwork>(go);
+            return 1;
+        }
+
+        return 0;
     }
 
     // The object the Network Manager makes for each connection. Done once for the project, not for each scene.
@@ -132,6 +156,15 @@ public static class NetworkCharactersMenu
             // The scripts that need the identity go first.
             RemoveIfThere<FlashlightNetwork>(go);
             RemoveIfThere<BulbNetwork>(go);
+            RemoveIfThere<TorchNetwork>(go);
+            RemoveIfThere<MagnetNetwork>(go);
+            RemoveIfThere<BowlingBallNetwork>(go);
+            RemoveIfThere<BrickNetwork>(go);
+            RemoveIfThere<SuctionCupNetwork>(go);
+            RemoveIfThere<DrillNetwork>(go);
+            RemoveIfThere<BouncyBallNetwork>(go);
+            RemoveIfThere<DynamiteNetwork>(go);
+            RemoveIfThere<LadderNetwork>(go);
             RemoveIfThere<CharacterNetwork>(go);
             RemoveIfThere<NetworkRigidbodyUnreliable2D>(go);
             RemoveIfThere<NetworkIdentity>(go);

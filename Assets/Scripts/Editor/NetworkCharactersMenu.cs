@@ -93,6 +93,7 @@ public static class NetworkCharactersMenu
             changed += AddCharacterNetwork<BouncyBall, BouncyBallNetwork>(go);
             changed += AddCharacterNetwork<Dynamite, DynamiteNetwork>(go);
             changed += AddCharacterNetwork<Ladder, LadderNetwork>(go);
+            changed += AddCharacterNetwork<Piton, PitonNetwork>(go);
 
             EditorUtility.SetDirty(go);
         }
@@ -165,6 +166,7 @@ public static class NetworkCharactersMenu
             RemoveIfThere<BouncyBallNetwork>(go);
             RemoveIfThere<DynamiteNetwork>(go);
             RemoveIfThere<LadderNetwork>(go);
+            RemoveIfThere<PitonNetwork>(go);
             RemoveIfThere<CharacterNetwork>(go);
             RemoveIfThere<NetworkRigidbodyUnreliable2D>(go);
             RemoveIfThere<NetworkIdentity>(go);

@@ -8,7 +8,7 @@ namespace Characters
     // crossed. If the rope has all been paid out first, it stops the head, which swings and falls on the end of it until
     // it touches something. He can't move until he has pulled his head back in, which he does by tapping the action button
     // twice. The head stays out if the player moves to another character, as that's how the rope is crossed.
-    public class Piton : Character
+    public class Piton : Character, IKeepsRunningWhenShownOnly
     {
         [Tooltip("The most links the rope can have. Once it has this many it can't pay out any more, and the rope stops the head.")]
         public int maxLinks = 6;
@@ -263,6 +263,18 @@ namespace Characters
         {
             base.FixedUpdate();
 
+            // Only shown: the host does the throwing and the rope. The rope he carries is only for show, and still follows him.
+            if (ShownOnly)
+            {
+                if (carriedStartAnchor && carriedEndAnchor)
+                {
+                    carriedStartAnchor.MovePosition(carriedRopeStart.position);
+                    carriedEndAnchor.MovePosition(carriedRopeEnd.position);
+                }
+
+                return;
+            }
+
             // Moved by him and nothing else, so it goes wherever he does, and the rope can't take him anywhere.
             if (ropeAnchor)
             {
@@ -290,6 +302,18 @@ namespace Characters
         // Once the head is thrown he is just his feet.
         private void LateUpdate()
         {
+            if (ShownOnly)
+            {
+                if (shownState != HeadState.Home && feet)
+                {
+                    spriteRenderer.sprite = feet;
+                }
+
+                UpdateCarriedLine();
+                UpdateAimArrow();
+                return;
+            }
+
             if (state != HeadState.Home && feet)
             {
                 spriteRenderer.sprite = feet;
@@ -303,6 +327,8 @@ namespace Characters
 
         void OnDestroy()
         {
+            DestroyShown();
+
             if (aimArrowMaterial)
             {
                 Destroy(aimArrowMaterial);
@@ -316,6 +342,312 @@ namespace Characters
             {
                 Destroy(headBody.gameObject);
             }
+        }
+
+        // ----- Over the network -----
+        //
+        // The host does the throwing and the rope, with all its physics. It sends what is needed to draw them: which state he's in, how
+        // he's aiming, where the head is, and the points the rope runs through. A machine that has joined someone else's game draws his
+        // head, the rope (its links and the line through them) and the arrow from those, with no physics, and it moves what's drawn
+        // smoothly between the times they're sent. The rope he carries, while his head is on, is only for show and runs there as it does here.
+
+        public byte StateForNetwork
+        {
+            get { return (byte)state; }
+        }
+
+        public bool AimShownForNetwork
+        {
+            get { return aiming && aimMoved; }
+        }
+
+        public float AimAngleForNetwork
+        {
+            get { return aimAngle; }
+        }
+
+        public float AimPowerForNetwork
+        {
+            get { return aimPower; }
+        }
+
+        // Where the head is and which way it's turned, or false if it's on him.
+        public bool TryGetHeadForNetwork(out Vector2 position, out float angle)
+        {
+            if (headBody)
+            {
+                position = headBody.position;
+                angle = headBody.rotation;
+                return true;
+            }
+
+            position = Vector2.zero;
+            angle = 0f;
+            return false;
+        }
+
+        // The points the rope runs through, put in the list. The result says how to draw them: 0 for no rope, 1 for the rope that has been
+        // thrown, which is a line through every link and the gaps between them (so the links are the second to the third point, the fourth
+        // to the fifth, and so on), and 2 for the rope on its way back, which is links end to end.
+        public byte GetRopeForNetwork(List<Vector2> points)
+        {
+            points.Clear();
+
+            if (linkWidth <= 0f || headBody == null || state == HeadState.Home)
+            {
+                return 0;
+            }
+
+            if (ropeHolder && ropeAnchor)
+            {
+                var halfWidth = linkWidth * 0.5f;
+
+                points.Add(ropeAnchor.position);
+
+                foreach (var link in ropeLinks)
+                {
+                    if (!link)
+                    {
+                        continue;
+                    }
+
+                    points.Add(link.transform.TransformPoint(new Vector3(-halfWidth, 0, 0)));
+                    points.Add(link.transform.TransformPoint(new Vector3(halfWidth, 0, 0)));
+                }
+
+                points.Add(headBody.position);
+
+                return 1;
+            }
+
+            var shape = RopeNodes();
+
+            if (ropeVisual && shape != null)
+            {
+                points.AddRange(shape);
+                return 2;
+            }
+
+            return 0;
+        }
+
+        private HeadState shownState = HeadState.Home;
+        private GameObject shownHead;
+        private GameObject shownRope;
+        private LineRenderer shownLine;
+        private readonly List<Transform> shownLinks = new List<Transform>();
+        private readonly List<Vector2> shownPoints = new List<Vector2>();
+        private byte shownRopeMode;
+
+        // How quickly what is drawn catches up with where the host says it is, as a share of the gap each second, in the way a spring does.
+        private const float ShownCatchUp = 30f;
+
+        // The state he's in, and the arrow, as the host says.
+        public void ShowState(byte newState, bool aimShown, float angle, float power)
+        {
+            shownState = (HeadState)newState;
+
+            // The rope he carries is only there while his head is on.
+            if (shownState == HeadState.Home)
+            {
+                BuildCarriedRope();
+            }
+            else
+            {
+                DestroyCarriedRope();
+            }
+
+            if (aimShown && shownState == HeadState.Home)
+            {
+                aiming = true;
+                aimMoved = true;
+                aimAngle = angle;
+                aimPower = power;
+
+                if (!aimArrow)
+                {
+                    CreateAimArrow();
+                }
+
+                if (aimArrow)
+                {
+                    aimArrow.enabled = true;
+                }
+            }
+            else
+            {
+                aiming = false;
+                aimMoved = false;
+                HideAim();
+            }
+        }
+
+        // The head, where the host says, turning as it does while it flies and comes back and held still when it has stuck.
+        public void ShowHead(bool exists, Vector2 position, float angle)
+        {
+            if (!exists || !head)
+            {
+                if (shownHead)
+                {
+                    Destroy(shownHead);
+                    shownHead = null;
+                }
+
+                return;
+            }
+
+            if (!shownHead)
+            {
+                shownHead = new GameObject("Piton Head (shown)");
+                shownHead.transform.position = position;
+                shownHead.transform.localScale = spriteRenderer.transform.lossyScale;
+
+                var headRenderer = shownHead.AddComponent<SpriteRenderer>();
+                headRenderer.sprite = head;
+                headRenderer.sortingLayerID = spriteRenderer.sortingLayerID;
+                headRenderer.sortingOrder = spriteRenderer.sortingOrder + 1;
+
+                shownHead.transform.rotation = Quaternion.Euler(0f, 0f, angle);
+            }
+
+            var follow = 1f - Mathf.Exp(-ShownCatchUp * Time.deltaTime);
+            var now = (Vector2)shownHead.transform.position;
+            var next = Vector2.Lerp(now, position, follow);
+            shownHead.transform.position = new Vector3(next.x, next.y, shownHead.transform.position.z);
+
+            if (shownState == HeadState.Flying || shownState == HeadState.Returning)
+            {
+                // It spins, which is faster than it's sent, so it's turned here.
+                shownHead.transform.Rotate(0f, 0f, HeadSpin * Time.deltaTime);
+            }
+            else
+            {
+                shownHead.transform.rotation = Quaternion.Euler(0f, 0f, angle);
+            }
+        }
+
+        // The rope, from the points the host sends, in the mode it says (see GetRopeForNetwork).
+        public void ShowRope(byte mode, Vector2[] points)
+        {
+            if (mode == 0 || points == null || points.Length < 2 || !linkTemplate || linkWidth <= 0f)
+            {
+                if (shownRope)
+                {
+                    shownRope.SetActive(false);
+                }
+
+                shownPoints.Clear();
+                shownRopeMode = 0;
+                return;
+            }
+
+            if (!shownRope)
+            {
+                shownRope = new GameObject("Piton Rope (shown)");
+                shownLine = CreateLine(shownRope.transform);
+            }
+
+            shownRope.SetActive(true);
+
+            // A rope that has just appeared, or changed how it's drawn, or grown another link, starts where it is told. Otherwise it eases to it.
+            if (mode != shownRopeMode || points.Length != shownPoints.Count)
+            {
+                shownPoints.Clear();
+                shownPoints.AddRange(points);
+            }
+            else
+            {
+                var follow = 1f - Mathf.Exp(-ShownCatchUp * Time.deltaTime);
+
+                for (int i = 0; i < points.Length; i++)
+                {
+                    shownPoints[i] = Vector2.Lerp(shownPoints[i], points[i], follow);
+                }
+            }
+
+            shownRopeMode = mode;
+
+            var z = linkTemplate.transform.position.z;
+
+            if (shownLine)
+            {
+                shownLine.enabled = mode == 1;
+
+                if (mode == 1)
+                {
+                    shownLine.positionCount = shownPoints.Count;
+
+                    for (int i = 0; i < shownPoints.Count; i++)
+                    {
+                        shownLine.SetPosition(i, new Vector3(shownPoints[i].x, shownPoints[i].y, z));
+                    }
+                }
+            }
+
+            // The links: for the thrown rope they're between the second and third points, the fourth and fifth, and so on, with the line
+            // across the gaps. For the rope coming back they're all of it, end to end.
+            var count = mode == 1 ? (shownPoints.Count - 2) / 2 : shownPoints.Count - 1;
+            var scale = linkTemplate.transform.lossyScale;
+
+            while (shownLinks.Count < count)
+            {
+                shownLinks.Add(NewShownLink());
+            }
+
+            for (int i = 0; i < shownLinks.Count; i++)
+            {
+                shownLinks[i].gameObject.SetActive(i < count);
+
+                if (i >= count)
+                {
+                    continue;
+                }
+
+                var from = mode == 1 ? shownPoints[i * 2 + 1] : shownPoints[i];
+                var to = mode == 1 ? shownPoints[i * 2 + 2] : shownPoints[i + 1];
+                var along = to - from;
+                var middle = (from + to) * 0.5f;
+
+                shownLinks[i].position = new Vector3(middle.x, middle.y, z);
+                shownLinks[i].rotation = Quaternion.Euler(0, 0, Mathf.Atan2(along.y, along.x) * Mathf.Rad2Deg);
+                shownLinks[i].localScale = new Vector3(along.magnitude / linkWidth, scale.y, 1f);
+            }
+        }
+
+        private Transform NewShownLink()
+        {
+            var source = linkTemplate.GetComponent<SpriteRenderer>();
+
+            var link = new GameObject($"Link {shownLinks.Count}");
+            link.transform.parent = shownRope.transform;
+
+            var linkRenderer = link.AddComponent<SpriteRenderer>();
+            linkRenderer.sprite = source.sprite;
+            linkRenderer.sharedMaterial = source.sharedMaterial;
+            linkRenderer.color = source.color;
+            linkRenderer.sortingLayerID = source.sortingLayerID;
+            linkRenderer.sortingOrder = source.sortingOrder;
+
+            return link.transform;
+        }
+
+        private void DestroyShown()
+        {
+            if (shownHead)
+            {
+                Destroy(shownHead);
+            }
+
+            if (shownRope)
+            {
+                Destroy(shownRope);
+            }
+
+            shownHead = null;
+            shownRope = null;
+            shownLine = null;
+            shownLinks.Clear();
+            shownPoints.Clear();
         }
 
         public override void DirectionPress(Vector2 directionValue)

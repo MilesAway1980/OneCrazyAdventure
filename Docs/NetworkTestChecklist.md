@@ -89,6 +89,9 @@ the main editor and "Joined" means the second. Tick each box when what's said ha
 - [ ] **Bouncy Ball:** hold the action: he inflates, with his shell, on both, and bounces. Hold the action and down: he squashes (his charging picture) and the charge bar fills for the player using him, then he jumps on release, on both. Double-tap the action: he stays inflated, on both.
 - [ ] **Dynamite:** hold the action: his fuse bar fills for the player using him. When he goes off: his exploded picture shows and the pieces fly out on both, and tiles in reach break on both, and crates in reach are pushed on both.
 - [ ] **Ladder:** hold the action and press up: the ladder extends on both, with its rungs and its height bar. Press down to retract. A double tap makes it carry on by itself. Another character can climb it, from either machine.
+- [ ] **Piton:** with his head on, the rope he carries hangs in a loop from his body on both. Hold the action and push the stick: the aim arrow shows and turns with the stick, with its length for how hard, on both. Let go: his head flies out in an arc, spinning, with the rope paying out behind it, on both, and he shows as his feet only.
+- [ ] **Piton (stuck):** the head sticks to a wall or a crate: it stops spinning and the rope is drawn as a line through its links, on both. Another character can cross the rope from either machine, and appears on it where they should on both. Tap the action twice: the head comes back, with the rope drawn behind it, and he gets his head back and his carried rope, on both.
+- [ ] **Piton (a crate):** stick the head to a crate and push the crate: the head and the rope follow it on both.
 - [ ] **Umbrella** and **Balloon:** hold the action: the open picture shows on both. (The Balloon has no string in any scene yet, so there's nothing more to check on him.)
 
 ## 12. Tiles that break

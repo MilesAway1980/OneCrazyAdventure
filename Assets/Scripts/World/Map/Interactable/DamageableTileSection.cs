@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
+
+[RequireComponent(typeof(BoxCollider2D))]
 public class DamageableTileSection : DamageableTileOptions
 {
     // How far, in units, the trigger of a tile reaches past the tile on every side. Whatever stands on, or touches, a tile

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SwitchRopeBridgeBuilder : SwitchableObject
@@ -19,6 +20,13 @@ public class SwitchRopeBridgeBuilder : SwitchableObject
 
     public Vector2 distanceBetweenEnds;
     private bool bridgeStarted;
+
+    // The links as built here, which are all that's sent to other machines.
+    private readonly List<Transform> builtLinks = new List<Transform>();
+
+    // On a machine that joined someone else's game: the links drawn from what the host sends. They have no joints, so nothing works them out.
+    private readonly List<Transform> shownLinks = new List<Transform>();
+    private bool ready;
     
     
     protected override void Start()
@@ -58,13 +66,15 @@ public class SwitchRopeBridgeBuilder : SwitchableObject
         }
         
         linkTemplate.SetActive(false);
+        ready = true;
         base.Start();
     }
 
     
     protected override void Update()
     {
-        if (activated && !bridgeStarted)
+        // The host builds it. A machine that has joined is shown it, through ShowLinks.
+        if (activated && !bridgeStarted && !GameSession.IsClientOnly)
         {
             bridgeStarted = true;
             StartCoroutine(BuildBridge());
@@ -97,6 +107,7 @@ public class SwitchRopeBridgeBuilder : SwitchableObject
             );
             
             newLink.SetActive(true);
+            builtLinks.Add(newLink.transform);
 
             var linkRb = newLink.gameObject.AddComponent<Rigidbody2D>();
             linkRb.mass = linkMass;
@@ -119,5 +130,86 @@ public class SwitchRopeBridgeBuilder : SwitchableObject
 
         var endHj = endPoint.gameObject.AddComponent<HingeJoint2D>();
         endHj.connectedBody = prevLinkRB;
+    }
+
+    // For the network: where each link is (x, y) and how it's turned (z), in the order they were built.
+    public void GetLinksForNetwork(List<Vector3> into)
+    {
+        into.Clear();
+
+        foreach (var link in builtLinks)
+        {
+            if (link)
+            {
+                into.Add(new Vector3(link.position.x, link.position.y, link.eulerAngles.z));
+            }
+        }
+    }
+
+    // For the network, on a machine that joined: draws the links where the host says they are, making them as they're built.
+    public void ShowLinks(Vector3[] links)
+    {
+        if (!ready || links == null)
+        {
+            return;
+        }
+
+        var catchUp = 1f - Mathf.Exp(-Time.deltaTime * 20f);
+
+        while (shownLinks.Count < links.Length)
+        {
+            var index = shownLinks.Count;
+            var link = Instantiate(linkTemplate, linkHolder.transform);
+            link.name = $"Link {index}";
+            link.transform.position = new Vector3(links[index].x, links[index].y, linkTemplate.transform.position.z);
+            link.transform.eulerAngles = new Vector3(0, 0, links[index].z);
+            link.SetActive(true);
+
+            // Moved by the network, not by physics. Without a body, moving a collider about each frame is slow.
+            var body = link.AddComponent<Rigidbody2D>();
+            body.bodyType = RigidbodyType2D.Kinematic;
+
+            shownLinks.Add(link.transform);
+        }
+
+        while (shownLinks.Count > links.Length)
+        {
+            var last = shownLinks.Count - 1;
+
+            if (shownLinks[last])
+            {
+                Destroy(shownLinks[last].gameObject);
+            }
+
+            shownLinks.RemoveAt(last);
+        }
+
+        for (var i = 0; i < links.Length; i++)
+        {
+            var link = shownLinks[i];
+
+            if (!link)
+            {
+                continue;
+            }
+
+            var target = new Vector3(links[i].x, links[i].y, link.position.z);
+            link.position = Vector3.Lerp(link.position, target, catchUp);
+            link.rotation = Quaternion.Euler(0, 0, Mathf.LerpAngle(link.eulerAngles.z, links[i].z, catchUp));
+        }
+    }
+
+    // For the network: takes away the links that were drawn, when this machine stops being shown the host's game.
+    public void ClearShownLinks()
+    {
+        foreach (var link in shownLinks)
+        {
+            if (link)
+            {
+                Destroy(link.gameObject);
+            }
+        }
+
+        shownLinks.Clear();
     }
 }

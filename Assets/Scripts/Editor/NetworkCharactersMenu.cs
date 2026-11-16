@@ -94,6 +94,7 @@ public static class NetworkCharactersMenu
             changed += AddCharacterNetwork<Dynamite, DynamiteNetwork>(go);
             changed += AddCharacterNetwork<Ladder, LadderNetwork>(go);
             changed += AddCharacterNetwork<Piton, PitonNetwork>(go);
+            changed += AddCharacterNetwork<Balloon, BalloonNetwork>(go);
 
             EditorUtility.SetDirty(go);
         }
@@ -167,6 +168,7 @@ public static class NetworkCharactersMenu
             RemoveIfThere<DynamiteNetwork>(go);
             RemoveIfThere<LadderNetwork>(go);
             RemoveIfThere<PitonNetwork>(go);
+            RemoveIfThere<BalloonNetwork>(go);
             RemoveIfThere<CharacterNetwork>(go);
             RemoveIfThere<NetworkRigidbodyUnreliable2D>(go);
             RemoveIfThere<NetworkIdentity>(go);
@@ -222,6 +224,12 @@ public static class NetworkCharactersMenu
         foreach (var go in FindMovers())
         {
             count += NetworkPosition(go, go.transform) ? 1 : 0;
+        }
+
+        // Rope bridges: the host builds them, and the links they're made of are sent.
+        foreach (var builder in Object.FindObjectsByType<SwitchRopeBridgeBuilder>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            count += NetworkWith<BridgeNetwork>(builder.gameObject) ? 1 : 0;
         }
 
         // Enemies: where they are, and which way they face. Their thinking stays on the host.
@@ -414,6 +422,11 @@ public static class NetworkCharactersMenu
         objects.AddRange(FindMovers());
         objects.AddRange(FindEnemies());
 
+        foreach (var builder in Object.FindObjectsByType<SwitchRopeBridgeBuilder>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            objects.Add(builder.gameObject);
+        }
+
         foreach (var tiles in Object.FindObjectsByType<TileNetwork>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             Undo.DestroyObjectImmediate(tiles.gameObject);
@@ -441,6 +454,7 @@ public static class NetworkCharactersMenu
         {
             // The scripts that need the identity go first.
             RemoveIfThere<EnemyNetwork>(go);
+            RemoveIfThere<BridgeNetwork>(go);
             RemoveIfThere<HubNetwork>(go);
             RemoveIfThere<DarkTileMapNetwork>(go);
             RemoveIfThere<LightSourceNetwork>(go);

@@ -92,7 +92,10 @@ the main editor and "Joined" means the second. Tick each box when what's said ha
 - [ ] **Piton:** with his head on, the rope he carries hangs in a loop from his body on both. Hold the action and push the stick: the aim arrow shows and turns with the stick, with its length for how hard, on both. Let go: his head flies out in an arc, spinning, with the rope paying out behind it, on both, and he shows as his feet only.
 - [ ] **Piton (stuck):** the head sticks to a wall or a crate: it stops spinning and the rope is drawn as a line through its links, on both. Another character can cross the rope from either machine, and appears on it where they should on both. Tap the action twice: the head comes back, with the rope drawn behind it, and he gets his head back and his carried rope, on both.
 - [ ] **Piton (a crate):** stick the head to a crate and push the crate: the head and the rope follow it on both.
-- [ ] **Umbrella** and **Balloon:** hold the action: the open picture shows on both. (The Balloon has no string in any scene yet, so there's nothing more to check on him.)
+- [ ] **Umbrella** and **Balloon:** hold the action: the open picture shows on both.
+- [ ] **Balloon's string** (run **Make Characters Networked** again and save): it hangs from him on both editors and doesn't fall away on the joined one. It swings when he moves and settles when he stops, matching on both.
+- [ ] Walk another character into the string on the host: it swings on both. Put the Balloon away (swap him out at a hub): the string goes with him on both. Bring him back: it's back, hanging from him.
+- [ ] Join late with the Balloon already out and the string swinging: it hangs from him on the joined editor from the start.
 
 ## 14. Enemies
 (Enemies are in the Test scene. Run **Make World Networked** there and save.)
@@ -102,6 +105,14 @@ the main editor and "Joined" means the second. Tick each box when what's said ha
 - [ ] Join late, with the enemies mid-route: they're where the host's are, and carry on.
 - [ ] Press "Back to playing locally" on the joined editor: its enemies go back to behaving by themselves.
 - [ ] Push an enemy with Dynamite, or with a crate, on the host: it moves the same on both.
+
+## 15. Rope bridge
+(Rope bridge builders are in the Sandbox and Test scenes. Run **Make World Networked** there and save.)
+- [ ] Trigger the builder from the host (a button or lever that switches it on): the links appear one at a time on **both** editors, and the bridge joins up at the far end.
+- [ ] The bridge hangs and swings the same on both. Walk across it with a host character, then a joined one: the bridge dips and swings on both, and the character appears on it where they should.
+- [ ] Join late, with the bridge already built: it's there on the joined editor, and swings with the host's.
+- [ ] Join late while it's still being built: the links built so far are there, and the rest appear as they're built.
+- [ ] Press "Back to playing locally" on the joined editor: the drawn bridge goes, and the game runs on its own again.
 
 ## 12. Tiles that break
 (Run **Make World Networked** and save: it adds a "Tile Network" object to a scene that has damageable tiles. Tiles on a moving tilemap aren't included.)
@@ -116,8 +127,8 @@ the main editor and "Joined" means the second. Tick each box when what's said ha
 - [ ] Tiles that have a Dig setting (Drill) and Dynamite settings (Dynamite) break on both when those characters are used, once those characters are networked (not yet).
 
 ## Known gaps: not expected to work yet
-- The rope bridge, and enemies.
-- Ability effects of every character except the Flashlight and the Bulb.
+- Tiles on a moving tilemap breaking.
+- On the joined editor, the Piton's rope and the rope bridge are pictures: nothing can stand on them there, though characters still appear on them where the host has them.
 
 ## When something fails
 Note **which item**, **which editor did it**, **what each editor showed**, and any red errors in either Console.

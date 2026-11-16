@@ -71,6 +71,19 @@ public static class NetworkCharactersMenu
                 changed++;
             }
 
+            // What a character does that the other machines need to be sent, beyond where it is, goes in a script of its own.
+            if (go.GetComponent<Flashlight>() && !go.GetComponent<FlashlightNetwork>())
+            {
+                Undo.AddComponent<FlashlightNetwork>(go);
+                changed++;
+            }
+
+            if (go.GetComponent<Bulb>() && !go.GetComponent<BulbNetwork>())
+            {
+                Undo.AddComponent<BulbNetwork>(go);
+                changed++;
+            }
+
             EditorUtility.SetDirty(go);
         }
 
@@ -117,6 +130,8 @@ public static class NetworkCharactersMenu
             var go = character.gameObject;
 
             // The scripts that need the identity go first.
+            RemoveIfThere<FlashlightNetwork>(go);
+            RemoveIfThere<BulbNetwork>(go);
             RemoveIfThere<CharacterNetwork>(go);
             RemoveIfThere<NetworkRigidbodyUnreliable2D>(go);
             RemoveIfThere<NetworkIdentity>(go);
@@ -126,6 +141,250 @@ public static class NetworkCharactersMenu
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
 
         Debug.Log($"Took the networking off {characters.Length} characters. Save the scene.");
+    }
+
+    // Tools > Network > Make World Networked: the doors, buttons, levers and character pickups in the open scene.
+    //  - A door, and a button's pad, send where they are. The rest of what a button and a door do is worked out on the host.
+    //  - A lever sends whether it's thrown, and a pickup whether it's been found.
+    // Done once for every scene that's played over a network, and again after adding more.
+    [MenuItem("Tools/Network/Make World Networked")]
+    private static void MakeWorldNetworked()
+    {
+        Undo.IncrementCurrentGroup();
+        var group = Undo.GetCurrentGroup();
+        Undo.SetCurrentGroupName("Make World Networked");
+
+        var count = 0;
+
+        foreach (var door in Object.FindObjectsByType<SwitchDoor>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            count += NetworkPosition(door.gameObject, door.door ? door.door : door.transform) ? 1 : 0;
+        }
+
+        foreach (var button in Object.FindObjectsByType<ButtonSwitch>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!button.joint || !button.joint.connectedBody)
+            {
+                Debug.LogWarning($"{button.name}: the button has no spring joint with a pad, so it was left alone.", button);
+                continue;
+            }
+
+            var pad = button.joint.connectedBody.gameObject;
+            count += NetworkPosition(pad, pad.transform) ? 1 : 0;
+        }
+
+        foreach (var lever in Object.FindObjectsByType<LeverSwitch>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            count += NetworkWith<LeverNetwork>(lever.gameObject) ? 1 : 0;
+        }
+
+        foreach (var pickup in Object.FindObjectsByType<CharacterPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            count += NetworkWith<PickupNetwork>(pickup.gameObject) ? 1 : 0;
+        }
+
+        // Things that move, which only need to send where they are.
+        foreach (var go in FindMovers())
+        {
+            count += NetworkPosition(go, go.transform) ? 1 : 0;
+        }
+
+        Undo.CollapseUndoOperations(group);
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+
+        Debug.Log($"Made {count} things in the world networked. Save the scene.");
+    }
+
+    // The things in the open scene that move and need nothing but their position sent: crates, things that can be pushed, platforms
+    // on a spring, and things that follow a path or sweep from side to side.
+    private static System.Collections.Generic.IEnumerable<GameObject> FindMovers()
+    {
+        var found = new System.Collections.Generic.HashSet<GameObject>();
+
+        foreach (var crate in Object.FindObjectsByType<CarryableObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            found.Add(crate.gameObject);
+        }
+
+        foreach (var pushable in Object.FindObjectsByType<PushableSolid>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            found.Add(pushable.gameObject);
+        }
+
+        foreach (var platform in Object.FindObjectsByType<FallingTileSection>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            found.Add(platform.gameObject);
+        }
+
+        foreach (var follower in Object.FindObjectsByType<FollowPath>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            found.Add(follower.gameObject);
+        }
+
+        foreach (var magnet in Object.FindObjectsByType<MagnetBox>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            found.Add(magnet.gameObject);
+        }
+
+        return found;
+    }
+
+    // Tools > Network > Network Selected Objects: for anything that moves that the other tool doesn't know about. Select it in the
+    // scene and it sends where the object is. If the object has a Rigidbody2D, its physics is done on the host only.
+    [MenuItem("Tools/Network/Network Selected Objects")]
+    private static void NetworkSelected()
+    {
+        Undo.IncrementCurrentGroup();
+        var group = Undo.GetCurrentGroup();
+        Undo.SetCurrentGroupName("Network Selected Objects");
+
+        var count = 0;
+
+        foreach (var go in Selection.gameObjects)
+        {
+            if (go.scene.IsValid())
+            {
+                count += NetworkPosition(go, go.transform) ? 1 : 0;
+            }
+        }
+
+        Undo.CollapseUndoOperations(group);
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+
+        Debug.Log($"Made {count} selected objects networked. Save the scene.");
+    }
+
+    [MenuItem("Tools/Network/Remove Networking from Selected Objects")]
+    private static void RemoveNetworkingFromSelected()
+    {
+        Undo.IncrementCurrentGroup();
+        var group = Undo.GetCurrentGroup();
+        Undo.SetCurrentGroupName("Remove Networking from Selected Objects");
+
+        foreach (var go in Selection.gameObjects)
+        {
+            RemoveIfThere<NetworkRigidbodyUnreliable2D>(go);
+            RemoveIfThere<NetworkTransformUnreliable>(go);
+            RemoveIfThere<NetworkIdentity>(go);
+        }
+
+        Undo.CollapseUndoOperations(group);
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+    }
+
+    [MenuItem("Tools/Network/Remove Networking from World")]
+    private static void RemoveWorldNetworking()
+    {
+        Undo.IncrementCurrentGroup();
+        var group = Undo.GetCurrentGroup();
+        Undo.SetCurrentGroupName("Remove Networking from World");
+
+        var objects = new System.Collections.Generic.List<GameObject>();
+
+        foreach (var door in Object.FindObjectsByType<SwitchDoor>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            objects.Add(door.gameObject);
+        }
+
+        foreach (var button in Object.FindObjectsByType<ButtonSwitch>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (button.joint && button.joint.connectedBody)
+            {
+                objects.Add(button.joint.connectedBody.gameObject);
+            }
+        }
+
+        foreach (var lever in Object.FindObjectsByType<LeverSwitch>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            objects.Add(lever.gameObject);
+        }
+
+        foreach (var pickup in Object.FindObjectsByType<CharacterPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            objects.Add(pickup.gameObject);
+        }
+
+        objects.AddRange(FindMovers());
+
+        foreach (var go in objects)
+        {
+            // The scripts that need the identity go first.
+            RemoveIfThere<LeverNetwork>(go);
+            RemoveIfThere<PickupNetwork>(go);
+            RemoveIfThere<NetworkRigidbodyUnreliable2D>(go);
+            RemoveIfThere<NetworkTransformUnreliable>(go);
+            RemoveIfThere<NetworkIdentity>(go);
+        }
+
+        Undo.CollapseUndoOperations(group);
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+
+        Debug.Log($"Took the networking off {objects.Count} things in the world. Save the scene.");
+    }
+
+    // Gives an object a Network Identity, unless it's inside another that has one, which Mirror doesn't allow.
+    private static bool AddIdentity(GameObject go)
+    {
+        var parent = go.transform.parent;
+
+        if (parent && parent.GetComponentInParent<NetworkIdentity>())
+        {
+            Debug.LogWarning($"{go.name} is inside another networked object, so it was left alone.", go);
+            return false;
+        }
+
+        if (!go.GetComponent<NetworkIdentity>())
+        {
+            Undo.AddComponent<NetworkIdentity>(go);
+        }
+
+        return true;
+    }
+
+    // Makes an object send where one of its transforms is. If it has a Rigidbody2D, the physics is done on the host only.
+    private static bool NetworkPosition(GameObject go, Transform target)
+    {
+        if (!AddIdentity(go))
+        {
+            return false;
+        }
+
+        var sync = go.GetComponent<NetworkTransformBase>();
+
+        if (!sync)
+        {
+            sync = target.GetComponent<Rigidbody2D>()
+                ? (NetworkTransformBase)Undo.AddComponent<NetworkRigidbodyUnreliable2D>(go)
+                : Undo.AddComponent<NetworkTransformUnreliable>(go);
+        }
+
+        Undo.RecordObject(sync, "Make World Networked");
+        sync.target = target;
+        sync.syncDirection = SyncDirection.ServerToClient;
+        sync.syncPosition = true;
+        sync.syncRotation = true;
+        sync.syncScale = false;
+        sync.coordinateSpace = CoordinateSpace.World;
+
+        EditorUtility.SetDirty(go);
+        return true;
+    }
+
+    // Gives an object a Network Identity and a script that sends what it needs.
+    private static bool NetworkWith<T>(GameObject go) where T : Component
+    {
+        if (!AddIdentity(go))
+        {
+            return false;
+        }
+
+        if (!go.GetComponent<T>())
+        {
+            Undo.AddComponent<T>(go);
+        }
+
+        EditorUtility.SetDirty(go);
+        return true;
     }
 
     private static void RemoveIfThere<T>(GameObject go) where T : Component

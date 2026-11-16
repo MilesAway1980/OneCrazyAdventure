@@ -29,7 +29,7 @@ public class MeterLayout
 // ladder has stretched. It's drawn on top of the screen, so the scene's lighting doesn't darken it. Added to whatever
 // owns the value, which tells it each frame how full it is, what colour to be and which camera to appear in. Bars in
 // the same view stack downwards from the corner instead of covering each other.
-public class ScreenMeter : MonoBehaviour
+public class ScreenMeter : MonoBehaviour, Characters.IKeepsRunningWhenShownOnly
 {
     private const float FadeSpeed = 4f;
 

@@ -62,7 +62,7 @@ public class CharacterPickup : MonoBehaviour
         // Found already, such as a character that was found from the start: there's nothing here to find.
         if (CharacterSelecter.Instance && CharacterSelecter.Instance.IsOwned(character))
         {
-            gameObject.SetActive(false);
+            Disappear();
             return;
         }
 
@@ -112,11 +112,39 @@ public class CharacterPickup : MonoBehaviour
         TryCollect(other);
     }
 
+    // Whether the character has been found here, for another machine to be told.
+    public bool Collected
+    {
+        get { return collected; }
+    }
+
+    // Takes the pickup away: it can't be seen or touched. It isn't made inactive, because a pickup in a game played over a network has
+    // to stay there on every machine.
+    public void Disappear()
+    {
+        collected = true;
+
+        var touchArea = GetComponent<Collider2D>();
+        if (touchArea)
+        {
+            touchArea.enabled = false;
+        }
+
+        if (pictureRenderer)
+        {
+            pictureRenderer.enabled = false;
+        }
+
+        // Nothing more for it to do, which also stops it being touched.
+        enabled = false;
+    }
+
     private void TryCollect(Collider2D other)
     {
         var selecter = CharacterSelecter.Instance;
 
-        if (collected || !character || !selecter)
+        // Who finds a character is up to the host.
+        if (GameSession.IsClientOnly || collected || !character || !selecter)
         {
             return;
         }
@@ -136,6 +164,6 @@ public class CharacterPickup : MonoBehaviour
             GameMessages.Show(GameText.Fill(GameText.Current.characterFound, character: character.name));
         }
 
-        gameObject.SetActive(false);
+        Disappear();
     }
 }

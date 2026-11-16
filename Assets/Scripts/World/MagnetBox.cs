@@ -17,6 +17,12 @@ public class MagnetBox : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // In someone else's game the host moves it, and where it is comes from the network.
+        if (GameSession.IsClientOnly)
+        {
+            return;
+        }
+
         transform.position = new Vector3(transform.position.x + (dir * moveSpeed), transform.position.y, transform.position.z);
         if (Vector3.Distance(transform.position, startPosition) > moveRange)
         {

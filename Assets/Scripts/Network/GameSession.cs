@@ -91,6 +91,38 @@ public class GameSession : MonoBehaviour
         StartLocal();
     }
 
+    [Tooltip("Leave off. A machine that has joined someone else's game then runs no physics of its own, and only shows what the host sends. Turn it on to compare, or if something there is found to need it.")]
+    public bool simulatePhysicsWhenJoined;
+
+    // How physics ran before it was turned off, to put it back.
+    private SimulationMode2D? normalPhysicsMode;
+
+    private void SetPhysics(bool simulate)
+    {
+        if (simulate)
+        {
+            if (normalPhysicsMode.HasValue)
+            {
+                Physics2D.simulationMode = normalPhysicsMode.Value;
+                normalPhysicsMode = null;
+            }
+        }
+        else if (!normalPhysicsMode.HasValue)
+        {
+            normalPhysicsMode = Physics2D.simulationMode;
+            Physics2D.simulationMode = SimulationMode2D.Script;
+        }
+    }
+
+    // The setting belongs to the project, so it must not be left changed after the game stops.
+    void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            SetPhysics(true);
+        }
+    }
+
     private string lastLoggedState = "";
 
     void Update()
@@ -179,6 +211,10 @@ public class GameSession : MonoBehaviour
 
         Configure();
 
+        // On a machine that has joined, nothing is simulated by physics: the host does it, and everything is moved to where the host
+        // says. With it off, nothing falls, collides, pushes or touches there, so there is no second version of what the host decides.
+        SetPhysics(target != SessionMode.Joined || simulatePhysicsWhenJoined);
+
         switch (target)
         {
             case SessionMode.Local:
@@ -246,7 +282,8 @@ public class GameSession : MonoBehaviour
                 }
 
                 return $"Joined to {joinAddress}: {(NetworkClient.ready ? "ready" : "not ready")}, " +
-                       $"{NetworkClient.spawned.Count} objects from the host";
+                       $"{NetworkClient.spawned.Count} objects from the host, " +
+                       $"physics {(Physics2D.simulationMode == SimulationMode2D.Script ? "off" : "on")}";
 
             default:
                 return "Starting...";

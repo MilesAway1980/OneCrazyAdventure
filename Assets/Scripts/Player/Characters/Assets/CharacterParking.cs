@@ -83,6 +83,12 @@ namespace Characters
                     continue;
                 }
 
+                // The parts that only draw something carry on, for a character that's only shown. A character that's put away stops entirely.
+                if (mode == Mode.ShownOnly && behaviour is IKeepsRunningWhenShownOnly)
+                {
+                    continue;
+                }
+
                 // Making an object inactive would have stopped these. Switching a script off doesn't.
                 if (behaviour is MonoBehaviour mono)
                 {

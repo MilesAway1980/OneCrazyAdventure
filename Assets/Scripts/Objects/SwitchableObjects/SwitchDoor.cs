@@ -50,6 +50,12 @@ public class SwitchDoor : SwitchableObject
     // it on. This one only goes by being told.
     protected override void Update()
     {
+        // In someone else's game the host decides, and where the door is comes from the network.
+        if (GameSession.IsClientOnly)
+        {
+            return;
+        }
+
         if (!staySwitchedOn && switchOffTime > 0f && wantsOpen && Time.time - lastActivated >= switchOffTime)
         {
             wantsOpen = false;
@@ -58,6 +64,11 @@ public class SwitchDoor : SwitchableObject
 
     void FixedUpdate()
     {
+        if (GameSession.IsClientOnly)
+        {
+            return;
+        }
+
         var current = body ? body.position : (Vector2)door.position;
         var next = Vector2.MoveTowards(current, wantsOpen ? openPosition : closedPosition, speed * Time.fixedDeltaTime);
 

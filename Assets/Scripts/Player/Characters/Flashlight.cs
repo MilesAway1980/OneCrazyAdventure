@@ -9,7 +9,7 @@ namespace Characters
     // Hold the action and the direction input aims the head instead of walking him. If the button is let go without
     // having aimed, that was a tap, and the light steps up to the next brightness level; after the last level it goes
     // back to the first, which is normally off. The light keeps pointing the way it was aimed.
-    public class Flashlight : Character
+    public class Flashlight : Character, IKeepsRunningWhenShownOnly
     {
         [Tooltip("The head: a child object whose sprite points right when it isn't rotated. It turns to aim the light. If left empty, a child called Head is used.")]
         public Transform head;
@@ -316,8 +316,87 @@ namespace Characters
             }
         }
 
+        // ----- On a machine that has joined someone else's game -----
+        //
+        // The host works out everything the flashlight does: the head's aim, the level, the battery and whether it's in water. This
+        // machine is sent those, and does all the rest of what it did before, so the head turns, the light shines, the battery
+        // meter shows and the hidden tiles are revealed exactly as they would be on the host.
+
+        public float AimAngle
+        {
+            get { return aimAngle; }
+        }
+
+        public int Level
+        {
+            get { return level; }
+        }
+
+        public bool IsFlat
+        {
+            get { return flat; }
+        }
+
+        // Takes what the host has sent. Nothing is worked out from it: it's only what the flashlight would have worked out itself.
+        public void ShowState(float aim, int newLevel, bool isFlat, bool isInLiquid, float batteryFraction)
+        {
+            if (!head || brightnessLevels == null || brightnessLevels.Length == 0)
+            {
+                // Not started.
+                return;
+            }
+
+            // The head is turned toward it at its usual speed, so that it turns smoothly between the times it is sent.
+            targetAngle = aim;
+            level = Mathf.Clamp(newLevel, 0, brightnessLevels.Length - 1);
+            flat = isFlat;
+            inLiquid = isInLiquid;
+            charge = Mathf.Clamp01(batteryFraction) * batteryCapacity;
+        }
+
+        private void UpdateShownOnly()
+        {
+            TurnHead();
+            ApplyLight();
+            performingAction = IsLightOn();
+
+            UpdateMeter();
+
+            if (headRenderer)
+            {
+                headRenderer.color = headColor;
+            }
+
+            if (ownsLight)
+            {
+                ApplyOwnedLightSettings();
+            }
+
+            ApplyShadows();
+        }
+
+        // After the picture of the body has been chosen from what the host sent, so that this has the last word.
+        void LateUpdate()
+        {
+            if (ShownOnly && IsLightOn() && !actionSprite && spriteRenderer && !spriteRenderer.sprite)
+            {
+                spriteRenderer.sprite = walkSprite;
+            }
+        }
+
         protected override void Update()
         {
+            if (ShownOnly)
+            {
+                // Only the part that shows it: the host does the rest.
+                if (head)
+                {
+                    UpdateShownOnly();
+                }
+
+                return;
+            }
+
             base.Update();
 
             TurnHead();

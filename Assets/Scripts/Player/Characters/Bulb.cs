@@ -3,6 +3,23 @@ using UnityEngine.Serialization;
 
 namespace Characters
 {
+    // What the Bulb's light was last told to do, for the other machines in a networked game, which are told to do the same. The
+    // revision goes up each time, so that being told the same thing again still counts as being told.
+    public struct BulbLightCall
+    {
+        public int revision;
+
+        public bool lit;
+
+        // Seconds to ease to lit or unlit this once, or below 0 for the usual.
+        public float litSeconds;
+
+        public bool hasBoost;
+        public float boostRadius;
+        public float boostIntensity;
+        public float boostSeconds;
+    }
+
     // Glows normally, and brighter while the action is held. He stays as bright as he was left if the player moves to
     // another character, as characters are meant to work together.
     //
@@ -10,7 +27,7 @@ namespace Characters
     // in, and sits there, held still, with his light made far larger by the socket. While Interact is held the action
     // doesn't light him: he is only lit by being screwed in. He stays that way, even if the player moves to another
     // character, until he is played again and the action is pressed, which screws him out.
-    public class Bulb : Character
+    public class Bulb : Character, IKeepsRunningWhenShownOnly
     {
         [Tooltip("The bulb's light. Its unlit look is the normal glow, and its lit look is the brighter glow while the action is held.")]
         [FormerlySerializedAs("useBrightness")]
@@ -68,7 +85,7 @@ namespace Characters
 
             if (lightTileSource)
             {
-                lightTileSource.SetLit(false);
+                LightLit(false);
             }
             else
             {
@@ -88,8 +105,136 @@ namespace Characters
             }
         }
 
+        // ----- Telling the light, and the other machines -----
+
+        private BulbLightCall lightCall;
+
+        // What the light was last told, which another machine tells its light too.
+        public BulbLightCall LastLightCall
+        {
+            get { return lightCall; }
+        }
+
+        private void LightLit(bool isLit)
+        {
+            if (lightTileSource)
+            {
+                lightTileSource.SetLit(isLit);
+            }
+
+            lightCall.lit = isLit;
+            lightCall.litSeconds = -1f;
+            lightCall.revision++;
+        }
+
+        private void LightLit(bool isLit, float seconds)
+        {
+            if (lightTileSource)
+            {
+                lightTileSource.SetLit(isLit, seconds);
+            }
+
+            lightCall.lit = isLit;
+            lightCall.litSeconds = seconds;
+            lightCall.revision++;
+        }
+
+        private void LightBoost(float radiusMultiplier, float intensityMultiplier, float seconds)
+        {
+            if (lightTileSource)
+            {
+                lightTileSource.SetBoost(radiusMultiplier, intensityMultiplier, seconds);
+            }
+
+            lightCall.hasBoost = true;
+            lightCall.boostRadius = radiusMultiplier;
+            lightCall.boostIntensity = intensityMultiplier;
+            lightCall.boostSeconds = seconds;
+            lightCall.revision++;
+        }
+
+        // ----- On a machine that has joined someone else's game -----
+        //
+        // The host does everything the Bulb does, including going into a socket. This machine is sent where he is, which of the four
+        // states he is in, and what his light was told, and does the rest of what it did before: his light changes as it would, and
+        // his picture turns as he screws in and out.
+
+        // Which of the states he is in.
+        public byte StateForNetwork
+        {
+            get { return (byte)state; }
+        }
+
+        private State shownState;
+        private float shownSince;
+
+        public void ShowState(byte newState)
+        {
+            var shown = (State)newState;
+
+            if (shown != shownState)
+            {
+                shownState = shown;
+                shownSince = Time.time;
+            }
+        }
+
+        // Tells his light what the host told it.
+        public void ShowLight(BulbLightCall call)
+        {
+            if (!lightTileSource || call.revision == 0)
+            {
+                return;
+            }
+
+            if (call.litSeconds >= 0f)
+            {
+                lightTileSource.SetLit(call.lit, call.litSeconds);
+            }
+            else
+            {
+                lightTileSource.SetLit(call.lit);
+            }
+
+            if (call.hasBoost)
+            {
+                lightTileSource.SetBoost(call.boostRadius, call.boostIntensity, call.boostSeconds);
+            }
+        }
+
+        // He turns for as long as the host says he's screwing in or out, the same time as there.
+        private void UpdateShown()
+        {
+            var progress = Mathf.Min(1f, (Time.time - shownSince) / Mathf.Max(screwSeconds, 0.01f));
+
+            switch (shownState)
+            {
+                case State.Screwing:
+                    Turn(progress);
+                    break;
+
+                case State.Unscrewing:
+                    Turn(1f - progress);
+                    break;
+
+                case State.Socketed:
+                    Turn(1f);
+                    break;
+
+                default:
+                    Turn(0f);
+                    break;
+            }
+        }
+
         protected override void Update()
         {
+            if (ShownOnly)
+            {
+                UpdateShown();
+                return;
+            }
+
             base.Update();
 
             switch (state)
@@ -119,6 +264,11 @@ namespace Characters
 
         protected override void FixedUpdate()
         {
+            if (ShownOnly)
+            {
+                return;
+            }
+
             base.FixedUpdate();
 
             // He's moved by hand while he's in a socket, and the base class's gravity would otherwise carry him off.
@@ -215,7 +365,7 @@ namespace Characters
 
             if (lightTileSource)
             {
-                lightTileSource.SetLit(lit);
+                LightLit(lit);
             }
         }
 
@@ -288,7 +438,7 @@ namespace Characters
 
             if (lightTileSource)
             {
-                lightTileSource.SetLit(false);
+                LightLit(false);
             }
         }
 
@@ -301,8 +451,8 @@ namespace Characters
 
             if (lightTileSource)
             {
-                lightTileSource.SetLit(true, socket.boostSeconds);
-                lightTileSource.SetBoost(socket.radiusMultiplier, socket.intensityMultiplier, socket.boostSeconds);
+                LightLit(true, socket.boostSeconds);
+                LightBoost(socket.radiusMultiplier, socket.intensityMultiplier, socket.boostSeconds);
             }
         }
 
@@ -344,8 +494,8 @@ namespace Characters
 
             if (lightTileSource)
             {
-                lightTileSource.SetLit(false, socket.boostSeconds);
-                lightTileSource.SetBoost(1f, 1f, socket.boostSeconds);
+                LightLit(false, socket.boostSeconds);
+                LightBoost(1f, 1f, socket.boostSeconds);
             }
         }
 
@@ -395,8 +545,8 @@ namespace Characters
 
             if (lightTileSource)
             {
-                lightTileSource.SetLit(lit);
-                lightTileSource.SetBoost(1f, 1f, settleSeconds);
+                LightLit(lit);
+                LightBoost(1f, 1f, settleSeconds);
             }
         }
 

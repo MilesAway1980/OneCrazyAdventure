@@ -139,6 +139,30 @@ public class CharacterSelecter: MonoBehaviour
         }
     }
 
+    // For a machine that has joined someone else's game: the characters that have been found, and the party, are whatever the host
+    // says. Only who is in each is taken. Which of the characters are in the game is already sent with each character, so the
+    // characters themselves aren't put in or out of the game from here.
+    public void MirrorHost(IEnumerable<Character> newOwned, IEnumerable<Character> newParty)
+    {
+        if (selections == null)
+        {
+            // Not started yet.
+            return;
+        }
+
+        owned.Clear();
+        foreach (var character in newOwned)
+        {
+            owned.Add(character);
+        }
+
+        selections.Clear();
+        foreach (var character in newParty)
+        {
+            selections.Add(character);
+        }
+    }
+
     public bool IsOwned(Character character)
     {
         return character && owned.Contains(character);

@@ -129,8 +129,26 @@ public class LeverSwitch : InteractableObject
         return true;
     }
 
+    // Whether the lever has been thrown, which is all another machine needs to show it.
+    public bool IsThrown
+    {
+        get { return interactedWith; }
+    }
+
+    // For a machine that has joined someone else's game: the lever is shown thrown or not as the host says, and it moves to
+    // match. What it switches is the host's to do.
+    public void SetThrownFromNetwork(bool thrown)
+    {
+        interactedWith = thrown;
+    }
+
     void Activate()
     {
+        if (GameSession.IsClientOnly)
+        {
+            return;
+        }
+
         activated = true;
         foreach (var switchableObject in switchableObjects)
         {
@@ -148,6 +166,11 @@ public class LeverSwitch : InteractableObject
 
     void Deactivate()
     {
+        if (GameSession.IsClientOnly)
+        {
+            return;
+        }
+
         activated = false;
         foreach (var switchableObject in switchableObjects)
         {

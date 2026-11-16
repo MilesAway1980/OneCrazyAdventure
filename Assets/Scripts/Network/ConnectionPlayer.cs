@@ -74,12 +74,133 @@ public class ConnectionPlayer : NetworkBehaviour
         seatOfPlayer.Clear();
     }
 
+    // The characters that have been found and the characters in the party, by network id, kept the same as the host's own record.
+    // Every connection has them, since the host's record is the same for all.
+    public readonly SyncList<uint> foundCharacters = new SyncList<uint>();
+    public readonly SyncList<uint> partyCharacters = new SyncList<uint>();
+
+    // On a machine that has joined: whether the host's lists have changed since they were last applied, or the last try wasn't complete.
+    private bool rosterChanged = true;
+
+    public override void OnStartClient()
+    {
+        foundCharacters.OnChange += (operation, index, item) => rosterChanged = true;
+        partyCharacters.OnChange += (operation, index, item) => rosterChanged = true;
+        rosterChanged = true;
+    }
+
     void Update()
     {
         if (isServer)
         {
             UpdateSeats();
+            UpdateRoster();
         }
+        else if (isLocalPlayer)
+        {
+            ApplyRoster();
+        }
+    }
+
+    // Sends the host's record of who has been found, and who is in the party, when it changes.
+    private void UpdateRoster()
+    {
+        var selecter = CharacterSelecter.Instance;
+
+        if (!selecter || selecter.Party == null)
+        {
+            return;
+        }
+
+        var found = new List<uint>();
+        foreach (var character in selecter.Owned)
+        {
+            var netId = NetIdOf(character);
+            if (netId != 0)
+            {
+                found.Add(netId);
+            }
+        }
+
+        // The order they were found in isn't kept, so they're put in a fixed one to tell whether anything has changed.
+        found.Sort();
+
+        var party = new List<uint>();
+        foreach (var character in selecter.Party)
+        {
+            var netId = NetIdOf(character);
+            if (netId != 0)
+            {
+                party.Add(netId);
+            }
+        }
+
+        Replace(foundCharacters, found);
+        Replace(partyCharacters, party);
+    }
+
+    private static uint NetIdOf(Character character)
+    {
+        var identity = character ? character.GetComponent<NetworkIdentity>() : null;
+        return identity ? identity.netId : 0u;
+    }
+
+    private static void Replace(SyncList<uint> list, List<uint> wanted)
+    {
+        var same = list.Count == wanted.Count;
+
+        for (var i = 0; same && i < wanted.Count; i++)
+        {
+            same = list[i] == wanted[i];
+        }
+
+        if (same)
+        {
+            return;
+        }
+
+        list.Clear();
+        list.AddRange(wanted);
+    }
+
+    // On a machine that has joined: makes the local record of who has been found, and the party, the same as the host's. Done each
+    // frame it might be wrong, as a character it names may not have arrived yet.
+    private void ApplyRoster()
+    {
+        var selecter = CharacterSelecter.Instance;
+
+        if (!rosterChanged || !selecter)
+        {
+            return;
+        }
+
+        var found = new List<Character>();
+        var party = new List<Character>();
+
+        var complete = Resolve(foundCharacters, found) & Resolve(partyCharacters, party);
+
+        if (complete)
+        {
+            selecter.MirrorHost(found, party);
+            rosterChanged = false;
+        }
+    }
+
+    private static bool Resolve(SyncList<uint> ids, List<Character> into)
+    {
+        foreach (var netId in ids)
+        {
+            if (NetworkClient.spawned.TryGetValue(netId, out var identity) && identity && identity.GetComponent<Character>())
+            {
+                into.Add(identity.GetComponent<Character>());
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // Does what each seat's controller says to the seat's character, as for a player at the host's own machine, and tells the

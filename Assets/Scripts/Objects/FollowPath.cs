@@ -34,7 +34,8 @@ public class FollowPath : MonoBehaviour
     
     void Update()
     {
-        if (pathMarkers.Length == 0)
+        // In someone else's game the host moves it, and where it is comes from the network.
+        if (GameSession.IsClientOnly || pathMarkers.Length == 0)
         {
             return;
         }
@@ -46,9 +47,7 @@ public class FollowPath : MonoBehaviour
             var newPos = GameMath.MoveTowardsTarget(transform.position, target.transform.position, moveSpeed * Time.deltaTime);
             transform.position = newPos;
             var distanceMoved = Vector2.Distance(startPosition, transform.position);
-            
-            print (distanceMoved + "  " + distance);
-            
+
             if (distanceMoved > distance)
             {
                 transform.position = target.transform.position;

@@ -92,7 +92,7 @@ public class LightLook
 //
 // A source is either lit or unlit, and each has its own look, so a sconce can glow dimly when it's out and brightly
 // when it's lit using this one component. Only one of these belongs on an object: they share its Light2D.
-public class LightTileSource : MonoBehaviour
+public class LightTileSource : MonoBehaviour, Characters.IKeepsRunningWhenShownOnly
 {
     // A second pulse on the same light has to wander differently from the first.
     private const float IntensitySeedOffset = 37f;

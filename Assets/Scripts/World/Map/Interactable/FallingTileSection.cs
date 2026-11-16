@@ -68,6 +68,12 @@ public class FallingTileSection : MonoBehaviour
 
     void FixedUpdate()
     {
+        // In someone else's game the host moves the platform, and where it is comes from the network.
+        if (GameSession.IsClientOnly)
+        {
+            return;
+        }
+
         var step = Time.fixedDeltaTime;
 
         // The spring pulls it back toward where it started, in proportion to how far it is, and the damping works against

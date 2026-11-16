@@ -210,6 +210,12 @@ namespace Characters
 
         protected virtual void FixedUpdate()
         {
+            // Only shown, so the host does the moving.
+            if (ShownOnly)
+            {
+                return;
+            }
+
             if (returningToSafety)
             {
                 PushTowardSafePosition();
@@ -368,6 +374,12 @@ namespace Characters
 
         protected virtual void Update()
         {
+            // Only shown: the picture is chosen from what the host sends.
+            if (ShownOnly)
+            {
+                return;
+            }
+
             RememberSafePosition();
 
             SetSprite();
@@ -960,8 +972,14 @@ namespace Characters
         // what the host says. Nothing of them is simulated here. Undone if the machine goes back to playing by itself.
         public void SetShownOnly(bool shownOnly)
         {
+            ShownOnly = shownOnly;
+
             GetParking().SetShownOnly(shownOnly);
         }
+
+        // Whether the character is only being shown: this machine has joined someone else's game, and the host does everything that the
+        // character does. A character with parts that carry on working there has to leave the simulating to the host while this is set.
+        protected bool ShownOnly { get; private set; }
 
         private CharacterParking GetParking()
         {

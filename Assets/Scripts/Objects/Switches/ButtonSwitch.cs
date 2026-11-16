@@ -27,6 +27,12 @@ public class ButtonSwitch : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // In someone else's game the host works out what is pressed and what it switches. Where the pad is comes from the network.
+        if (GameSession.IsClientOnly)
+        {
+            return;
+        }
+
         var pressed = Vector2.Distance(
             (Vector2)joint.attachedRigidbody.transform.position,
             (Vector2)joint.connectedBody.transform.position

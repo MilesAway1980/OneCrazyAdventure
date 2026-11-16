@@ -94,6 +94,15 @@ the main editor and "Joined" means the second. Tick each box when what's said ha
 - [ ] **Piton (a crate):** stick the head to a crate and push the crate: the head and the rope follow it on both.
 - [ ] **Umbrella** and **Balloon:** hold the action: the open picture shows on both. (The Balloon has no string in any scene yet, so there's nothing more to check on him.)
 
+## 14. Enemies
+(Enemies are in the Test scene. Run **Make World Networked** there and save.)
+- [ ] Each enemy is in the same place on both editors, and moves as the host's does: the side-to-side one, the crawlers round their tiles, the ones that follow a path, and the one that walks, jumps and falls.
+- [ ] They face the same way on both, and the crawlers turn round the tiles the same way.
+- [ ] An enemy stays where the host has it: it doesn't wander off by itself on the joined editor, even when the host's one is standing still or waiting.
+- [ ] Join late, with the enemies mid-route: they're where the host's are, and carry on.
+- [ ] Press "Back to playing locally" on the joined editor: its enemies go back to behaving by themselves.
+- [ ] Push an enemy with Dynamite, or with a crate, on the host: it moves the same on both.
+
 ## 12. Tiles that break
 (Run **Make World Networked** and save: it adds a "Tile Network" object to a scene that has damageable tiles. Tiles on a moving tilemap aren't included.)
 - [ ] A tile that crumbles when stood on, from the host's player: it shows the warning (darkening and shaking) on **both** editors, then breaks with the debris, sound or particles on both, and is gone on both.

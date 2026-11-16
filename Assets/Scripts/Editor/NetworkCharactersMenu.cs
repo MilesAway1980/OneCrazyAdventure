@@ -224,6 +224,20 @@ public static class NetworkCharactersMenu
             count += NetworkPosition(go, go.transform) ? 1 : 0;
         }
 
+        // Enemies: where they are, and which way they face. Their thinking stays on the host.
+        foreach (var enemy in FindEnemies())
+        {
+            if (NetworkPosition(enemy, enemy.transform))
+            {
+                if (!enemy.GetComponent<EnemyNetwork>())
+                {
+                    Undo.AddComponent<EnemyNetwork>(enemy);
+                }
+
+                count++;
+            }
+        }
+
         // One object for all the tiles that can be destroyed in the scene.
         if (Object.FindFirstObjectByType<DamageableTileSection>(FindObjectsInactive.Include) &&
             !Object.FindFirstObjectByType<TileNetwork>(FindObjectsInactive.Include))
@@ -258,6 +272,34 @@ public static class NetworkCharactersMenu
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
 
         Debug.Log($"Made {count} things in the world networked. Save the scene.");
+    }
+
+    // Every object in the open scene that is an enemy, which is anything with one of the scripts that makes one move and decide.
+    private static System.Collections.Generic.IEnumerable<GameObject> FindEnemies()
+    {
+        var found = new System.Collections.Generic.HashSet<GameObject>();
+
+        foreach (var script in Object.FindObjectsByType<Enemy>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            found.Add(script.gameObject);
+        }
+
+        foreach (var script in Object.FindObjectsByType<EnemyMovement>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            found.Add(script.gameObject);
+        }
+
+        foreach (var script in Object.FindObjectsByType<EnemyGroundPath>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            found.Add(script.gameObject);
+        }
+
+        foreach (var script in Object.FindObjectsByType<EnemyPathFollow>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            found.Add(script.gameObject);
+        }
+
+        return found;
     }
 
     // The things in the open scene that move and need nothing but their position sent: crates, things that can be pushed, platforms
@@ -370,6 +412,7 @@ public static class NetworkCharactersMenu
         }
 
         objects.AddRange(FindMovers());
+        objects.AddRange(FindEnemies());
 
         foreach (var tiles in Object.FindObjectsByType<TileNetwork>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
@@ -397,6 +440,7 @@ public static class NetworkCharactersMenu
         foreach (var go in objects)
         {
             // The scripts that need the identity go first.
+            RemoveIfThere<EnemyNetwork>(go);
             RemoveIfThere<HubNetwork>(go);
             RemoveIfThere<DarkTileMapNetwork>(go);
             RemoveIfThere<LightSourceNetwork>(go);

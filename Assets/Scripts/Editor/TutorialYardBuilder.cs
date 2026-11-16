@@ -257,6 +257,8 @@ public class TutorialYardBuilder : EditorWindow
     // The floors, steps, ledge and pit, as a tilemap on the Ground layer.
     private void BuildGround(Transform parent)
     {
+        // The grid is under the Yard, so it moves with it. The game's tile code works out where a tile is from where its tilemap
+        // is, so the Yard can be put anywhere.
         var gridObject = new GameObject("Ground Grid");
         gridObject.transform.SetParent(parent, false);
         gridObject.AddComponent<Grid>();

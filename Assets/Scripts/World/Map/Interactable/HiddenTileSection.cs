@@ -163,13 +163,26 @@ public class HiddenTileSection : MonoBehaviour
     private class MapTile
     {
         public Tilemap tilemap;
+
+        // Where the tile is on its own tilemap, which isn't necessarily the same numbers as where it is in the world.
+        public Vector3Int cell;
+
         public Tile.ColliderType collider;
     }
 
     private class Cell
     {
+        // Where the tile was in the world when it was found. Only for knowing which it is: it isn't where it is now, if its
+        // tilemap has moved.
         public Vector2Int position;
         public readonly List<MapTile> tiles = new List<MapTile>();
+
+        // The middle of the tile where it is now, which moves with its tilemap.
+        public Vector2 Centre()
+        {
+            var tile = tiles[0];
+            return tile.tilemap.GetCellCenterWorld(tile.cell);
+        }
         public readonly List<SpriteRenderer> pictures = new List<SpriteRenderer>();
 
         // How much of each beam the tile can see, from 0 to 1.
@@ -189,7 +202,8 @@ public class HiddenTileSection : MonoBehaviour
         public readonly Dictionary<EntityId, (float time, bool seen)> sight = new Dictionary<EntityId, (float, bool)>();
     }
 
-    private readonly Dictionary<Vector2Int, Cell> cells = new Dictionary<Vector2Int, Cell>();
+    // The spaces in the world that the area's tiles are in now, which change if their tilemap moves. Worked out each frame.
+    private readonly HashSet<Vector2Int> areaSpaces = new HashSet<Vector2Int>();
     private readonly List<Cell> cellList = new List<Cell>();
     // Made when the section starts, as Unity doesn't allow one to be made while a component is being constructed.
     private MaterialPropertyBlock block;
@@ -215,10 +229,23 @@ public class HiddenTileSection : MonoBehaviour
 
         HiddenTileBeams.Refresh();
 
+        // Where each of the area's tiles is now.
+        areaSpaces.Clear();
+        foreach (var cell in cellList)
+        {
+            areaSpaces.Add(SpaceOf(cell.Centre()));
+        }
+
         foreach (var cell in cellList)
         {
             UpdateCell(cell);
         }
+    }
+
+    // The square of the world a point is in.
+    private static Vector2Int SpaceOf(Vector2 point)
+    {
+        return new Vector2Int(Mathf.FloorToInt(point.x), Mathf.FloorToInt(point.y));
     }
 
     private Material FindMaterial()
@@ -279,10 +306,12 @@ public class HiddenTileSection : MonoBehaviour
                 }
 
                 var cell = new Cell { position = new Vector2Int(x, y) };
-                var position = new Vector3Int(x, y, 0);
 
                 foreach (var (tilemap, _) in found)
                 {
+                    // Each tilemap numbers its own cells, wherever it has been put.
+                    var position = Map.ToCell(tilemap, x, y);
+
                     // Without this the tilemap won't let its colour, or whether it collides, be changed for this tile.
                     tilemap.SetTileFlags(position, TileFlags.None);
 
@@ -293,13 +322,12 @@ public class HiddenTileSection : MonoBehaviour
                         cell.pictures.Add(picture);
                     }
 
-                    cell.tiles.Add(new MapTile { tilemap = tilemap, collider = tilemap.GetColliderType(position) });
+                    cell.tiles.Add(new MapTile { tilemap = tilemap, cell = position, collider = tilemap.GetColliderType(position) });
 
                     // The tile stays where it is, to collide, but isn't drawn: the picture is.
                     tilemap.SetColor(position, new Color(1f, 1f, 1f, 0f));
                 }
 
-                cells.Add(cell.position, cell);
                 cellList.Add(cell);
 
                 Send(cell);
@@ -322,8 +350,9 @@ public class HiddenTileSection : MonoBehaviour
             return null;
         }
 
+        // Under the tilemap, so the picture goes wherever the tile goes if the tilemap moves, however this section is placed.
         overlay.transform.name = "Hidden Tile";
-        overlay.transform.SetParent(transform, true);
+        overlay.transform.SetParent(tilemap.transform, true);
 
         var picture = overlay.renderer;
         picture.sharedMaterial = material;
@@ -344,7 +373,7 @@ public class HiddenTileSection : MonoBehaviour
     {
         var beams = HiddenTileBeams.Beams;
         var owners = HiddenTileBeams.Owners;
-        var centre = new Vector2(cell.position.x + 0.5f, cell.position.y + 0.5f);
+        var centre = cell.Centre();
 
         // How much of the tile the beams show on average, as it is now, and with the battery steady, so that what the
         // tile is solid by doesn't flicker. This is for whether it is solid and whether it has been found. What is drawn
@@ -361,11 +390,11 @@ public class HiddenTileSection : MonoBehaviour
                 var beam = beams[i];
 
                 // Well out of reach can't be lit, and nothing needs working out for it.
-                if (Vector2.Distance(beam.origin, centre) <= beam.steadyReach + 1f && CanSee(cell, beam.origin, owners[i]))
+                if (Vector2.Distance(beam.origin, centre) <= beam.steadyReach + 1f && CanSee(cell, centre, beam.origin, owners[i]))
                 {
                     seen = true;
-                    target = Mathf.Max(target, Brightness(cell, beam, false));
-                    steady = Mathf.Max(steady, Brightness(cell, beam, true));
+                    target = Mathf.Max(target, Brightness(centre, beam, false));
+                    steady = Mathf.Max(steady, Brightness(centre, beam, true));
                 }
             }
 
@@ -432,20 +461,18 @@ public class HiddenTileSection : MonoBehaviour
 
         if (solid)
         {
-            Map.AnnounceSolidTile(cell.position);
+            Map.AnnounceSolidTile(SpaceOf(cell.Centre()));
         }
 
         foreach (var tile in cell.tiles)
         {
-            tile.tilemap.SetColliderType(
-                new Vector3Int(cell.position.x, cell.position.y, 0),
-                solid ? tile.collider : Tile.ColliderType.None);
+            tile.tilemap.SetColliderType(tile.cell, solid ? tile.collider : Tile.ColliderType.None);
         }
     }
 
     // How much of a tile a beam lights, from 0 to 1 at the most that it shows. It is taken from several points on the tile,
     // so a tile the edge of the beam is on is partly lit.
-    private static float Brightness(Cell cell, Flashlight.Beam beam, bool steady)
+    private static float Brightness(Vector2 centre, Flashlight.Beam beam, bool steady)
     {
         var total = 0f;
 
@@ -454,8 +481,8 @@ public class HiddenTileSection : MonoBehaviour
             for (int iy = -1; iy <= 1; iy++)
             {
                 var point = new Vector2(
-                    cell.position.x + 0.5f + ix * SampleOffset,
-                    cell.position.y + 0.5f + iy * SampleOffset);
+                    centre.x + ix * SampleOffset,
+                    centre.y + iy * SampleOffset);
 
                 total += BrightnessAt(point, beam, steady);
             }
@@ -517,22 +544,22 @@ public class HiddenTileSection : MonoBehaviour
 
     // Whether the beam can get to the tile: nothing that collides is in the way, except other tiles of this area, which are
     // shown by the beam the same way and don't hide each other. Worked out every so often, not every frame.
-    private bool CanSee(Cell cell, Vector2 origin, EntityId owner)
+    private bool CanSee(Cell cell, Vector2 centre, Vector2 origin, EntityId owner)
     {
         if (cell.sight.TryGetValue(owner, out var last) && Time.time - last.time < SightInterval)
         {
             return last.seen;
         }
 
-        var seen = ClearPath(cell, origin);
+        var seen = ClearPath(centre, origin);
         cell.sight[owner] = (Time.time, seen);
 
         return seen;
     }
 
-    private bool ClearPath(Cell cell, Vector2 origin)
+    private bool ClearPath(Vector2 target, Vector2 origin)
     {
-        var target = new Vector2(cell.position.x + 0.5f, cell.position.y + 0.5f);
+        var targetSpace = SpaceOf(target);
         var offset = target - origin;
         var distance = offset.magnitude;
 
@@ -550,7 +577,7 @@ public class HiddenTileSection : MonoBehaviour
             var space = new Vector2Int(Mathf.FloorToInt(point.x), Mathf.FloorToInt(point.y));
 
             // The space it is shining from, and the tile itself, don't block it, and nor do the area's other tiles.
-            if (space == start || space == cell.position || cells.ContainsKey(space))
+            if (space == start || space == targetSpace || areaSpaces.Contains(space))
             {
                 continue;
             }

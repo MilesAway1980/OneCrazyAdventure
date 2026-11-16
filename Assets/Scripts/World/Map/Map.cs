@@ -56,6 +56,24 @@ public class Map : MonoBehaviour
         return initialized;
     }
 
+    // Tiles are talked about everywhere in the game by where they are in the world: the whole-number position of the corner of
+    // the square a tile covers. That doesn't depend on where any tilemap is put. A tilemap numbers its own cells from wherever
+    // it and its grid are, so this is the one place that turns a world position into the cell on a particular tilemap. Anything
+    // that asks a tilemap about a tile by cell has to come through here.
+    public static Vector3Int ToCell(Tilemap tilemap, int x, int y)
+    {
+        // The middle of the square, so a tilemap that is a little off the grid still gives the cell the square is mostly over.
+        var cell = tilemap.WorldToCell(new Vector3(x + 0.5f, y + 0.5f, tilemap.transform.position.z));
+        cell.z = 0;
+
+        return cell;
+    }
+
+    public static Vector3Int ToCell(Tilemap tilemap, Vector2Int position)
+    {
+        return ToCell(tilemap, position.x, position.y);
+    }
+
     private static readonly RaycastHit2D[] rayHits = new RaycastHit2D[16];
 
     // The nearest thing on the Ground layer along a ray, or a hit with no collider if there is nothing. With
@@ -248,8 +266,7 @@ public class Map : MonoBehaviour
             var liquid = liquidMaps[tilemap];
             if (liquid)
             {
-                var tilePos = TilePositionFromWorldPoint(point);
-                var tileAtLocation = tilemap.GetTile(tilePos);
+                var tileAtLocation = tilemap.GetTile(tilemap.WorldToCell(point));
                 if (tileAtLocation)
                 {
                     inWater = true;
@@ -335,21 +352,8 @@ public class Map : MonoBehaviour
     
     public static Vector3Int TilePositionFromWorldPoint(float x, float y)
     {
-        var mapPosition = Vector3Int.zero;
-        
-        mapPosition = new Vector3Int((int)x, (int)y);
-        
-        if (x < 0)
-        {
-            mapPosition.x -= 1;
-        }
-
-        if (y < 0)
-        {
-            mapPosition.y -= 1;
-        }
-
-        return mapPosition;
+        // Where it is in the world, not a cell on any one tilemap: see ToCell for that.
+        return new Vector3Int(Mathf.FloorToInt(x), Mathf.FloorToInt(y), 0);
     }
     
     public static bool DestroyTile(Vector2Int pos)
@@ -361,7 +365,7 @@ public class Map : MonoBehaviour
     {
         foreach (var map in destructibleTilemaps)
         {
-            map.SetTile(new Vector3Int(x, y, 0), null);
+            map.SetTile(ToCell(map, x, y), null);
         }
 
         return true;
@@ -391,10 +395,10 @@ public class Map : MonoBehaviour
             return false;
         }
 
-        var cell = new Vector3Int(x, y, 0);
-
         foreach (var tilemap in destructibleTilemaps)
         {
+            var cell = ToCell(tilemap, x, y);
+
             if (tilemap.HasTile(cell) && tilemap.GetColliderType(cell) != Tile.ColliderType.None)
             {
                 return true;
@@ -413,7 +417,7 @@ public class Map : MonoBehaviour
             var tilemap = tile.Item1;
             var tilebase = tile.Item2;
             
-            tilemap.SetTile(new Vector3Int(x, y, 0), tilebase);
+            tilemap.SetTile(ToCell(tilemap, x, y), tilebase);
         }
     }
 
@@ -438,7 +442,7 @@ public class Map : MonoBehaviour
         
         foreach (var map in mapList)
         {
-            var tile = map.GetTile(new Vector3Int(x, y, 0));
+            var tile = map.GetTile(ToCell(map, x, y));
             if (tile)
             {
                 tiles.Add(

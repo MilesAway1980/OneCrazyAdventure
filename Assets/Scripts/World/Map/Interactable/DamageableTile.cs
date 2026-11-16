@@ -13,7 +13,11 @@ public class DamageableTile : DamageableTileOptions
     public DamageableTileOptions section;
 
     private List<(Tilemap, TileBase)> tiles;
-    
+
+    // Where this tile is on each tilemap it is on, worked out once when it starts. It's the same tile on the same cells
+    // wherever its tilemap goes, so the tilemap's cells are used from then on, not worked out again from the world.
+    private readonly Dictionary<Tilemap, Vector3Int> cellOn = new Dictionary<Tilemap, Vector3Int>();
+
     private float destroyedTime;
     private bool destroyed;
 
@@ -66,6 +70,12 @@ public class DamageableTile : DamageableTileOptions
     void Start()
     {
         tiles = Map.GetTiles(position, true);
+
+        foreach (var (tilemap, _) in tiles)
+        {
+            cellOn[tilemap] = Map.ToCell(tilemap, position);
+        }
+
         destroyed = false;
         destroyableTileSpaces.Add(position);
         tilesByPosition[position] = this;
@@ -270,7 +280,7 @@ public class DamageableTile : DamageableTileOptions
                 if (elapsed >= options.timeStayDestroyed && !(options.dig && IsOccupied()))
                 {
 
-                    Map.CreateTile(position, tiles);
+                    PlaceTiles();
                     destroyed = false;
                     ResetContacts();
                 }
@@ -671,7 +681,7 @@ public class DamageableTile : DamageableTileOptions
 
         foreach (var (tilemap, _) in tiles)
         {
-            var overlay = TileBreakEffects.CreateOverlay(tilemap, new Vector3Int(position.x, position.y, 0));
+            var overlay = TileBreakEffects.CreateOverlay(tilemap, cellOn[tilemap]);
 
             if (overlay != null)
             {
@@ -750,7 +760,27 @@ public class DamageableTile : DamageableTileOptions
         destroyedTime = Time.time;
         destroyed = true;
         ResetContacts();
-        Map.DestroyTile(position);
+        RemoveTiles();
+    }
+
+    // Takes the tile off every tilemap it is on.
+    private void RemoveTiles()
+    {
+        foreach (var (tilemap, _) in tiles)
+        {
+            tilemap.SetTile(cellOn[tilemap], null);
+        }
+    }
+
+    // Puts the tile back on every tilemap it was on, after letting whatever is in its space know it is coming.
+    private void PlaceTiles()
+    {
+        Map.AnnounceSolidTile(position);
+
+        foreach (var (tilemap, tile) in tiles)
+        {
+            tilemap.SetTile(cellOn[tilemap], tile);
+        }
     }
 
     private void ShowBreak(Vector2 impact, bool drop, Color tint)
@@ -778,7 +808,7 @@ public class DamageableTile : DamageableTileOptions
 
             foreach (var (tilemap, _) in tiles)
             {
-                if (TileBreakEffects.PlanDebris(tilemap, new Vector3Int(position.x, position.y, 0), out var plan))
+                if (TileBreakEffects.PlanDebris(tilemap, cellOn[tilemap], out var plan))
                 {
                     plan.color *= tint;
                     plans.Add(plan);
@@ -1035,7 +1065,7 @@ public class DamageableTile : DamageableTileOptions
 
         foreach (var (tilemap, _) in tiles)
         {
-            if (TileBreakEffects.PlanDebris(tilemap, new Vector3Int(position.x, position.y, 0), out var plan))
+            if (TileBreakEffects.PlanDebris(tilemap, cellOn[tilemap], out var plan))
             {
                 plan.color *= tint;
                 plans.Add(plan);

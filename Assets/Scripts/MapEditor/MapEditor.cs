@@ -205,7 +205,7 @@ public class MapEditor : MonoBehaviour
         mouseLineRenderer.SetPosition(4, new Vector3(mapPosition.x, mapPosition.y, zPos));
         
         var tiles = tilemaps
-                                    .Select(t => t.GetTile(mapPosition))
+                                    .Select(t => t.GetTile(Map.ToCell(t, mapPosition.x, mapPosition.y)))
                                     .Where(t => t)
                                     .ToList();
         

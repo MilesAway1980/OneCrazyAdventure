@@ -65,8 +65,10 @@ public class DamageableTileSection : DamageableTileOptions
             return;
         }
         
-        var min = new Vector2Int((int)boxCollider.bounds.min.x, (int)boxCollider.bounds.min.y);
-        var max = new Vector2Int((int)boxCollider.bounds.max.x - 1, (int)boxCollider.bounds.max.y - 1);
+        // Rounded down, which is the same as dropping the fraction except left of 0 and below it, where dropping it would
+        // take the area a tile too far in.
+        var min = new Vector2Int(Mathf.FloorToInt(boxCollider.bounds.min.x), Mathf.FloorToInt(boxCollider.bounds.min.y));
+        var max = new Vector2Int(Mathf.FloorToInt(boxCollider.bounds.max.x) - 1, Mathf.FloorToInt(boxCollider.bounds.max.y) - 1);
         
         for (int x = min.x; x <= max.x; x++)
         {

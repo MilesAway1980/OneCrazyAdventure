@@ -161,7 +161,7 @@ public class CharacterPickup : MonoBehaviour
 
         if (selecter.Unlock(character))
         {
-            GameMessages.Show(GameText.Fill(GameText.Current.characterFound, character: character.name));
+            GameMessages.ShowEverywhere(GameText.Fill(GameText.Current.characterFound, character: character.name));
         }
 
         Disappear();

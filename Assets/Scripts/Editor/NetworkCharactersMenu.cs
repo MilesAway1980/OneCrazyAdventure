@@ -189,6 +189,25 @@ public static class NetworkCharactersMenu
             count += NetworkPosition(go, go.transform) ? 1 : 0;
         }
 
+        foreach (var hub in Object.FindObjectsByType<CharacterHub>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            count += NetworkWith<HubNetwork>(hub.gameObject) ? 1 : 0;
+        }
+
+        foreach (var darkness in Object.FindObjectsByType<DarkTileMap>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            count += NetworkWith<DarkTileMapNetwork>(darkness.gameObject) ? 1 : 0;
+        }
+
+        // Lights that aren't a character's, such as a sconce's: a character's own light goes with the character.
+        foreach (var source in Object.FindObjectsByType<LightTileSource>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!source.GetComponentInParent<Character>())
+            {
+                count += NetworkWith<LightSourceNetwork>(source.gameObject) ? 1 : 0;
+            }
+        }
+
         Undo.CollapseUndoOperations(group);
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
 
@@ -306,9 +325,30 @@ public static class NetworkCharactersMenu
 
         objects.AddRange(FindMovers());
 
+        foreach (var hub in Object.FindObjectsByType<CharacterHub>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            objects.Add(hub.gameObject);
+        }
+
+        foreach (var darkness in Object.FindObjectsByType<DarkTileMap>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            objects.Add(darkness.gameObject);
+        }
+
+        foreach (var source in Object.FindObjectsByType<LightTileSource>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!source.GetComponentInParent<Character>())
+            {
+                objects.Add(source.gameObject);
+            }
+        }
+
         foreach (var go in objects)
         {
             // The scripts that need the identity go first.
+            RemoveIfThere<HubNetwork>(go);
+            RemoveIfThere<DarkTileMapNetwork>(go);
+            RemoveIfThere<LightSourceNetwork>(go);
             RemoveIfThere<LeverNetwork>(go);
             RemoveIfThere<PickupNetwork>(go);
             RemoveIfThere<NetworkRigidbodyUnreliable2D>(go);

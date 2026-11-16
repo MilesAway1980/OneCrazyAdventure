@@ -3,6 +3,7 @@ using UnityEngine.Serialization;
 
 // A wall sconce: its sprite shows whether its light is lit. The light itself, how long it burns and how it looks lit
 // and unlit are all the LightTileSource's.
+[RequireComponent(typeof(SpriteRenderer))]
 public class Sconce : MonoBehaviour
 {
     public Sprite unlitSprite;

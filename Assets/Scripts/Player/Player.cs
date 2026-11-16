@@ -33,6 +33,12 @@ public class Player : MonoBehaviour
         return players?.FirstOrDefault(p => p && p.id == playerId);
     }
 
+    // The player on this machine who has this seat in someone else's game.
+    public static Player FindBySeat(int seat)
+    {
+        return seat < 0 ? null : players?.FirstOrDefault(p => p && p.seatId == seat);
+    }
+
     // The character this player is controlling, or null if they're not controlling one. On a machine that has joined someone else's game,
     // it's the character the host says is theirs.
     public Character character

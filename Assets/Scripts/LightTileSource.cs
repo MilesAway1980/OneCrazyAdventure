@@ -300,6 +300,13 @@ public class LightTileSource : MonoBehaviour, Characters.IKeepsRunningWhenShownO
     // Times it from when it was lit, and puts it out when the time is up.
     private void UpdateBurning()
     {
+        // In someone else's game the host decides when it goes out, and says so.
+        if (GameSession.IsClientOnly)
+        {
+            wasLit = lit;
+            return;
+        }
+
         if (lit && !wasLit)
         {
             burnStart = Time.time;

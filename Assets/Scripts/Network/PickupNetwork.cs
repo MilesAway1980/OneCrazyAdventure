@@ -13,10 +13,6 @@ public class PickupNetwork : NetworkBehaviour
 
     private CharacterPickup pickup;
 
-    // Whether this machine has finished being given what the host has, so that a pickup that was already gone when it joined isn't
-    // announced as if it had just been found.
-    private bool started;
-
     private CharacterPickup Pickup
     {
         get
@@ -40,26 +36,18 @@ public class PickupNetwork : NetworkBehaviour
 
     public override void OnStartClient()
     {
-        started = true;
-
         if (!isServer && collected)
         {
             Pickup.Disappear();
         }
     }
 
+    // The message that it was found is the host's, sent to everyone, so only the pickup itself goes here.
     private void OnCollectedChanged(bool oldValue, bool newValue)
     {
-        if (isServer || !newValue)
+        if (!isServer && newValue)
         {
-            return;
-        }
-
-        Pickup.Disappear();
-
-        if (started && Pickup.character)
-        {
-            GameMessages.Show(GameText.Fill(GameText.Current.characterFound, character: Pickup.character.name));
+            Pickup.Disappear();
         }
     }
 }

@@ -96,6 +96,19 @@ public class CharacterMove : MonoBehaviour
         {
             // In someone else's game the host decides everything, so what the controls say goes to it, and nothing is done to a
             // character here. This player's own screen, and asking to switch character, are still theirs to do.
+            if (HubMenu.IsOpenFor(player))
+            {
+                // A hub menu this player has open, which is shown here, takes all of their buttons, and the host is told their
+                // character is standing still.
+                if (ConnectionPlayer.Local)
+                {
+                    ConnectionPlayer.Local.SendInput(player, new PlayerInputFrame());
+                }
+
+                HubMenu.Feed(player, input.move, input.jumpPressed, input.abilityPressed, input.interactPressed);
+                return;
+            }
+
             if (ConnectionPlayer.Local)
             {
                 ConnectionPlayer.Local.SendInput(player, input);

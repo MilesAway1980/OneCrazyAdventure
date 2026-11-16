@@ -90,7 +90,7 @@ public class KillZone : MonoBehaviour
 
         if (showMessage)
         {
-            GameMessages.Show(GameText.Fill(GameText.Current.sentBackToHub, character: character.name, hub: hub.hubName));
+            GameMessages.ShowEverywhere(GameText.Fill(GameText.Current.sentBackToHub, character: character.name, hub: hub.hubName));
         }
     }
 

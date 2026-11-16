@@ -57,13 +57,30 @@ the main editor and "Joined" means the second. Tick each box when what's said ha
 - [ ] Press "Back to playing locally" on the joined editor: the game runs normally on its own again.
 - [ ] Stop the host while the other is joined: the joined editor goes back to playing on its own, with a Console warning.
 
+## 10. Hubs, lights and messages
+(Run **Make World Networked** again first, then save: it adds the hubs, sconces and ambient light.)
+- [ ] Reach a hub with a character: its flag shows on both editors, and "hub reached" appears on **both** screens.
+- [ ] Reach a second hub: the first stays reached, the second becomes the checkpoint on both. A character sent to a kill zone goes back to the new one.
+- [ ] A kill zone shows "sent back to the hub" on both screens.
+- [ ] Light and snuff a sconce (or anything lit by a switch or a flame): it lights and goes out on both. A sconce that burns for a set time goes out on both together.
+- [ ] A switch that brightens the scene changes the ambient light on both, and back again when it switches off.
+- [ ] Bring the party to a hub from the menu (host only): "party brought to the hub" appears on both. Collecting a pickup shows "found" on both, once each.
+
+## 11. The hub menu, and tutorial hints, for a joined player
+(Needs the hubs networked: run **Make World Networked** and save.)
+- [ ] A joined player stands at a reached hub and presses Interact: the menu opens **on the joined editor**, and their character stands still.
+- [ ] They play the menu with their own controls: move round, Jump picks, Interact goes back.
+- [ ] Swap Characters on the joined editor shows the characters found, with the party ticked. Pick a new party and press Action to finish: the new characters appear at the hub on **both** editors, with "party changed" on both.
+- [ ] Characters out in the field can't be swapped out, and the last one at the hub can't be taken out (the same messages as on the host).
+- [ ] Choosing the same party again changes nothing and closes quietly.
+- [ ] Bring Everyone Here from the joined editor brings the rest of the party to the hub, with the message on both.
+- [ ] Hints on or off, from the joined editor's menu, changes only that editor's hints.
+- [ ] While one machine's menu is open, the other machine's player can still open their own.
+- [ ] Walk into a tutorial prompt's area with the hints on, on each editor: the hint shows on the editor where hints are on, naming that player's own buttons, and goes away on leaving.
+
 ## Known gaps: not expected to work yet
-- The hub menu for a joined player.
-- Tutorial hints on the joined editor.
-- Messages the host shows ("sent back to the hub") on the joined editor.
 - Tiles breaking, the rope bridge, and enemies.
 - Ability effects of every character except the Flashlight and the Bulb.
-- Sconces and other lights that aren't on a character, and the scene's ambient light from a brighten switch.
 
 ## When something fails
 Note **which item**, **which editor did it**, **what each editor showed**, and any red errors in either Console.

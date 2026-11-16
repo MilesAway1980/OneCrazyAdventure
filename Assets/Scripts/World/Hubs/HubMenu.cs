@@ -116,6 +116,12 @@ public class HubMenu : MonoBehaviour
 
     private void Close()
     {
+        // The host that's waiting for it to be closed, if this is a player in someone else's game, can offer it again.
+        if (GameSession.IsClientOnly && operatorPlayer && ConnectionPlayer.Local)
+        {
+            ConnectionPlayer.Local.NotifyHubMenuClosed(operatorPlayer);
+        }
+
         open = false;
         operatorPlayer = null;
     }
@@ -186,8 +192,20 @@ public class HubMenu : MonoBehaviour
                 break;
 
             case 1:
-                hub.RecallParty(initiator);
-                GameMessages.Show(GameText.Current.partyBroughtToHub);
+                if (GameSession.IsClientOnly)
+                {
+                    // The host does it, and tells everyone.
+                    if (ConnectionPlayer.Local)
+                    {
+                        ConnectionPlayer.Local.RequestRecallParty(operatorPlayer, hub, initiator);
+                    }
+                }
+                else
+                {
+                    hub.RecallParty(initiator);
+                    GameMessages.ShowEverywhere(GameText.Current.partyBroughtToHub);
+                }
+
                 Close();
                 break;
 
@@ -297,15 +315,18 @@ public class HubMenu : MonoBehaviour
             {
                 Close();
             }
-            else if (selecter.SetParty(candidate))
+            else if (GameSession.IsClientOnly)
             {
-                // Only those who have just joined are put at the hub. Everyone else stays where they are, in the field or here.
-                var newcomers = candidate.Where(c => !before.Contains(c)).ToList();
-                var staying = candidate.Where(c => before.Contains(c) && !away.Contains(c)).ToList();
+                // The host makes the change, if it agrees, and tells everyone.
+                if (ConnectionPlayer.Local)
+                {
+                    ConnectionPlayer.Local.RequestSetParty(operatorPlayer, hub, candidate);
+                }
 
-                hub.PlaceNewcomers(newcomers, staying);
-
-                GameMessages.Show(GameText.Current.partyChanged);
+                Close();
+            }
+            else if (hub.ApplyParty(candidate))
+            {
                 Close();
             }
         }

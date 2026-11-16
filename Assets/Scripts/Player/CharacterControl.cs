@@ -33,6 +33,13 @@ public static class CharacterControl
             : null;
     }
 
+    // The player (seat) controlling this character, if anyone is.
+    public static bool TryGetPlayerId(Character character, out int playerId)
+    {
+        playerId = 0;
+        return character && playerOfCharacter.TryGetValue(character, out playerId);
+    }
+
     // Whether any player is controlling this character.
     public static bool IsControlled(Character character)
     {

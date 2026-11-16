@@ -55,6 +55,28 @@ public class ConnectionPlayer : NetworkBehaviour
         return count;
     }
 
+    // Tells the players on every machine in the game a message, the host's own included. False if there is nobody to tell it through
+    // yet, in which case it hasn't been shown anywhere.
+    public static bool Broadcast(string text, float seconds)
+    {
+        foreach (var link in onHost)
+        {
+            if (link && link.isServer)
+            {
+                link.RpcShowMessage(text, seconds);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    [ClientRpc]
+    private void RpcShowMessage(string text, float seconds)
+    {
+        GameMessages.Show(text, seconds);
+    }
+
     public override void OnStartServer()
     {
         onHost.Add(this);
@@ -300,6 +322,11 @@ public class ConnectionPlayer : NetworkBehaviour
         seats.Remove(seatId);
         seatCharacters.Remove(seatId);
 
+        if (menuOpenSeat == seatId)
+        {
+            menuOpenSeat = -1;
+        }
+
         foreach (var pair in new List<KeyValuePair<int, int>>(seatOfPlayer))
         {
             if (pair.Value == seatId)
@@ -307,6 +334,133 @@ public class ConnectionPlayer : NetworkBehaviour
                 seatOfPlayer.Remove(pair.Key);
             }
         }
+    }
+
+    // ----- The hub menu, for a player on another machine -----
+    //
+    // The menu is shown and played on the player's own machine, with their own controls. The host only hears about what it changes in
+    // the game: bringing the party to the hub, and making a different party. It checks them again, since it's the host that decides.
+
+    // The seat of this machine's whose menu is open, or -1. Only one at a time for each machine.
+    private int menuOpenSeat = -1;
+
+    // Tells the machine of whoever is playing this character to open the hub menu for them. False if nobody on another machine is.
+    public static bool OpenHubMenuFor(CharacterHub hub, Character who)
+    {
+        if (!CharacterControl.TryGetPlayerId(who, out var seatId))
+        {
+            return false;
+        }
+
+        var hubIdentity = hub.GetComponent<NetworkIdentity>();
+        var whoIdentity = who.GetComponent<NetworkIdentity>();
+
+        if (!hubIdentity || !whoIdentity)
+        {
+            return false;
+        }
+
+        foreach (var link in onHost)
+        {
+            if (!link || !link.seats.ContainsKey(seatId))
+            {
+                continue;
+            }
+
+            if (link.menuOpenSeat >= 0)
+            {
+                return false;
+            }
+
+            link.menuOpenSeat = seatId;
+            link.TargetOpenHubMenu(link.connectionToClient, seatId, hubIdentity.netId, whoIdentity.netId);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static T OnHost<T>(uint netId) where T : Component
+    {
+        return NetworkServer.spawned.TryGetValue(netId, out var identity) && identity ? identity.GetComponent<T>() : null;
+    }
+
+    private static T OnThisMachine<T>(uint netId) where T : Component
+    {
+        return NetworkClient.spawned.TryGetValue(netId, out var identity) && identity ? identity.GetComponent<T>() : null;
+    }
+
+    private static uint NetIdOfObject(Component component)
+    {
+        var identity = component ? component.GetComponent<NetworkIdentity>() : null;
+        return identity ? identity.netId : 0u;
+    }
+
+    [TargetRpc]
+    private void TargetOpenHubMenu(NetworkConnectionToClient target, int seatId, uint hubNetId, uint whoNetId)
+    {
+        var player = Player.FindBySeat(seatId);
+        var hub = OnThisMachine<CharacterHub>(hubNetId);
+        var who = OnThisMachine<Character>(whoNetId);
+
+        if (player && hub && who && !HubMenu.IsOpen)
+        {
+            HubMenu.Open(hub, player, who);
+        }
+        else
+        {
+            // It couldn't be shown, so the host isn't left waiting for it to be closed.
+            CmdHubMenuClosed(seatId);
+        }
+    }
+
+    [Command]
+    private void CmdHubMenuClosed(int seatId)
+    {
+        if (menuOpenSeat == seatId)
+        {
+            menuOpenSeat = -1;
+        }
+    }
+
+    [Command]
+    private void CmdRecallParty(int seatId, uint hubNetId, uint whoNetId)
+    {
+        var hub = OnHost<CharacterHub>(hubNetId);
+        var who = OnHost<Character>(whoNetId);
+
+        if (seats.ContainsKey(seatId) && hub && who)
+        {
+            hub.RecallParty(who);
+            GameMessages.ShowEverywhere(GameText.Current.partyBroughtToHub);
+        }
+    }
+
+    [Command]
+    private void CmdSetParty(int seatId, uint hubNetId, uint[] partyNetIds)
+    {
+        var hub = OnHost<CharacterHub>(hubNetId);
+
+        if (!seats.ContainsKey(seatId) || !hub || partyNetIds == null)
+        {
+            return;
+        }
+
+        var party = new List<Character>();
+
+        foreach (var netId in partyNetIds)
+        {
+            var character = OnHost<Character>(netId);
+
+            if (!character)
+            {
+                return;
+            }
+
+            party.Add(character);
+        }
+
+        hub.ApplyParty(party);
     }
 
     // ----- On a machine that has joined -----
@@ -374,6 +528,42 @@ public class ConnectionPlayer : NetworkBehaviour
         {
             CmdSwitch(player.seatId, next);
         }
+    }
+
+    // The hub menu the player was playing is closed, so the host can offer it again.
+    public void NotifyHubMenuClosed(Player player)
+    {
+        if (player.seatId >= 0)
+        {
+            CmdHubMenuClosed(player.seatId);
+        }
+    }
+
+    // Asks the host to bring the rest of the party to the hub, leaving this player's character where it is.
+    public void RequestRecallParty(Player player, CharacterHub hub, Character who)
+    {
+        if (player.seatId >= 0)
+        {
+            CmdRecallParty(player.seatId, NetIdOfObject(hub), NetIdOfObject(who));
+        }
+    }
+
+    // Asks the host to make these characters the party. The host checks it again.
+    public void RequestSetParty(Player player, CharacterHub hub, IList<Character> party)
+    {
+        if (player.seatId < 0)
+        {
+            return;
+        }
+
+        var ids = new uint[party.Count];
+
+        for (var i = 0; i < ids.Length; i++)
+        {
+            ids[i] = NetIdOfObject(party[i]);
+        }
+
+        CmdSetParty(player.seatId, NetIdOfObject(hub), ids);
     }
 
     // The player has left the game: their seat goes back to the host.

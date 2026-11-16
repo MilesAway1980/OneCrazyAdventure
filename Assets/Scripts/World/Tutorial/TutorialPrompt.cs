@@ -194,10 +194,47 @@ public class TutorialPrompt : MonoBehaviour
 
     void Update()
     {
+        // On a machine that has joined someone else's game nothing touches anything, so who is in the area comes from where the
+        // characters are.
+        if (GameSession.IsClientOnly)
+        {
+            UpdateInsideByPlace();
+        }
+
         // Someone swapped out, or taken out of the game, in the area never leaves it.
-        if (inside.Count > 0 && inside.RemoveWhere(c => !c || !c.isActiveAndEnabled) > 0)
+        if (inside.Count > 0 && inside.RemoveWhere(c => !c || !c.InGame) > 0)
         {
             HideIfEmpty();
+        }
+    }
+
+    private void UpdateInsideByPlace()
+    {
+        var area = GetComponent<Collider2D>();
+
+        if (!area)
+        {
+            return;
+        }
+
+        var bounds = area.bounds;
+
+        foreach (var character in Character.GetCharacters(true))
+        {
+            var place = character.transform.position;
+            var here = IsInParty(character) && bounds.Contains(new Vector3(place.x, place.y, bounds.center.z));
+
+            if (here)
+            {
+                if (inside.Add(character) && !shown && TutorialHints.Enabled && !(onlyOnce && used))
+                {
+                    Show(character);
+                }
+            }
+            else if (inside.Remove(character))
+            {
+                HideIfEmpty();
+            }
         }
     }
 

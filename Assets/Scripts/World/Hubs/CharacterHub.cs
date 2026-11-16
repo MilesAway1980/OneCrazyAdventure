@@ -99,9 +99,36 @@ public class CharacterHub : InteractableObject
         CheckReached(other);
     }
 
+    // Whether this is the checkpoint now.
+    public bool IsCurrent
+    {
+        get { return Current == this; }
+    }
+
+    // For a machine that has joined someone else's game: the hub is shown reached or not, and as the checkpoint or not, as the host says.
+    // Who reaches it, and what that does, is the host's.
+    public void ShowReached(bool reached, bool isCurrent)
+    {
+        Reached = reached;
+
+        if (reachedVisual)
+        {
+            reachedVisual.SetActive(reached);
+        }
+
+        if (isCurrent)
+        {
+            Current = this;
+        }
+        else if (Current == this)
+        {
+            Current = null;
+        }
+    }
+
     private void CheckReached(Collider2D other)
     {
-        if (Current == this)
+        if (GameSession.IsClientOnly || Current == this)
         {
             return;
         }
@@ -133,30 +160,78 @@ public class CharacterHub : InteractableObject
         {
             var text = GameText.Current;
 
-            GameMessages.Show(GameText.Fill(first ? text.hubReachedFirst : text.hubCheckpoint, hub: hubName));
+            GameMessages.ShowEverywhere(GameText.Fill(first ? text.hubReachedFirst : text.hubCheckpoint, hub: hubName));
         }
     }
 
     // Pressing Interact in the hub's area opens the menu, for the player who is playing that character.
     public override bool Interact(Character interacter)
     {
-        if (!Reached || HubMenu.IsOpen || !IsAtHub(interacter))
+        if (!Reached || !IsAtHub(interacter))
         {
             return false;
         }
 
         var player = PlayerOf(interacter);
 
-        if (!player)
+        if (player)
+        {
+            if (HubMenu.IsOpen)
+            {
+                return false;
+            }
+
+            HubMenu.Open(this, player, interacter);
+            return true;
+        }
+
+        // Played by someone on another machine, whose own machine shows the menu.
+        return ConnectionPlayer.OpenHubMenuFor(this, interacter);
+    }
+
+    // Makes these characters the party, if that's allowed, which is decided here on the host whoever asked. The characters who are out
+    // in the field can't be swapped out, as they aren't here, and somebody has to stay at the hub, or whoever plays there would have
+    // no character. The ones who have just joined are put at the hub, and everyone else stays where they are. False if it wasn't done.
+    public bool ApplyParty(IList<Character> candidate)
+    {
+        var selecter = CharacterSelecter.Instance;
+
+        if (!selecter || candidate == null)
         {
             return false;
         }
 
-        HubMenu.Open(this, player, interacter);
+        var before = selecter.Party.ToList();
+        var away = new HashSet<Character>(before.Where(member => !IsAtHub(member)));
+
+        if (away.Any(member => !candidate.Contains(member)) || candidate.Count(member => !away.Contains(member)) < 1)
+        {
+            GameMessages.Show(GameText.Current.mustStay, 2.5f);
+            return false;
+        }
+
+        // The same characters as there were, in any order: nothing has changed, so there is nothing to do or to say.
+        if (candidate.Count == before.Count && !candidate.Except(before).Any())
+        {
+            return true;
+        }
+
+        if (!selecter.SetParty(candidate.ToList()))
+        {
+            return false;
+        }
+
+        var newcomers = candidate.Where(member => !before.Contains(member)).ToList();
+        var staying = candidate.Where(member => before.Contains(member) && !away.Contains(member)).ToList();
+
+        PlaceNewcomers(newcomers, staying);
+
+        GameMessages.ShowEverywhere(GameText.Current.partyChanged);
         return true;
     }
 
-    // Whether a character is in the hub's area now.
+    // Whether a character is in the hub's area now. A character that is only shown, on a machine that has joined someone else's game, has
+    // no collider working, so its place is used.
     public bool IsAtHub(Character character)
     {
         if (!area || !character)
@@ -166,7 +241,9 @@ public class CharacterHub : InteractableObject
 
         var body = character.GetComponent<Collider2D>();
 
-        return body ? area.bounds.Intersects(body.bounds) : area.OverlapPoint(character.transform.position);
+        return body && body.enabled
+            ? area.bounds.Intersects(body.bounds)
+            : area.OverlapPoint(character.transform.position);
     }
 
     private static Player PlayerOf(Character character)

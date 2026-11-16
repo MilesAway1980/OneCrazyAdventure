@@ -20,6 +20,17 @@ public class GameMessages : MonoBehaviour
         instance.messages.Add((text, Time.unscaledTime + seconds));
     }
 
+    // A message about something that happened in the game, for the players on every machine in it, not only this one: a character found,
+    // a hub reached. It's the host that knows what happened, so it's called there, and tells the others. Where there is no network to
+    // tell, it's just shown here. A message for one player only, such as telling them what they can't do, is Show.
+    public static void ShowEverywhere(string text, float seconds = 3.5f)
+    {
+        if (!ConnectionPlayer.Broadcast(text, seconds))
+        {
+            Show(text, seconds);
+        }
+    }
+
     // Hints that stay on the screen for as long as whatever asked for them says so, such as the tutorial's: along the bottom,
     // one line for each. Asking again for the same owner changes its text, and clearing it takes it away.
     private readonly List<(Object owner, string text)> hints = new List<(Object, string)>();

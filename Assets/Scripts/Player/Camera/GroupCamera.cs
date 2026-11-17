@@ -69,6 +69,20 @@ public class GroupCamera : MonoBehaviour
     [Tooltip("With two screens: side by side if ticked, one above the other if not.")]
     public bool horizontalSplit;
 
+    [Header("Pins")]
+    [Tooltip("Shows a pin above each character that is pinned to a screen of its own, so it can be told from the others.")]
+    public bool showPinMarkers = true;
+    [Tooltip("How big the pin is, as a multiple of its normal size.")]
+    [Min(0.1f)]
+    public float pinMarkerScale = 0.8f;
+
+    [Header("Labels")]
+    [Tooltip("Shows, in the top right of each screen, which player's view it is, for a few seconds whenever the screens change. A pinned screen always says Pinned.")]
+    public bool showViewLabels = true;
+    [Tooltip("How long, in seconds, a label stays after its screen changes.")]
+    [Min(0.5f)]
+    public float labelSeconds = 3f;
+
     [Header("Debugging")]
     [Tooltip("Shows on the screen how the players are being grouped and why, and logs it each time the number of screens changes.")]
     public bool showDebug;
@@ -137,6 +151,18 @@ public class GroupCamera : MonoBehaviour
     private List<View> groupViews = new List<View>();
     private readonly List<View> pins = new List<View>();
 
+    // The pin drawn above each pinned character.
+    private readonly Dictionary<Character, PinMarker> pinMarkers = new Dictionary<Character, PinMarker>();
+    private readonly List<Character> staleMarkers = new List<Character>();
+
+    // What each camera's screen says in its top right corner, what it was last time so a change can be seen, and when it goes.
+    private readonly string[] labelText = new string[MaxScreens];
+    private readonly string[] labelKey = new string[MaxScreens];
+    private readonly bool[] labelPermanent = new bool[MaxScreens];
+    private readonly float[] labelUntil = new float[MaxScreens];
+    private GUIStyle labelStyle;
+    private readonly List<int> labelNumbers = new List<int>();
+
     private readonly Dictionary<int, Vector2> looks = new Dictionary<int, Vector2>();
     private readonly List<Entry> entries = new List<Entry>();
     private readonly List<Vector2> points = new List<Vector2>();
@@ -175,6 +201,7 @@ public class GroupCamera : MonoBehaviour
     {
         GatherEntries();
         DropBadPins();
+        ShowPinMarkers();
 
         if (entries.Count == 0)
         {
@@ -238,11 +265,133 @@ public class GroupCamera : MonoBehaviour
         }
 
         UpdateUnusedCameras(all);
+        UpdateViewLabels(all);
 
         if (showDebug)
         {
             UpdateDebugText(all, layout);
         }
+    }
+
+    // ----- Labels -----
+
+    // Works out what each screen says. A screen's label comes up whenever who is on it changes, or the number of screens does,
+    // and goes after a few seconds. A pinned screen says so for as long as it's pinned.
+    private void UpdateViewLabels(List<View> all)
+    {
+        var shown = new bool[MaxScreens];
+
+        foreach (var view in all)
+        {
+            var screen = view.camera;
+
+            if (screen < 0 || screen >= MaxScreens)
+            {
+                continue;
+            }
+
+            shown[screen] = true;
+
+            string key;
+            string text;
+
+            if (view.pinned)
+            {
+                key = "pinned";
+                text = "Pinned";
+            }
+            else
+            {
+                labelNumbers.Clear();
+
+                foreach (var id in view.playerIds)
+                {
+                    var player = Player.FindById(id);
+
+                    if (player)
+                    {
+                        labelNumbers.Add(player.playerNum);
+                    }
+                }
+
+                labelNumbers.Sort();
+                text = labelNumbers.Count == 1
+                    ? $"Player {labelNumbers[0]}"
+                    : $"Players {string.Join(", ", labelNumbers)}";
+                key = $"{all.Count}|{text}";
+            }
+
+            labelPermanent[screen] = view.pinned;
+
+            if (key != labelKey[screen])
+            {
+                labelKey[screen] = key;
+                labelText[screen] = text;
+                labelUntil[screen] = Time.unscaledTime + labelSeconds;
+            }
+        }
+
+        // A camera with no screen has nothing to say, and starts afresh when it's given one.
+        for (var i = 0; i < MaxScreens; i++)
+        {
+            if (!shown[i])
+            {
+                labelKey[i] = null;
+                labelText[i] = null;
+            }
+        }
+    }
+
+    private void DrawViewLabels()
+    {
+        if (!showViewLabels || cams == null || Event.current.type != EventType.Repaint)
+        {
+            return;
+        }
+
+        if (labelStyle == null)
+        {
+            labelStyle = new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.UpperRight,
+                fontStyle = FontStyle.Bold,
+                wordWrap = false
+            };
+        }
+
+        labelStyle.fontSize = Mathf.Clamp(Screen.height / 28, 14, 48);
+
+        for (var i = 0; i < MaxScreens; i++)
+        {
+            if (string.IsNullOrEmpty(labelText[i]) || !cams[i] || !cams[i].enabled)
+            {
+                continue;
+            }
+
+            var remaining = labelUntil[i] - Time.unscaledTime;
+
+            if (!labelPermanent[i] && remaining <= 0f)
+            {
+                continue;
+            }
+
+            // Fades out over its last half second.
+            var alpha = labelPermanent[i] ? 1f : Mathf.Clamp01(remaining / 0.5f);
+
+            // The camera's screen, turned to the top-down numbering the GUI uses, with a margin inside its top right corner.
+            var pixels = cams[i].pixelRect;
+            var margin = labelStyle.fontSize * 0.5f;
+            var area = new Rect(pixels.xMin, Screen.height - pixels.yMax + margin, pixels.width - margin, labelStyle.fontSize * 2f);
+
+            // A dark copy behind it, so it reads against any background.
+            GUI.color = new Color(0f, 0f, 0f, 0.8f * alpha);
+            GUI.Label(new Rect(area.x + 2f, area.y + 2f, area.width, area.height), labelText[i], labelStyle);
+
+            GUI.color = new Color(1f, 1f, 1f, alpha);
+            GUI.Label(area, labelText[i], labelStyle);
+        }
+
+        GUI.color = Color.white;
     }
 
     // ----- Debugging -----
@@ -283,6 +432,8 @@ public class GroupCamera : MonoBehaviour
 
     void OnGUI()
     {
+        DrawViewLabels();
+
         if (!showDebug || string.IsNullOrEmpty(debugText))
         {
             return;
@@ -340,6 +491,68 @@ public class GroupCamera : MonoBehaviour
     private static int PinCapacity()
     {
         return Mathf.Max(0, MaxScreens - LocalPlayerCount());
+    }
+
+    void OnDisable()
+    {
+        ClearPinMarkers();
+    }
+
+    // Keeps a pin above each pinned character, and takes it away when they're no longer pinned.
+    private void ShowPinMarkers()
+    {
+        if (!showPinMarkers)
+        {
+            ClearPinMarkers();
+            return;
+        }
+
+        foreach (var pin in pins)
+        {
+            if (!pin.pinned)
+            {
+                continue;
+            }
+
+            // A marker that has been destroyed counts as none, so it's made again.
+            if (!pinMarkers.TryGetValue(pin.pinned, out var marker) || !marker)
+            {
+                pinMarkers[pin.pinned] = PinMarker.Create(pin.pinned, pinMarkerScale, 500);
+            }
+        }
+
+        staleMarkers.Clear();
+
+        foreach (var entry in pinMarkers)
+        {
+            if (!entry.Key || !pins.Exists(p => p.pinned == entry.Key))
+            {
+                staleMarkers.Add(entry.Key);
+            }
+        }
+
+        foreach (var character in staleMarkers)
+        {
+            if (pinMarkers[character])
+            {
+                Destroy(pinMarkers[character].gameObject);
+            }
+
+            pinMarkers.Remove(character);
+        }
+    }
+
+    private void ClearPinMarkers()
+    {
+        foreach (var marker in pinMarkers.Values)
+        {
+            if (marker)
+            {
+                Destroy(marker.gameObject);
+            }
+        }
+
+        pinMarkers.Clear();
     }
 
     // A pinned character that's been put away or has gone has nothing to show. If a player joins and takes a screen, the

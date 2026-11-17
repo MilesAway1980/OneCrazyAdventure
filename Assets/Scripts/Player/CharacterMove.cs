@@ -138,14 +138,26 @@ public class CharacterMove : MonoBehaviour
 
         CameraManager.Look(player, lookAction.ReadValue<Vector2>());
 
-        if (prevPressed)
+        // With the group camera, holding the pin button chooses a character to pin with Previous and Next, which then aren't for
+        // switching.
+        var wasChoosing = pinChoosing;
+
+        if (CameraManager.IsGroupCameraActive)
         {
-            SwitchCharacter(false);
+            UpdatePinChoice();
         }
 
-        if (nextPressed)
+        if (!pinChoosing && !wasChoosing)
         {
-            SwitchCharacter(true);
+            if (prevPressed)
+            {
+                SwitchCharacter(false);
+            }
+
+            if (nextPressed)
+            {
+                SwitchCharacter(true);
+            }
         }
 
         if (zoomInAction.IsPressed())
@@ -158,9 +170,140 @@ public class CharacterMove : MonoBehaviour
             CameraManager.Zoom(player, -1);
         }
 
-        if (lockPressed)
+        // The older cameras have a lock of their own.
+        if (lockPressed && !CameraManager.IsGroupCameraActive)
         {
             CameraManager.Lock(player);
+        }
+    }
+
+    // ----- Pinning -----
+
+    // Holding the pin button chooses a character to pin: Previous and Next move the choice through every character in the game,
+    // starting with the one this player has. Letting go pins the one chosen, or unpins it if it's already pinned. Pinning the
+    // character the player has also moves them on to the next one nobody has, since they've left it for a view of its own. Pinning
+    // any other leaves them where they are.
+    private bool pinChoosing;
+    private Character pinChoice;
+
+    private void UpdatePinChoice()
+    {
+        if (!pinChoosing)
+        {
+            if (!lockPressed)
+            {
+                return;
+            }
+
+            pinChoosing = true;
+            pinChoice = currentCharacter;
+
+            if (!pinChoice)
+            {
+                StepPinChoice(true);
+            }
+        }
+
+        if (!lockHeld)
+        {
+            FinishPinChoice();
+            return;
+        }
+
+        if (prevPressed)
+        {
+            StepPinChoice(false);
+        }
+
+        if (nextPressed)
+        {
+            StepPinChoice(true);
+        }
+
+        CameraManager.SetPinChoice(player, pinChoice);
+    }
+
+    // Moves the choice to the next or previous character that's in the game, all the way round.
+    private void StepPinChoice(bool next)
+    {
+        var inGame = new List<Character>();
+
+        foreach (var candidate in Character.GetCharacters(false))
+        {
+            if (candidate && candidate.InGame)
+            {
+                inGame.Add(candidate);
+            }
+        }
+
+        if (inGame.Count == 0)
+        {
+            pinChoice = null;
+            return;
+        }
+
+        var index = inGame.IndexOf(pinChoice);
+        var count = inGame.Count;
+        index = index < 0 ? 0 : ((index + (next ? 1 : -1)) % count + count) % count;
+        pinChoice = inGame[index];
+    }
+
+    private void FinishPinChoice()
+    {
+        var chosen = pinChoice;
+
+        pinChoosing = false;
+        pinChoice = null;
+        CameraManager.SetPinChoice(player, null);
+
+        if (!chosen || !chosen.InGame)
+        {
+            return;
+        }
+
+        var text = GameText.Current;
+
+        if (CameraManager.IsPinned(chosen))
+        {
+            if (CameraManager.Unpin(player, chosen) == UnpinResult.NotYours)
+            {
+                var owner = CameraManager.PinOwner(chosen);
+                GameMessages.Show(GameText.Fill(text.pinnedByOther, player: owner ? owner.playerNum.ToString() : "?"), 2.5f);
+            }
+
+            return;
+        }
+
+        var own = chosen == currentCharacter;
+
+        // Pinning the character they have leaves it where it stands, so there has to be another for them to take over. (Someone
+        // else's game decides that for itself, so it's tried anyway.)
+        if (own && !GameSession.IsClientOnly && !CharacterControl.HasAnotherAvailable(player.id))
+        {
+            GameMessages.Show(text.cantPinNoOther, 2.5f);
+            return;
+        }
+
+        var result = CameraManager.Pin(player, chosen);
+
+        if (result == PinResult.NoScreenToSpare)
+        {
+            GameMessages.Show(text.noScreenToPin, 2.5f);
+        }
+        else if (result == PinResult.Pinned && own)
+        {
+            SwitchCharacter(true);
+        }
+    }
+
+    // If this player is taken out of the game while choosing, the arrow goes with them.
+    void OnDisable()
+    {
+        if (pinChoosing)
+        {
+            pinChoosing = false;
+            pinChoice = null;
+            CameraManager.SetPinChoice(player, null);
         }
     }
 
@@ -168,6 +311,7 @@ public class CharacterMove : MonoBehaviour
     private bool prevPressed;
     private bool nextPressed;
     private bool lockPressed;
+    private bool lockHeld;
 
     // Reads this player's controls. What the character needs goes in the frame; the buttons about this player's own screen
     // and about switching are left in the fields above.
@@ -187,7 +331,7 @@ public class CharacterMove : MonoBehaviour
 
         var prevHeld = prevAction.IsPressed();
         var nextHeld = nextAction.IsPressed();
-        var lockHeld = lookLock.IsPressed();
+        lockHeld = lookLock.IsPressed();
 
         prevPressed = prevHeld && !GetPressed(prevAction);
         nextPressed = nextHeld && !GetPressed(nextAction);

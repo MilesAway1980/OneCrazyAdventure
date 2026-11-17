@@ -70,6 +70,24 @@ public static class CharacterControl
         return null;
     }
 
+    // Whether there's a character, other than the one they have, that this player could switch to.
+    public static bool HasAnotherAvailable(int playerId)
+    {
+        Clean();
+
+        var current = GetCharacter(playerId);
+
+        foreach (var candidate in Character.GetCharacters(false))
+        {
+            if (candidate != current && IsAvailable(candidate))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // Moves the player on to the next (or previous) character nobody else is controlling. If there isn't one, they keep the
     // character they have. Returns the character they are controlling afterwards.
     public static Character Switch(int playerId, bool next)

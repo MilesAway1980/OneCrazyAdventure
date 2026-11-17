@@ -1,3 +1,4 @@
+using Characters;
 using UnityEngine;
 
 // Looks after the cameras. By default the GroupCamera does the work: it shares views between players whose characters are close
@@ -89,6 +90,17 @@ public class CameraManager : MonoBehaviour
         return instance && instance.useGroupCamera && instance.groupCamera;
     }
 
+    public static bool IsGroupCameraActive
+    {
+        get { return GroupActive(); }
+    }
+
+    // Whether this character is pinned to a screen of its own. Only the group camera pins characters.
+    public static bool IsPinned(Character character)
+    {
+        return GroupActive() && instance.groupCamera.IsPinned(character);
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -178,16 +190,35 @@ public class CameraManager : MonoBehaviour
         }
     }
 
-    public static void Lock(Player player)
+    public static PinResult Pin(Player owner, Character character)
     {
-        if (!instance)
-        {
-            return;
-        }
+        return GroupActive() ? instance.groupCamera.Pin(owner, character) : PinResult.Invalid;
+    }
 
+    public static UnpinResult Unpin(Player requester, Character character)
+    {
+        return GroupActive() ? instance.groupCamera.Unpin(requester, character) : UnpinResult.NotPinned;
+    }
+
+    public static Player PinOwner(Character character)
+    {
+        return GroupActive() ? instance.groupCamera.PinOwner(character) : null;
+    }
+
+    public static void SetPinChoice(Player player, Character candidate)
+    {
         if (GroupActive())
         {
-            instance.groupCamera.Lock(player);
+            instance.groupCamera.SetPinChoice(player, candidate);
+        }
+    }
+
+    // The older cameras' lock, which is a different thing and doesn't take the player off their character. The group camera pins
+    // through Pin and Unpin instead.
+    public static void Lock(Player player)
+    {
+        if (!instance || GroupActive())
+        {
             return;
         }
 

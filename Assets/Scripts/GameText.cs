@@ -56,6 +56,21 @@ public class GameText : ScriptableObject
     [Tooltip("When the last character at the hub is picked to be taken out.")]
     public string mustStayPickAnother = "Someone has to stay at the hub. Pick another character first.";
 
+    [Tooltip("When a player tries to pin their character to a screen but there's no other character for them to switch to.")]
+    public string cantPinNoOther = "There's no other character to switch to, so this one can't be pinned.";
+
+    [Tooltip("When a player tries to pin a character but every screen is already used.")]
+    public string noScreenToPin = "There's no spare screen to pin it to.";
+
+    [Tooltip("When a player tries to unpin a view that another player pinned. {player} is that player's number.")]
+    public string pinnedByOther = "Player {player} pinned that view, so only they can unpin it.";
+
+    [Tooltip("Shown to a player holding the pin button while they choose a character that isn't pinned. {character} is their name.")]
+    public string pinChoicePin = "Release to pin {character}";
+
+    [Tooltip("The same, for a character that is already pinned.")]
+    public string pinChoiceUnpin = "Release to unpin {character}";
+
     [Tooltip("When the swap is finished with nobody at the hub.")]
     public string mustStay = "Someone has to stay at the hub.";
 

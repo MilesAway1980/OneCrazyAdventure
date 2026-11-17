@@ -3,6 +3,23 @@ using System.Collections.Generic;
 using Characters;
 using UnityEngine;
 
+// What came of pinning a character to a screen.
+public enum PinResult
+{
+    Pinned,
+    AlreadyPinned,
+    NoScreenToSpare,
+    Invalid
+}
+
+// What came of unpinning one.
+public enum UnpinResult
+{
+    Removed,
+    NotPinned,
+    NotYours
+}
+
 // The camera for every number of players. It shows the game on up to four screens, and decides what goes on each one:
 //
 //  * Players whose characters are close enough to fit in one view share a screen, which zooms out to keep all of them in it.
@@ -114,6 +131,7 @@ public class GroupCamera : MonoBehaviour
         // For a pinned view
         public Character pinned;
         public Vector2 pinnedLook;
+        public int pinnedBy;
 
         public float preferredZoom;
         public bool following;
@@ -150,6 +168,12 @@ public class GroupCamera : MonoBehaviour
     // The views of players, as of the last frame, and the pinned views.
     private List<View> groupViews = new List<View>();
     private readonly List<View> pins = new List<View>();
+
+    // The character each player is choosing to pin, while they hold the pin button, and the arrow drawn over it.
+    private readonly Dictionary<int, Character> pinChoices = new Dictionary<int, Character>();
+    private readonly Dictionary<int, PinMarker> choiceMarkers = new Dictionary<int, PinMarker>();
+    private readonly List<int> staleChoices = new List<int>();
+    private GUIStyle choiceStyle;
 
     // The pin drawn above each pinned character.
     private readonly Dictionary<Character, PinMarker> pinMarkers = new Dictionary<Character, PinMarker>();
@@ -202,6 +226,7 @@ public class GroupCamera : MonoBehaviour
         GatherEntries();
         DropBadPins();
         ShowPinMarkers();
+        ShowChoiceMarkers();
 
         if (entries.Count == 0)
         {
@@ -297,8 +322,8 @@ public class GroupCamera : MonoBehaviour
 
             if (view.pinned)
             {
-                key = "pinned";
-                text = "Pinned";
+                key = $"pinned|{view.pinned.name}";
+                text = $"Pinned: {view.pinned.name}";
             }
             else
             {
@@ -433,6 +458,7 @@ public class GroupCamera : MonoBehaviour
     void OnGUI()
     {
         DrawViewLabels();
+        DrawPinChoices();
 
         if (!showDebug || string.IsNullOrEmpty(debugText))
         {
@@ -496,6 +522,122 @@ public class GroupCamera : MonoBehaviour
     void OnDisable()
     {
         ClearPinMarkers();
+        pinChoices.Clear();
+        ShowChoiceMarkers();
+    }
+
+    // Keeps an arrow over the character each player is choosing, and takes it away when they've done.
+    private void ShowChoiceMarkers()
+    {
+        staleChoices.Clear();
+
+        foreach (var pair in pinChoices)
+        {
+            if (!pair.Value || !Player.FindById(pair.Key))
+            {
+                staleChoices.Add(pair.Key);
+            }
+        }
+
+        foreach (var id in staleChoices)
+        {
+            pinChoices.Remove(id);
+        }
+
+        foreach (var pair in pinChoices)
+        {
+            if (choiceMarkers.TryGetValue(pair.Key, out var marker) && marker)
+            {
+                marker.Retarget(pair.Value);
+            }
+            else
+            {
+                choiceMarkers[pair.Key] = PinMarker.Create(pair.Value, pinMarkerScale, 510, true);
+            }
+        }
+
+        staleChoices.Clear();
+
+        foreach (var pair in choiceMarkers)
+        {
+            if (!pinChoices.ContainsKey(pair.Key))
+            {
+                staleChoices.Add(pair.Key);
+            }
+        }
+
+        foreach (var id in staleChoices)
+        {
+            if (choiceMarkers[id])
+            {
+                Destroy(choiceMarkers[id].gameObject);
+            }
+
+            choiceMarkers.Remove(id);
+        }
+    }
+
+    // The player is holding the pin button and has the arrow on this character. Null when they let go.
+    public void SetPinChoice(Player player, Character candidate)
+    {
+        if (!player)
+        {
+            return;
+        }
+
+        if (candidate)
+        {
+            pinChoices[player.id] = candidate;
+        }
+        else
+        {
+            pinChoices.Remove(player.id);
+        }
+    }
+
+    // Tells each player who is choosing what the choice is, in their own screen.
+    private void DrawPinChoices()
+    {
+        if (cams == null || pinChoices.Count == 0 || Event.current.type != EventType.Repaint)
+        {
+            return;
+        }
+
+        if (choiceStyle == null)
+        {
+            choiceStyle = new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.UpperCenter,
+                fontStyle = FontStyle.Bold,
+                wordWrap = false
+            };
+        }
+
+        choiceStyle.fontSize = Mathf.Clamp(Screen.height / 24, 16, 56);
+
+        foreach (var pair in pinChoices)
+        {
+            var view = ViewOf(Player.FindById(pair.Key));
+
+            if (view == null || view.camera < 0 || !cams[view.camera])
+            {
+                continue;
+            }
+
+            var text = GameText.Current;
+            var line = GameText.Fill(IsPinned(pair.Value) ? text.pinChoiceUnpin : text.pinChoicePin, character: pair.Value.name);
+
+            var pixels = cams[view.camera].pixelRect;
+            var area = new Rect(pixels.xMin, Screen.height - pixels.yMax + choiceStyle.fontSize * 2.5f, pixels.width, choiceStyle.fontSize * 2f);
+
+            GUI.color = new Color(0f, 0f, 0f, 0.85f);
+            GUI.Label(new Rect(area.x + 2f, area.y + 2f, area.width, area.height), line, choiceStyle);
+
+            GUI.color = new Color(1f, 0.9f, 0.3f, 1f);
+            GUI.Label(area, line, choiceStyle);
+        }
+
+        GUI.color = Color.white;
     }
 
     // Keeps a pin above each pinned character, and takes it away when they're no longer pinned.
@@ -1094,45 +1236,69 @@ public class GroupCamera : MonoBehaviour
         view.preferredZoom = Mathf.Clamp(view.preferredZoom + change, currentRange.min, currentRange.max);
     }
 
-    // Pins the player's character to a screen of its own, or unpins it if it's already pinned. Nothing happens if there's no
-    // screen to spare.
-    public void Lock(Player player)
+    // Whether this character is pinned to a screen of its own.
+    public bool IsPinned(Character character)
     {
-        if (!player)
+        return character && pins.Exists(p => p.pinned == character);
+    }
+
+    // The player who pinned this character, or null if it isn't pinned, or they've left.
+    public Player PinOwner(Character character)
+    {
+        var pin = pins.Find(p => p.pinned == character);
+        return pin != null ? Player.FindById(pin.pinnedBy) : null;
+    }
+
+    // Pins a character to a screen of its own, for this player. It doesn't have to be one they're controlling, or anyone is: a
+    // pin is only a view, and stays on the character whoever controls it.
+    public PinResult Pin(Player owner, Character character)
+    {
+        if (!owner || !character || !character.InGame)
         {
-            return;
+            return PinResult.Invalid;
         }
 
-        var character = player.character;
-
-        if (!character)
+        if (IsPinned(character))
         {
-            return;
-        }
-
-        var existing = pins.Find(p => p.pinned == character);
-        if (existing != null)
-        {
-            pins.Remove(existing);
-            return;
+            return PinResult.AlreadyPinned;
         }
 
         if (pins.Count >= PinCapacity())
         {
-            return;
+            return PinResult.NoScreenToSpare;
         }
 
-        var from = ViewOf(player);
+        var from = ViewOf(owner);
 
-        var pin = new View
+        pins.Add(new View
         {
             pinned = character,
-            pinnedLook = looks.TryGetValue(player.id, out var look) ? look : Vector2.zero,
+            pinnedBy = owner.id,
+            pinnedLook = looks.TryGetValue(owner.id, out var look) ? look : Vector2.zero,
             preferredZoom = from != null && from.camera >= 0 ? cams[from.camera].orthographicSize : 0f,
             parent = from
-        };
+        });
 
-        pins.Add(pin);
+        return PinResult.Pinned;
+    }
+
+    // Takes the pin off a character. A pin belongs to the player who made it, so only they can, unless they've gone.
+    public UnpinResult Unpin(Player requester, Character character)
+    {
+        var existing = pins.Find(p => p.pinned == character);
+
+        if (existing == null)
+        {
+            return UnpinResult.NotPinned;
+        }
+
+        if (requester && existing.pinnedBy != requester.id && Player.FindById(existing.pinnedBy))
+        {
+            return UnpinResult.NotYours;
+        }
+
+        pins.Remove(existing);
+        return UnpinResult.Removed;
     }
 
     // The camera showing this player's view, which they might share with others. Null if they have none yet.

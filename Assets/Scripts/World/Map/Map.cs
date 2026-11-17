@@ -264,6 +264,38 @@ public class Map : MonoBehaviour
         return hit.point;
     }
 
+    // For a tilemap that's made while playing, such as the Movement Lab's tanks, which the map didn't find when it started.
+    public static void AddTilemap(Tilemap tilemap)
+    {
+        if (tilemaps == null || liquidMaps == null || !tilemap || tilemaps.Contains(tilemap))
+        {
+            return;
+        }
+
+        tilemaps.Add(tilemap);
+        liquidMaps[tilemap] = tilemap.GetComponent<LiquidMap>();
+
+        if (tilemap.GetComponent<Collider2D>())
+        {
+            destructibleTilemaps.Add(tilemap);
+        }
+
+        numMaps = tilemaps.Count;
+    }
+
+    public static void RemoveTilemap(Tilemap tilemap)
+    {
+        if (tilemaps == null || liquidMaps == null)
+        {
+            return;
+        }
+
+        tilemaps.Remove(tilemap);
+        liquidMaps.Remove(tilemap);
+        destructibleTilemaps.Remove(tilemap);
+        numMaps = tilemaps.Count;
+    }
+
     // The liquid at a point, or null if it's in the air.
     public static Fluid FluidAt(Vector3 point)
     {

@@ -17,9 +17,10 @@ any more.
 6. [Liquids and buoyancy](#liquids-and-buoyancy)
 7. [Walking and jumping in the code](#walking-and-jumping-in-the-code)
 8. [Tools](#tools)
-9. [Troubleshooting](#troubleshooting)
-10. [Where everything is](#where-everything-is)
-11. [Not built yet](#not-built-yet)
+9. [The Movement Lab](#the-movement-lab)
+10. [Troubleshooting](#troubleshooting)
+11. [Where everything is](#where-everything-is)
+12. [Not built yet](#not-built-yet)
 
 ## The pieces
 
@@ -208,7 +209,50 @@ and the Umbrella) is still whether its **middle** is in a liquid.
 | **Tools > Movement > Create Default Assets** | Makes the tuning, materials and fluids that don't exist yet. |
 | **Tools > Movement > Create Profiles For Characters** | Makes and assigns a profile for each character in the open scenes that has none. |
 | **Tools > Movement > Remove Old Movement Settings** | Takes the old `MovementSettings` components off. Ones that are part of a prefab are left and reported. |
+| **Tools > Movement > Movement Lab** | Runs every character through the same tests with the real physics and shows what it measured next to what the formula said. See below. |
 | A profile's Inspector | The derived numbers in words, the jump arc, each mode's summary, and what each liquid does. |
+
+## The Movement Lab
+
+The Overview's numbers are worked out from the formula. The Lab **measures**: it runs the game's own physics on the real
+characters, so it shows where the formula and the real thing disagree (a character's shape, its friction, a script of its own that
+changes how it moves) and what a liquid really does to each one.
+
+**To run it:** open the scene whose characters you want tested (it needs a `Map`, and every character it finds with a profile is
+tested), then **Tools > Movement > Movement Lab > Run the Lab in the open scene**. It starts the game, runs by itself for a couple
+of minutes, stops the game and puts everything back as it was. Don't join with a keyboard or gamepad while it runs; if a player has
+joined, it stops and says so. The results are in the window, and in `Logs/MovementLab.json` and `Logs/MovementLab.csv` (one row for
+each thing measured, for a spreadsheet).
+
+**What it does.** Each character is taken to a lane of its own, high above the level at (2000, 2000) and up, which is made for the
+test and removed at the end: a flat run, a drop, and a tank for each Fluid. They're tested all at once, each doing the same things
+with the same scripted buttons:
+
+| Test | What's measured |
+|---|---|
+| Run from standing, then let go | Top speed; time to get to it; how long and how far to stop |
+| Jump, button held | How high, how long to the top, how long in the air |
+| Jump, a tap | How high the shortest jump is |
+| Jump at full speed | How far it jumps |
+| Fall from 40 tiles | How fast it ends up falling |
+| In each liquid: dropped in | Whether it floats or sinks, how much of it is under at rest, how many times it bobs, how long until it's still; for a sinker, how fast it sinks |
+| In each liquid: a kick | How far one kick lifts it |
+| In each liquid: getting out | Steering toward a bank and kicking from the bottom, whether it gets out onto the bank (default 1 tile above the water) and how long it takes |
+
+A character whose action button changes how it moves (the Balloon, Umbrella and BowlingBall: the `actionPassTypes` list on the
+`MovementLab` component) is tested a second time holding it, and shown with its mode's name.
+
+**Reading the table.** Each number is what was measured, with what the formula said in brackets. Green is within 15%, orange within
+30%, red further. A red cell is a prompt to look, not necessarily a fault: the formula ignores a character's collision shape, floor
+friction and any scripts of its own. "didn't run" means it never moved sideways (a character that can't walk, or one that something
+held still). "stuck" in the liquids table means it never got out onto the bank: tune its Jump trait, **Swim Kick**, the liquid's
+viscosity, or the bank height.
+
+**Settings** (in the window; also on the `MovementLab` component if you add it to a scene yourself, with **Run On Start** ticked):
+the speed it runs at (keep it at 1 for the most exact results) and the height of the bank.
+
+**Notes.** The jump cooldown now uses game time, not real time, so the Lab gives the same results at any speed. The Lab
+touches the scene only while it runs: it moves the characters, brings the ones that were put away into the game, and sets them back.
 
 ## Troubleshooting
 
@@ -234,11 +278,14 @@ and the Umbrella) is still whether its **middle** is in a liquid.
 | `Assets/Scripts/Player/Characters/Assets/Character.cs` | Walking (`ApplyWalking`), buoyancy (`ApplyBuoyancy`, `SampleSubmersion`), jump, `GetMovementSetting`, `GetMovementMode`. |
 | `Assets/Scripts/World/Map/LiquidMap.cs`, `Map.cs` (`FluidAt`) | Which liquid is where. |
 | `Assets/Scripts/Editor/MovementSetupMenu.cs`, `MovementOverviewWindow.cs`, `MovementProfileEditor.cs` | The menu, the Overview table and the profile Inspector. The seeds for each character class are in `Seed` in the menu file. |
+| `Assets/Scripts/Player/Characters/Movement/Lab/MovementLab.cs` | The Lab: builds the lanes, runs the tests (one `Lane` per character, a step at a time), restores the scene. |
+| `Assets/Scripts/Player/Characters/Movement/Lab/MovementLabReport.cs` | What it found: the JSON and CSV, and the data classes. |
+| `Assets/Scripts/Editor/MovementLabWindow.cs` | The window that starts it and shows the results. |
 | `Assets/Scripts/Player/Characters/Assets/MovementSettings.cs` | The old component, kept only so old scenes don't show missing scripts. |
 
 ## Not built yet
 
-Ideas that were suggested and not made: a test scene that lines every character up and **measures** the results rather than
-working them out; a tuning panel inside the game; a spreadsheet export and import; a view that overlays several characters' jump
-arcs on one graph. The Overview's numbers are worked out from the formula, not measured from the physics, so they ignore things
-like a character's collision shape or friction.
+Ideas that were suggested and not made: a tuning panel inside the game; a spreadsheet import (the Lab already exports a CSV); a
+view that overlays several characters' jump arcs on one graph. The Overview's numbers are worked out from the formula, not
+measured from the physics (the Lab is the measured version), so they ignore things like a character's collision shape or
+friction. The Lab doesn't yet test a character's special abilities, climbing, or carrying.

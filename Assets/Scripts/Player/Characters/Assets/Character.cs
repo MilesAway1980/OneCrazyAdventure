@@ -200,7 +200,7 @@ namespace Characters
             originalFloorDetectorPosition = floorDetectorContainer.transform.localPosition;
             originalWallDetectorPosition = wallDetectorContainer.transform.localPosition;
 
-            timeOfLastJump = Time.realtimeSinceStartup;
+            timeOfLastJump = Time.time;
             canMove = true;
 
             characterNum = characterCount++;
@@ -336,7 +336,7 @@ namespace Characters
             // In a liquid he can kick off from nothing, which is how he swims up, and how something that floats climbs out.
             canJump =
                 ((distFromGround < 0.2f && rigidBody2D.linearVelocity.y < 0.01f) || submerged >= SwimmingSubmersion) &&
-                Time.realtimeSinceStartup - timeOfLastJump > 0.25f;
+                Time.time - timeOfLastJump > 0.25f;
 
             isJumping =
                 distFromGround >= 1.0f &&
@@ -925,7 +925,7 @@ namespace Characters
                     rigidBody2D.linearVelocity = new Vector2(rigidBody2D.linearVelocity.x,
                         currentMovementSettings.jumpForce * jumpValue * jumpScale);
 
-                    timeOfLastJump = Time.realtimeSinceStartup;
+                    timeOfLastJump = Time.time;
                     alreadyJumping = true;
                 }
             }
@@ -1100,6 +1100,12 @@ namespace Characters
             currentMovementSettingName = mode;
             movementProfile.Resolve(mode, fluid, MovementTuning.Current, resolvedMovement);
             return resolvedMovement;
+        }
+
+        // The mode of his profile he is moving in just now, such as "base" or "float".
+        public string MovementModeName
+        {
+            get { return currentMovementSettingName; }
         }
 
         // What he is doing, as far as how he moves goes: the name of one of the modes in his profile. Characters that move

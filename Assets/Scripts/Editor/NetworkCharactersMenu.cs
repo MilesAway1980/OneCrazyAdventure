@@ -200,13 +200,13 @@ public static class NetworkCharactersMenu
 
         foreach (var button in Object.FindObjectsByType<ButtonSwitch>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            if (!button.joint || !button.joint.connectedBody)
+            if (!button.Pad)
             {
-                Debug.LogWarning($"{button.name}: the button has no spring joint with a pad, so it was left alone.", button);
+                Debug.LogWarning($"{button.name}: the button has no pad, so it was left alone.", button);
                 continue;
             }
 
-            var pad = button.joint.connectedBody.gameObject;
+            var pad = button.Pad.gameObject;
             count += NetworkPosition(pad, pad.transform) ? 1 : 0;
         }
 
@@ -403,9 +403,9 @@ public static class NetworkCharactersMenu
 
         foreach (var button in Object.FindObjectsByType<ButtonSwitch>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            if (button.joint && button.joint.connectedBody)
+            if (button.Pad)
             {
-                objects.Add(button.joint.connectedBody.gameObject);
+                objects.Add(button.Pad.gameObject);
             }
         }
 

@@ -47,6 +47,26 @@ public class SwitchableObject : MonoBehaviour
         switchOnTime = Time.time;
     }
 
+    // Whether this can be switched by an amount, from 0 to 1, as well as on and off. A button set to pass on how far it's pressed
+    // gives the amount to the ones that can, and switches the rest on and off as usual.
+    public virtual bool AcceptsAmount
+    {
+        get { return false; }
+    }
+
+    // Switches this on by an amount from 0 to 1, called again each frame while it's held there. Only for those that accept one.
+    public virtual void SetAmount(float amount)
+    {
+        if (amount > 0f)
+        {
+            Activate();
+        }
+        else
+        {
+            Deactivate();
+        }
+    }
+
     public virtual void Deactivate()
     {
         if (!staySwitchedOn && !timeActivated && activated)

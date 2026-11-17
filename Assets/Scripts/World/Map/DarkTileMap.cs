@@ -58,6 +58,15 @@ public class DarkTileMap : MonoBehaviour
         globalLight.color = new Color(color.r, color.g, color.b, 1f);
     }
 
+    // Sets the colours a fraction of the way from what they were when the scene started to the ones given: 0 is the originals and
+    // 1 is the ones given.
+    public void BlendColors(Color darkestTarget, Color lightestTarget, float amount)
+    {
+        amount = Mathf.Clamp01(amount);
+        darkest = Color.Lerp(originalDarkest, darkestTarget, amount);
+        lightest = Color.Lerp(originalLightest, lightestTarget, amount);
+    }
+
     // Puts the colours back to what they were when the scene started.
     public void RestoreOriginalColors()
     {

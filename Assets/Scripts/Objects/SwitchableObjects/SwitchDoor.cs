@@ -5,6 +5,8 @@ using UnityEngine;
 //
 //  - With a button, tick Stays Active When On on the button, so that it keeps telling the door while it's pressed. The door
 //    closes again once it is let go.
+//  - A button set to Pass On Amount opens it by how far down the button is pressed: a button pressed 40 percent of the way
+//    opens it 40 percent of the way.
 //  - With a lever, the door opens when the lever is thrown, and closes when it's thrown back. A lever that is One Time
 //    leaves it open.
 //  - Stay Switched On, on this, leaves it open once it has been opened. Switch Off Time closes it that many seconds after the
@@ -29,6 +31,9 @@ public class SwitchDoor : SwitchableObject
     private Rigidbody2D body;
 
     private bool wantsOpen;
+
+    // How much of the way it opens, from 0 to 1, when it's wanted open. 1 unless a button that passes on an amount says otherwise.
+    private float openAmount = 1f;
     private float lastActivated = float.NegativeInfinity;
 
     protected override void Start()
@@ -70,7 +75,8 @@ public class SwitchDoor : SwitchableObject
         }
 
         var current = body ? body.position : (Vector2)door.position;
-        var next = Vector2.MoveTowards(current, wantsOpen ? openPosition : closedPosition, speed * Time.fixedDeltaTime);
+        var goal = wantsOpen ? Vector2.Lerp(closedPosition, openPosition, openAmount) : closedPosition;
+        var next = Vector2.MoveTowards(current, goal, speed * Time.fixedDeltaTime);
 
         if (body)
         {
@@ -87,6 +93,31 @@ public class SwitchDoor : SwitchableObject
         base.Activate();
 
         wantsOpen = true;
+        openAmount = 1f;
+        lastActivated = Time.time;
+    }
+
+    public override bool AcceptsAmount
+    {
+        get { return true; }
+    }
+
+    // Opens it that fraction of the way: a button that is half pressed opens it half way. One that's let go closes it again, unless
+    // it stays switched on, which keeps it as open as it has been.
+    public override void SetAmount(float amount)
+    {
+        amount = Mathf.Clamp01(amount);
+
+        if (amount <= 0f)
+        {
+            Deactivate();
+            return;
+        }
+
+        base.Activate();
+
+        wantsOpen = true;
+        openAmount = staySwitchedOn ? Mathf.Max(openAmount, amount) : amount;
         lastActivated = Time.time;
     }
 

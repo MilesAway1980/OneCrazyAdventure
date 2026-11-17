@@ -101,6 +101,38 @@ namespace Characters
         // The spaces of the tiles that came back on him during that, which may not have a collider yet.
         private readonly List<Vector2Int> blockingCells = new List<Vector2Int>();
 
+#if UNITY_EDITOR
+        // In the editor, when something is changed in the Inspector: a Carry Attachment Point that isn't Kinematic is made so, and
+        // said so, straight away. (When playing, Start does it.) It's done a moment later, as changing other objects while this is
+        // called isn't allowed to be relied on.
+        protected virtual void OnValidate()
+        {
+            if (Application.isPlaying || !carryAttachmentPoint || carryAttachmentPoint.bodyType == RigidbodyType2D.Kinematic)
+            {
+                return;
+            }
+
+            var character = this;
+            var point = carryAttachmentPoint;
+
+            UnityEditor.EditorApplication.delayCall += () =>
+            {
+                if (!character || !point || point.bodyType == RigidbodyType2D.Kinematic)
+                {
+                    return;
+                }
+
+                UnityEditor.Undo.RecordObject(point, "Make Carry Attachment Point Kinematic");
+                point.bodyType = RigidbodyType2D.Kinematic;
+                UnityEditor.EditorUtility.SetDirty(point);
+                UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(point);
+
+                Debug.LogWarning($"{character.name}'s Carry Attachment Point was not Kinematic, so it has been made Kinematic. " +
+                                 "What it carries would have been left behind otherwise.", point);
+            };
+        }
+#endif
+
         protected virtual void Start()
         {
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
@@ -190,6 +222,15 @@ namespace Characters
             {
                 Debug.LogWarning($"{gameObject.name} is able to carry objects, but has no Carry Attachment Point to hold them by. " +
                                  "Give it one, or untick Able To Carry Objects.", this);
+            }
+
+            // The carry point has to move with the character, and only a kinematic body does when it's a child of one that moves. A
+            // dynamic one is a body of its own: it falls and is left behind, and whatever is joined to it is left with it.
+            if (carryAttachmentPoint && carryAttachmentPoint.bodyType != RigidbodyType2D.Kinematic)
+            {
+                Debug.LogWarning($"{gameObject.name}'s Carry Attachment Point was not Kinematic, so what it carried would be left behind. " +
+                                 "It has been made Kinematic. Set its Body Type to Kinematic to stop this message.", carryAttachmentPoint);
+                carryAttachmentPoint.bodyType = RigidbodyType2D.Kinematic;
             }
 
             hitPoints = GetComponent<DamageableEntity>();
@@ -1043,6 +1084,12 @@ namespace Characters
         public Rigidbody2D GetCarryPoint()
         {
             return carryAttachmentPoint;
+        }
+
+        // What they are carrying now, or nothing. A button counts it as part of their weight.
+        public CarryableObject CarriedObject
+        {
+            get { return objectCarrying; }
         }
 
         private void FallDamage(float fallSpeed)

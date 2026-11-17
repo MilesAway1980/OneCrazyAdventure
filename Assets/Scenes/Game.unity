@@ -9295,8 +9295,32 @@ PrefabInstance:
       value: Button A
       objectReference: {fileID: 0}
     - target: {fileID: 3099622384234651535, guid: 491e454d287fe6143b15f650e5fa2862, type: 3}
+      propertyPath: pad
+      value: 
+      objectReference: {fileID: 1679320332}
+    - target: {fileID: 3099622384234651535, guid: 491e454d287fe6143b15f650e5fa2862, type: 3}
+      propertyPath: resistance
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3099622384234651535, guid: 491e454d287fe6143b15f650e5fa2862, type: 3}
+      propertyPath: returnTime
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3099622384234651535, guid: 491e454d287fe6143b15f650e5fa2862, type: 3}
+      propertyPath: passOnAmount
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3099622384234651535, guid: 491e454d287fe6143b15f650e5fa2862, type: 3}
+      propertyPath: minimumWeight
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 3099622384234651535, guid: 491e454d287fe6143b15f650e5fa2862, type: 3}
       propertyPath: staysActiveWhenOn
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3099622384234651535, guid: 491e454d287fe6143b15f650e5fa2862, type: 3}
+      propertyPath: percentPressedToActivate
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 3099622384234651535, guid: 491e454d287fe6143b15f650e5fa2862, type: 3}
       propertyPath: switchableObject.Array.size
@@ -9306,6 +9330,10 @@ PrefabInstance:
       propertyPath: 'switchableObject.Array.data[2]'
       value: 
       objectReference: {fileID: 1074639432}
+    - target: {fileID: 3546284448526861956, guid: 491e454d287fe6143b15f650e5fa2862, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4569977738047559471, guid: 491e454d287fe6143b15f650e5fa2862, type: 3}
       propertyPath: m_Mass
       value: 5
@@ -18805,6 +18833,65 @@ MonoBehaviour:
     position: {x: 0, y: 0}
     distance: 0
     angle: 0
+--- !u!1 &738462548
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 738462549}
+  - component: {fileID: 738462550}
+  m_Layer: 3
+  m_Name: CarryPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &738462549
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 738462548}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1974790654}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!50 &738462550
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 738462548}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1 &748711359
 GameObject:
   m_ObjectHideFlags: 0
@@ -30912,7 +30999,7 @@ Transform:
   m_GameObject: {fileID: 1570444798}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -156.47, y: 0, z: 0}
+  m_LocalPosition: {x: -156.5, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -32114,6 +32201,11 @@ MonoBehaviour:
   serverOnly: 0
   visibility: 0
   hasSpawned: 0
+--- !u!50 &1679320332 stripped
+Rigidbody2D:
+  m_CorrespondingSourceObject: {fileID: 4569977738047559471, guid: 491e454d287fe6143b15f650e5fa2862, type: 3}
+  m_PrefabInstance: {fileID: 211504192}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1682014285
 GameObject:
   m_ObjectHideFlags: 0
@@ -36580,6 +36672,7 @@ Transform:
   - {fileID: 827040685}
   - {fileID: 1541437387}
   - {fileID: 491912795}
+  - {fileID: 738462549}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1974790655
@@ -36602,7 +36695,7 @@ MonoBehaviour:
   ableToClimbObjects: 1
   ableToCarryObjects: 1
   ableToGrabObjects: 1
-  carryAttachmentPoint: {fileID: 0}
+  carryAttachmentPoint: {fileID: 738462550}
   canJump: 0
   isJumping: 0
   alreadyJumping: 0

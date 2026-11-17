@@ -52,7 +52,7 @@ public class TutorialYardBuilder : EditorWindow
     [SerializeField, Range(2, 4)] private int pitWidth = 3;
     [SerializeField, Min(1)] private int ledgeHeight = 2;
     [SerializeField, Min(0.1f)] private float spawnHeight = 1f;
-    [SerializeField, Min(0.1f)] private float buttonPadMass = 5f;
+    [SerializeField, Min(0f)] private float buttonMinimumWeight = 5f;
 
     [SerializeField] private bool moveStarters = true;
     [SerializeField] private bool setStartersOnly;
@@ -125,9 +125,9 @@ public class TutorialYardBuilder : EditorWindow
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Buttons", EditorStyles.boldLabel);
-        buttonPadMass = EditorGUILayout.Slider(
-            new GUIContent("Pad Mass", "The mass of each button's pad. The weight needed to press a button goes up and down with it: a lighter pad is pressed by something lighter. The prefab's own is 50, which is far too heavy for the starters. If the lightest starter can't press a button, lower it; if the buttons are too easy to press, raise it."),
-            buttonPadMass, 0.5f, 50f);
+        buttonMinimumWeight = EditorGUILayout.Slider(
+            new GUIContent("Minimum Weight", "The weight, as the mass of what's standing on it, that takes each button all the way down. Less than that and it goes down by the same fraction, and a button only switches once it's down as far as its Percent Pressed To Activate. The starters weigh 20 (Paperclip) to 80 (Die), and the crate 3. The crate has to be able to hold the button for Gate B, so with a button that switches at 55 percent, this can be at most about 5. Raise it to make buttons need heavier things; lower it to make them easier."),
+            buttonMinimumWeight, 0f, 100f);
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Characters", EditorStyles.boldLabel);
@@ -428,19 +428,10 @@ public class TutorialYardBuilder : EditorWindow
 
         // So it keeps telling the door while it's pressed, and the door shuts again when it's let go.
         serialized.FindProperty("staysActiveWhenOn").boolValue = true;
+
+        // How much it takes to press it all the way down.
+        serialized.FindProperty("minimumWeight").floatValue = buttonMinimumWeight;
         serialized.ApplyModifiedPropertiesWithoutUndo();
-
-        // How much it takes to press it: the pad is the one body in it that moves, and its mass sets how much weight is needed.
-        foreach (var body in button.GetComponentsInChildren<Rigidbody2D>())
-        {
-            if (body.bodyType == RigidbodyType2D.Dynamic)
-            {
-                body.mass = buttonPadMass;
-
-                // So it's saved with the scene as a change to this button, not lost as the prefab's own value comes back.
-                PrefabUtility.RecordPrefabInstancePropertyModifications(body);
-            }
-        }
     }
 
     private void MakeLever(Transform parent, string objectName, int x, SwitchDoor door)

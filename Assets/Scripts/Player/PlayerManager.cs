@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 
 // Players join by pressing a button on the device they want to use: a key on the keyboard, or any button on a
-// gamepad. Whatever they pressed is theirs, and the Player Input picks the control scheme that suits it. There is no
+// gamepad. (Clicking the mouse doesn't count.) Whatever they pressed is theirs, and the Player Input picks the control scheme that suits it. There is no
 // need to put a PlayerInputManager in the scene; this finds one or adds it.
 public class PlayerManager : MonoBehaviour
 {
@@ -28,6 +28,7 @@ public class PlayerManager : MonoBehaviour
     public static List<Player> players;
 
     private PlayerInputManager inputManager;
+    private InputAction joinAction;
     private int testPlayersAdded;
 
     void Start()
@@ -49,7 +50,18 @@ public class PlayerManager : MonoBehaviour
         }
 
         inputManager.playerPrefab = playerPrefab;
-        inputManager.joinBehavior = PlayerJoinBehavior.JoinPlayersWhenButtonIsPressed;
+
+        // Players join with a key or a gamepad button, but not the mouse. If a click counted, pressing the Host or Join button
+        // would put a player on the keyboard and mouse, and anyone who wanted the gamepad would have to leave and rejoin.
+        // (The mouse still goes along with the keyboard when someone joins with it.) The join action has to be given before the
+        // behaviour that uses it.
+        joinAction = new InputAction("Join", InputActionType.Button);
+        joinAction.AddBinding("<Keyboard>/anyKey");
+        joinAction.AddBinding("<Gamepad>/<button>");
+        joinAction.AddBinding("<Joystick>/<button>");
+
+        inputManager.joinAction = new InputActionProperty(joinAction);
+        inputManager.joinBehavior = PlayerJoinBehavior.JoinPlayersWhenJoinActionIsTriggered;
         inputManager.notificationBehavior = PlayerNotifications.InvokeCSharpEvents;
 
         // The game has its own cameras for up to four players.
@@ -67,6 +79,12 @@ public class PlayerManager : MonoBehaviour
         {
             inputManager.onPlayerJoined -= OnPlayerJoined;
             inputManager.onPlayerLeft -= OnPlayerLeft;
+        }
+
+        if (joinAction != null)
+        {
+            joinAction.Dispose();
+            joinAction = null;
         }
     }
 

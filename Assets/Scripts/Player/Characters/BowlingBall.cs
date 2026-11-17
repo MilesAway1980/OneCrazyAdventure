@@ -137,34 +137,9 @@ namespace Characters
             }
         }
 
-        protected override void GetCurrentMovementSetting(bool isInLiquid, float density)
+        protected override string GetMovementMode()
         {
-            string settingName;
-
-            if (isInLiquid)
-            {
-                if (performingAction)
-                {
-                    settingName = "rollingliquid";
-                }
-                else
-                {
-                    settingName = "liquid";
-                }
-            }
-            else
-            {
-                if (performingAction)
-                {
-                    settingName = "rolling";
-                }
-                else
-                {
-                    settingName = "base";
-                }
-            }
-
-            currentMovementSettings = GetMovementSetting(settingName, density);
+            return performingAction ? "rolling" : "base";
         }
     }
 }

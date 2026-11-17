@@ -182,6 +182,12 @@ namespace Characters
             get { return Mathf.Clamp01(movementAfterThrow / 100f); }
         }
 
+        // Without his head he can't walk as fast as he can with it.
+        protected override float MaxWalkSpeed
+        {
+            get { return state == HeadState.Home ? base.MaxWalkSpeed : base.MaxWalkSpeed * MovementAfterThrow; }
+        }
+
         // The height of a jump goes with the square of how hard it's pushed off, so it's pushed off with the square root
         // of the share he has left when his head is out, to leave him that share of the height.
         public override void Jump(bool active, float jumpValue = 1.0f)
@@ -658,9 +664,6 @@ namespace Characters
                 if (canMove)
                 {
                     Move(directionValue);
-
-                    var fastest = currentMovementSettings.maxMoveSpeed * MovementAfterThrow;
-                    moveSpeed = Mathf.Clamp(moveSpeed, -fastest, fastest);
                 }
 
                 return;

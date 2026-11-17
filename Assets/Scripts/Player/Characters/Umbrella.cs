@@ -25,9 +25,6 @@ namespace Characters
 
         private WindCatcher windCatcher;
 
-        // His float settings, but with nothing to pull an upward speed down, for while the wind is lifting him.
-        private MovementSettings updraftSettings;
-
         // Whether he is held open in the air.
         private bool IsFloating
         {
@@ -53,22 +50,6 @@ namespace Characters
             {
                 windCatcher = gameObject.AddComponent<WindCatcher>();
             }
-
-            // Made after the base class has collected the movement settings, so this isn't one of them.
-            foreach (var candidate in GetComponentsInChildren<MovementSettings>())
-            {
-                if (candidate.identifier.ToLower() == "float")
-                {
-                    updraftSettings = gameObject.AddComponent<MovementSettings>();
-                    updraftSettings.CloneSettings(candidate);
-                    updraftSettings.identifier = "Updraft";
-
-                    // The pull on an upward speed is what stops him being carried up.
-                    updraftSettings.heldJumpDecay = 1f;
-                    updraftSettings.releasedJumpDecay = 1f;
-                    break;
-                }
-            }
         }
 
         protected override void Update()
@@ -79,33 +60,16 @@ namespace Characters
             windCatcher.Multiplier = IsFloating ? openWindMultiplier : closedWindMultiplier;
         }
 
-        protected override void GetCurrentMovementSetting(bool isInLiquid, float density)
+        // Open in the air he floats: his "float" mode, or his "updraft" mode (the same, but with nothing to pull an upward speed
+        // down) while the wind is lifting him. In a liquid he can't float and moves as he does shut.
+        protected override string GetMovementMode()
         {
-            if (!isInLiquid && performingAction && updraftSettings && InUpdraft)
+            if (inLiquid || !performingAction)
             {
-                currentMovementSettings = updraftSettings;
-
-                // What picking a setting normally does as well, which the base class keeps to itself.
-                rigidBody2D.gravityScale = updraftSettings.gravity;
-                rigidBody2D.angularDamping = updraftSettings.angularDampening;
-                rigidBody2D.linearDamping = updraftSettings.linearDampening * density;
-
-                return;
+                return "base";
             }
 
-            string settingName;
-            if (isInLiquid)
-            {
-                settingName = "liquid";
-            }
-            else
-            {
-                settingName = performingAction ? "float" : "base";
-            }
-
-            currentMovementSettings = GetMovementSetting(settingName, density);
-
-            //Do not call the base function
+            return InUpdraft ? "updraft" : "float";
         }
 
         public override void Action(bool active)

@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e69a6c8f3e0e3b84bbe5caa19fabe90f, type: 3}
+  m_Name: MovementTuning
+  m_EditorClassIdentifier: Assembly-CSharp::MovementTuning
+  referenceMass: 1
+  topSpeed: 5
+  timeToTopSpeed: 0.15
+  timeToStop: 0.15
+  jumpHeight: 4
+  riseGravity: 1
+  jumpCut: 5
+  fallGravity: 2.5
+  terminalSpeed: 25
+  climbSpeed: 2
+  speedMassExponent: 0.15
+  accelerationMassExponent: 0.4
+  brakingMassExponent: 0.4
+  jumpMassExponent: 0.25
+  fallMassExponent: 0.15
+  terminalMassExponent: 0.2
+  characterGravity: 2
+  airDamping: 0
+  angularDamping: 0.05
+  airDensity: 0.0012
+  swimDrag: 0.5
+  swimKick: 1
+  fluidDamping: 4
+  maxBuoyancyRatio: 3

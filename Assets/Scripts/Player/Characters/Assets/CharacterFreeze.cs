@@ -15,9 +15,6 @@ public class CharacterFreeze: MonoBehaviour
      
      public float currentFreeze;
 
-     private MovementSettings frozenMovementSettings;
-     private MovementSettings baseMovementSettings;
-
      void Start()
      {
           character = GetComponent<Character>();
@@ -25,11 +22,6 @@ public class CharacterFreeze: MonoBehaviour
           {
                heatSources = FindObjectsByType<HeatSource>(FindObjectsInactive.Exclude);
           }
-          
-          frozenMovementSettings = character.gameObject.AddComponent<MovementSettings>();
-          frozenMovementSettings.identifier = "frozen";
-          baseMovementSettings = character.GetMovementSetting("base", 1);
-          frozenMovementSettings.CloneSettings(baseMovementSettings);
      }
 
      void Update()
@@ -62,18 +54,10 @@ public class CharacterFreeze: MonoBehaviour
           if (currentFreeze <= 0)
           {
                currentFreeze = 0;
-               character.SetMovementSettingsOverride(null);
-               //Destroy(this);
           }
-          else if (currentFreeze > 0)
-          {
-               frozenMovementSettings.maxMoveSpeed = baseMovementSettings.maxMoveSpeed - baseMovementSettings.maxMoveSpeed * currentFreeze;
-               frozenMovementSettings.jumpForce = baseMovementSettings.jumpForce - baseMovementSettings.jumpForce * currentFreeze;
-               //character.maxMoveSpeed = character.originalMaxMoveSpeed - character.originalMaxMoveSpeed * currentFreeze;
-               //character.jumpForce = character.originalJumpForce - character.originalJumpForce * currentFreeze;
 
-               character.SetMovementSettingsOverride(frozenMovementSettings);
-          }
+          // Frozen, he runs and jumps that much less, whatever else he's doing or in.
+          character.SetMovementScale(1f - currentFreeze, 1f - currentFreeze);
 
           inFreezeZone = false;
      }

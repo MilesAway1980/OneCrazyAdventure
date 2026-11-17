@@ -8,8 +8,15 @@ public class CarryableObject : MonoBehaviour
     private FixedJoint2D fixedJoint;
     //public Collider2D carryCollider;
     private bool beingCarried;
-    
+
     private List<Character> characters;
+
+    // While it's held, its solid colliders are switched off and gravity doesn't pull on it, and they go back as they were when
+    // it's put down.
+    private float gravityBeforeCarry;
+    private readonly List<Collider2D> switchedOff = new List<Collider2D>();
+
+    private static readonly Collider2D[] overlaps = new Collider2D[16];
 
     void Start()
     {
@@ -20,7 +27,7 @@ public class CarryableObject : MonoBehaviour
         }
 
         characters = new List<Character>();
-        
+
         /*var allColliders = GetComponentsInChildren<Collider2D>();
         foreach (var col in allColliders)
         {
@@ -64,6 +71,7 @@ public class CarryableObject : MonoBehaviour
 
         beingCarried = true;
         carrier = newCarrier;
+        SwitchOffCollisions();
 
         fixedJoint.enabled = true;
         fixedJoint.connectedBody = carryBody;
@@ -76,6 +84,7 @@ public class CarryableObject : MonoBehaviour
     public void Drop()
     {
         beingCarried = false;
+        SwitchOnCollisions();
 
         if (fixedJoint)
         {
@@ -85,6 +94,96 @@ public class CarryableObject : MonoBehaviour
 
         print($"Being dropped by {(carrier ? carrier.name : "nobody")}");
         carrier = null;
+    }
+
+    // Held, it goes through everything, the carrier and the tiles alike. It hangs from a joint to a point that moves with the
+    // carrier, so if it could be stopped by a wall or the edge of a ledge as the carrier jumps over or drops past it, it would
+    // be left behind, sliding along the surface, until there was a clear way to the carrier and then snapped to them.
+    private void SwitchOffCollisions()
+    {
+        SwitchOnCollisions();
+
+        var body = GetComponent<Rigidbody2D>();
+
+        if (body)
+        {
+            gravityBeforeCarry = body.gravityScale;
+            body.gravityScale = 0f;
+        }
+
+        // Only the solid ones: the trigger around it is how a character is found to be in reach.
+        foreach (var own in GetComponentsInChildren<Collider2D>())
+        {
+            if (!own.isTrigger && own.enabled)
+            {
+                own.enabled = false;
+                switchedOff.Add(own);
+            }
+        }
+    }
+
+    private void SwitchOnCollisions()
+    {
+        if (switchedOff.Count == 0)
+        {
+            return;
+        }
+
+        var body = GetComponent<Rigidbody2D>();
+
+        if (body)
+        {
+            body.gravityScale = gravityBeforeCarry;
+        }
+
+        foreach (var own in switchedOff)
+        {
+            if (own)
+            {
+                own.enabled = true;
+            }
+        }
+
+        switchedOff.Clear();
+    }
+
+    // Whether there's room to put it down where it is. Held, it goes through walls, so it could be inside one, and putting it
+    // down there would leave it stuck in the ground or thrown out of it.
+    public bool CanPutDown()
+    {
+        var picture = GetComponentInChildren<SpriteRenderer>();
+
+        if (!picture)
+        {
+            return true;
+        }
+
+        var bounds = picture.bounds;
+        var filter = new ContactFilter2D { useTriggers = false };
+        filter.SetLayerMask(LayerMask.GetMask("Ground"));
+
+        // A little smaller than it is, so resting on the ground or against a wall isn't being inside it.
+        var count = Physics2D.OverlapBox(bounds.center, bounds.size * 0.9f, transform.eulerAngles.z, filter, overlaps);
+        var myBody = GetComponent<Rigidbody2D>();
+
+        for (var i = 0; i < count; i++)
+        {
+            var other = overlaps[i];
+
+            if (other.isTrigger || (myBody && other.attachedRigidbody == myBody))
+            {
+                continue;
+            }
+
+            if (carrier && other.transform.IsChildOf(carrier.transform))
+            {
+                continue;
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
     // Picks this up for the character, if they are in reach and can hold it. Returns this if they did, and null if not, so that
@@ -119,7 +218,7 @@ public class CarryableObject : MonoBehaviour
             characters.Add(character);
         }
     }
-    
+
     void OnTriggerExit2D(Collider2D other)
     {
         var character = other.GetComponent<Character>();

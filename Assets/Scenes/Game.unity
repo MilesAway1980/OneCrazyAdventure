@@ -205,89 +205,6 @@ HingeJoint2D:
   m_AngleLimits:
     m_LowerAngle: 0
     m_UpperAngle: 359
---- !u!1 &2353489
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2353490}
-  - component: {fileID: 2353492}
-  - component: {fileID: 2353491}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2353490
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2353489}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 964426453}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2353491
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2353489}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 20
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 5
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &2353492
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2353489}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 18
-  maxMoveSpeed: 6
-  moveSpeedIncrease: 1
-  moveSpeedDecay: 0.5
-  fallAcceleration: 4
-  heldJumpDecay: 1
-  releasedJumpDecay: 6
-  maxFallSpeed: 500
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
 --- !u!1 &11537729
 GameObject:
   m_ObjectHideFlags: 0
@@ -583,89 +500,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
   m_BlendShapeWeights: []
---- !u!1 &22184164
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 22184165}
-  - component: {fileID: 22184167}
-  - component: {fileID: 22184166}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &22184165
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 22184164}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1292292089}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &22184166
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 22184164}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 0
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 0
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &22184167
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 22184164}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 15
-  maxMoveSpeed: 3
-  moveSpeedIncrease: 0.2
-  moveSpeedDecay: 0.3
-  fallAcceleration: 8
-  heldJumpDecay: 3
-  releasedJumpDecay: 5
-  maxFallSpeed: 1000
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
 --- !u!1 &23469677
 GameObject:
   m_ObjectHideFlags: 0
@@ -1002,7 +836,6 @@ Transform:
   m_Children:
   - {fileID: 585977752}
   - {fileID: 1202978588}
-  - {fileID: 926566473}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &42001190
@@ -1032,6 +865,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: 22b5cc151f954eb49a8826e0aa41f2c4, type: 2}
   safePushSpeed: 6
   solidMass: 50
   blockedFlashSeconds: 0.3
@@ -2434,89 +2268,6 @@ MonoBehaviour:
     position: {x: 0, y: 0}
     distance: 0
     angle: 0
---- !u!1 &108932349
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 108932350}
-  - component: {fileID: 108932352}
-  - component: {fileID: 108932351}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &108932350
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 108932349}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1437834326}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &108932351
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 108932349}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 20
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 5
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &108932352
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 108932349}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 19
-  maxMoveSpeed: 5
-  moveSpeedIncrease: 1
-  moveSpeedDecay: 0.5
-  fallAcceleration: 4
-  heldJumpDecay: 1
-  releasedJumpDecay: 6
-  maxFallSpeed: 500
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 2
 --- !u!4 &112422035 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2497625571538878116, guid: ccf94fa2a39554a45ae7e8654f99110b, type: 3}
@@ -10095,6 +9846,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: daaafacc28458ad40b145a14b131e3f8, type: 2}
   safePushSpeed: 6
   magneticField: {fileID: 17233890}
   pullStrength: 500
@@ -10186,7 +9938,6 @@ Transform:
   m_Children:
   - {fileID: 152225095}
   - {fileID: 124872780}
-  - {fileID: 1393729827}
   - {fileID: 17233891}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -11024,89 +10775,6 @@ MonoBehaviour:
     position: {x: 0, y: 0}
     distance: 0
     angle: 0
---- !u!1 &332808027
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 332808028}
-  - component: {fileID: 332808030}
-  - component: {fileID: 332808029}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &332808028
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 332808027}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 588356883}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &332808029
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 332808027}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 20
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 5
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &332808030
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 332808027}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 12
-  maxMoveSpeed: 5
-  moveSpeedIncrease: 0.04
-  moveSpeedDecay: 0.075
-  fallAcceleration: 20
-  heldJumpDecay: 1
-  releasedJumpDecay: 3
-  maxFallSpeed: 500
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 2
 --- !u!1 &336280187
 GameObject:
   m_ObjectHideFlags: 0
@@ -13665,198 +13333,6 @@ FixedJoint2D:
   m_ConnectedAnchor: {x: 0.005000019, y: -0.01999998}
   m_DampingRatio: 1
   m_Frequency: 0
---- !u!1 &486479584
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 486479585}
-  - component: {fileID: 486479588}
-  - component: {fileID: 486479587}
-  - component: {fileID: 486479586}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &486479585
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 486479584}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2060985622}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &486479586
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 486479584}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Float
-  jumpForce: 0
-  maxMoveSpeed: 4
-  moveSpeedIncrease: 2
-  moveSpeedDecay: 0.2
-  fallAcceleration: 0.1
-  heldJumpDecay: 10
-  releasedJumpDecay: 10
-  maxFallSpeed: 5
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &486479587
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 486479584}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 0
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 0
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &486479588
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 486479584}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 12
-  maxMoveSpeed: 4
-  moveSpeedIncrease: 2
-  moveSpeedDecay: 0.2
-  fallAcceleration: 3
-  heldJumpDecay: 0.5
-  releasedJumpDecay: 20
-  maxFallSpeed: 150
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0
-  climbSpeed: 0
---- !u!1 &491912794
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 491912795}
-  - component: {fileID: 491912797}
-  - component: {fileID: 491912796}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &491912795
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 491912794}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1974790654}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &491912796
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 491912794}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 20
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 5
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &491912797
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 491912794}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 15
-  maxMoveSpeed: 10
-  moveSpeedIncrease: 1
-  moveSpeedDecay: 0.5
-  fallAcceleration: 6
-  heldJumpDecay: 1
-  releasedJumpDecay: 6
-  maxFallSpeed: 500
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 2
 --- !u!1 &495229744
 GameObject:
   m_ObjectHideFlags: 0
@@ -13963,6 +13439,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: b223e9454daeda042a3cfd44ad2c2a44, type: 2}
   safePushSpeed: 6
 --- !u!50 &495229748
 Rigidbody2D:
@@ -14179,193 +13656,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
   m_BlendShapeWeights: []
---- !u!1 &504955147
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 504955148}
-  - component: {fileID: 504955152}
-  - component: {fileID: 504955151}
-  - component: {fileID: 504955150}
-  - component: {fileID: 504955149}
-  - component: {fileID: 504955154}
-  - component: {fileID: 504955153}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &504955148
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 504955147}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1562469051}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &504955149
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 504955147}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Bouncy
-  jumpForce: 0
-  maxMoveSpeed: 0.25
-  moveSpeedIncrease: 1
-  moveSpeedDecay: 0.01
-  fallAcceleration: 6
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 200
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &504955150
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 504955147}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Charging
-  jumpForce: 0
-  maxMoveSpeed: 1.5
-  moveSpeedIncrease: 0.01
-  moveSpeedDecay: 0.001
-  fallAcceleration: 6
-  heldJumpDecay: 50
-  releasedJumpDecay: 50
-  maxFallSpeed: 200
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &504955151
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 504955147}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 0
-  maxMoveSpeed: 2
-  moveSpeedIncrease: 0.02
-  moveSpeedDecay: 0.002
-  fallAcceleration: 1
-  heldJumpDecay: 0.2
-  releasedJumpDecay: 0.5
-  maxFallSpeed: 3
-  gravity: 1
-  linearDampening: 1
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &504955152
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 504955147}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 15
-  maxMoveSpeed: 8
-  moveSpeedIncrease: 0.5
-  moveSpeedDecay: 0.2
-  fallAcceleration: 6
-  heldJumpDecay: 1
-  releasedJumpDecay: 2
-  maxFallSpeed: 250
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
---- !u!114 &504955153
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 504955147}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: ChargingLiquid
-  jumpForce: 0
-  maxMoveSpeed: 0.5
-  moveSpeedIncrease: 1
-  moveSpeedDecay: 0.1
-  fallAcceleration: 1
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 3
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &504955154
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 504955147}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: BouncyLiquid
-  jumpForce: 0
-  maxMoveSpeed: 0.25
-  moveSpeedIncrease: 1
-  moveSpeedDecay: 0.01
-  fallAcceleration: 0
-  heldJumpDecay: 50
-  releasedJumpDecay: 50
-  maxFallSpeed: 250
-  gravity: 2
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
 --- !u!1 &513332052
 GameObject:
   m_ObjectHideFlags: 0
@@ -15779,7 +15069,6 @@ Transform:
   m_Children:
   - {fileID: 60166866}
   - {fileID: 1766999586}
-  - {fileID: 332808028}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &588356884
@@ -15809,6 +15098,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: 1d1d85e0123ab004582af82b184b029c, type: 2}
   safePushSpeed: 6
 --- !u!114 &588356885
 MonoBehaviour:
@@ -16221,115 +15511,6 @@ Transform:
   - {fileID: 1306162522}
   m_Father: {fileID: 1611505133}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &599951104
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 599951105}
-  - component: {fileID: 599951108}
-  - component: {fileID: 599951107}
-  - component: {fileID: 599951106}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &599951105
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 599951104}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1291881452}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &599951106
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 599951104}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Float
-  jumpForce: 0
-  maxMoveSpeed: 4
-  moveSpeedIncrease: 2
-  moveSpeedDecay: 0.2
-  fallAcceleration: 0.1
-  heldJumpDecay: 10
-  releasedJumpDecay: 10
-  maxFallSpeed: 5
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &599951107
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 599951104}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 0
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 0
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &599951108
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 599951104}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 12
-  maxMoveSpeed: 4
-  moveSpeedIncrease: 2
-  moveSpeedDecay: 0.2
-  fallAcceleration: 3
-  heldJumpDecay: 0.5
-  releasedJumpDecay: 20
-  maxFallSpeed: 150
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0
-  climbSpeed: 0
 --- !u!1 &606886262
 GameObject:
   m_ObjectHideFlags: 0
@@ -17811,141 +16992,6 @@ MonoBehaviour:
     position: {x: 0, y: 0}
     distance: 0
     angle: 0
---- !u!1 &706151652
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 706151653}
-  - component: {fileID: 706151657}
-  - component: {fileID: 706151656}
-  - component: {fileID: 706151655}
-  - component: {fileID: 706151654}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &706151653
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 706151652}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1017972210}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &706151654
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 706151652}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: RollingLiquid
-  jumpForce: 0
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 0
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &706151655
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 706151652}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Rolling
-  jumpForce: 12
-  maxMoveSpeed: 15
-  moveSpeedIncrease: 0.1
-  moveSpeedDecay: 0.01
-  fallAcceleration: 20
-  heldJumpDecay: 4
-  releasedJumpDecay: 8
-  maxFallSpeed: 1000
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
---- !u!114 &706151656
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 706151652}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 3
-  maxMoveSpeed: 2
-  moveSpeedIncrease: 0.25
-  moveSpeedDecay: 0.1
-  fallAcceleration: 0.45
-  heldJumpDecay: 0.2
-  releasedJumpDecay: 0.5
-  maxFallSpeed: 8
-  gravity: 1
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &706151657
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 706151652}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
-  identifier: Base
-  jumpForce: 40
-  maxMoveSpeed: 10
-  moveSpeedIncrease: 2
-  moveSpeedDecay: 1
-  fallAcceleration: 15
-  heldJumpDecay: 8
-  releasedJumpDecay: 15
-  maxFallSpeed: 1000
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
 --- !u!1 &707728833
 GameObject:
   m_ObjectHideFlags: 0
@@ -17986,7 +17032,6 @@ Transform:
   m_Children:
   - {fileID: 546866433}
   - {fileID: 1316909405}
-  - {fileID: 1618020609}
   - {fileID: 847311711}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -18153,6 +17198,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: 8aa7b301e6b0a9f438004afc288cf190, type: 2}
   safePushSpeed: 6
   chargeValueIncreaseSpeed: 1
   maximumChargeValue: 3
@@ -20671,89 +19717,6 @@ MonoBehaviour:
     position: {x: 0, y: 0}
     distance: 0
     angle: 0
---- !u!1 &870650728
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 870650729}
-  - component: {fileID: 870650731}
-  - component: {fileID: 870650730}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &870650729
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 870650728}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1907840639}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &870650730
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 870650728}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 20
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 5
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &870650731
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 870650728}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 18
-  maxMoveSpeed: 6
-  moveSpeedIncrease: 1
-  moveSpeedDecay: 0.5
-  fallAcceleration: 4
-  heldJumpDecay: 1
-  releasedJumpDecay: 6
-  maxFallSpeed: 500
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
 --- !u!1 &871754768
 GameObject:
   m_ObjectHideFlags: 0
@@ -21138,89 +20101,6 @@ MonoBehaviour:
     position: {x: 0, y: 0}
     distance: 0
     angle: 0
---- !u!1 &926566472
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 926566473}
-  - component: {fileID: 926566475}
-  - component: {fileID: 926566474}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &926566473
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 926566472}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 42001189}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &926566474
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 926566472}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 0
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 5
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &926566475
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 926566472}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 0
-  maxMoveSpeed: 1
-  moveSpeedIncrease: 0.001
-  moveSpeedDecay: 0.001
-  fallAcceleration: 4
-  heldJumpDecay: 0
-  releasedJumpDecay: 6
-  maxFallSpeed: 2000
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
 --- !u!1 &926731097
 GameObject:
   m_ObjectHideFlags: 0
@@ -21511,7 +20391,6 @@ Transform:
   - {fileID: 1850715053}
   - {fileID: 594358920}
   - {fileID: 819544682}
-  - {fileID: 1572305910}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &939940527
@@ -21541,6 +20420,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: 387275bee2d87fb4ca87a8b27385cc4f, type: 2}
   safePushSpeed: 6
 --- !u!58 &939940528
 CircleCollider2D:
@@ -22048,7 +20928,6 @@ Transform:
   - {fileID: 620677021}
   - {fileID: 1067636690}
   - {fileID: 83417699}
-  - {fileID: 2353490}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &964426454
@@ -22078,6 +20957,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: 273ecbe6ee642c544adfb853d61882d7, type: 2}
   safePushSpeed: 6
   head: {fileID: 0}
   headTurnSpeed: 360
@@ -22486,7 +21366,6 @@ Transform:
   m_Children:
   - {fileID: 2045075163}
   - {fileID: 727228485}
-  - {fileID: 1819017769}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &979788439
@@ -22516,6 +21395,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: d0a4fc67056007841b43d63e148c84fe, type: 2}
   safePushSpeed: 6
 --- !u!114 &979788440
 MonoBehaviour:
@@ -22721,7 +21601,6 @@ Transform:
   m_Children:
   - {fileID: 502374576}
   - {fileID: 290370046}
-  - {fileID: 1786383813}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!50 &985510088
@@ -22778,6 +21657,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: 3c4212acd57b28d4d927ed8b6ebd1f9d, type: 2}
   safePushSpeed: 6
   topSprite: {fileID: 9194697038958268012, guid: eb258c72312855c48b23dbe24ba83e9f, type: 3}
   middleSprite: {fileID: 2230356097183057040, guid: 49bda06bd348a5847a923cbe91345b2c, type: 3}
@@ -23242,7 +22122,6 @@ Transform:
   - {fileID: 58565785}
   - {fileID: 1522327232}
   - {fileID: 1289850673}
-  - {fileID: 706151653}
   - {fileID: 483658661}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -23273,6 +22152,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: 99d77c3ba83fab549a41a08d70c97af4, type: 2}
   safePushSpeed: 6
 --- !u!114 &1017972212
 MonoBehaviour:
@@ -23874,141 +22754,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1578355070866144887, guid: 491e454d287fe6143b15f650e5fa2862, type: 3}
   m_PrefabInstance: {fileID: 1069073788}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1069530541
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1069530542}
-  - component: {fileID: 1069530546}
-  - component: {fileID: 1069530545}
-  - component: {fileID: 1069530544}
-  - component: {fileID: 1069530543}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1069530542
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1069530541}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1694047601}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1069530543
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1069530541}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: RollingLiquid
-  jumpForce: 0
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 0
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &1069530544
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1069530541}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Rolling
-  jumpForce: 12
-  maxMoveSpeed: 15
-  moveSpeedIncrease: 0.1
-  moveSpeedDecay: 0.01
-  fallAcceleration: 20
-  heldJumpDecay: 4
-  releasedJumpDecay: 8
-  maxFallSpeed: 1000
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
---- !u!114 &1069530545
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1069530541}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 3
-  maxMoveSpeed: 2
-  moveSpeedIncrease: 0.25
-  moveSpeedDecay: 0.1
-  fallAcceleration: 0.45
-  heldJumpDecay: 0.2
-  releasedJumpDecay: 0.5
-  maxFallSpeed: 8
-  gravity: 1
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &1069530546
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1069530541}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
-  identifier: Base
-  jumpForce: 40
-  maxMoveSpeed: 10
-  moveSpeedIncrease: 2
-  moveSpeedDecay: 1
-  fallAcceleration: 15
-  heldJumpDecay: 8
-  releasedJumpDecay: 15
-  maxFallSpeed: 1000
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
 --- !u!1 &1070153734
 GameObject:
   m_ObjectHideFlags: 0
@@ -25786,89 +24531,6 @@ FixedJoint2D:
   m_ConnectedAnchor: {x: 0.005000019, y: -0.020000005}
   m_DampingRatio: 1
   m_Frequency: 0
---- !u!1 &1179799044
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1179799045}
-  - component: {fileID: 1179799047}
-  - component: {fileID: 1179799046}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1179799045
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1179799044}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2018774657}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1179799046
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1179799044}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 0
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 0
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &1179799047
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1179799044}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 25
-  maxMoveSpeed: 9
-  moveSpeedIncrease: 0.5
-  moveSpeedDecay: 0.4
-  fallAcceleration: 4
-  heldJumpDecay: 2
-  releasedJumpDecay: 7
-  maxFallSpeed: 250
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
 --- !u!1001 &1191605775
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -26863,7 +25525,6 @@ Transform:
   m_Children:
   - {fileID: 1073528866}
   - {fileID: 1457384566}
-  - {fileID: 599951105}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1291881453
@@ -26893,6 +25554,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: 6e4aedbdf5e9f9442a09a39a7df72d4f, type: 2}
   safePushSpeed: 6
   openWindMultiplier: 4
   closedWindMultiplier: 1
@@ -27099,7 +25761,6 @@ Transform:
   m_Children:
   - {fileID: 1224651928}
   - {fileID: 1883659379}
-  - {fileID: 22184165}
   - {fileID: 850779130}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -27130,6 +25791,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: cc736dc8c3f76734e96ba6addd1f0d95, type: 2}
   safePushSpeed: 6
   lightTileSource: {fileID: 0}
   screwSeconds: 0.8
@@ -28157,89 +26819,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
   m_BlendShapeWeights: []
---- !u!1 &1393729826
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1393729827}
-  - component: {fileID: 1393729829}
-  - component: {fileID: 1393729828}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1393729827
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1393729826}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 283898235}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1393729828
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1393729826}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 0
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 0
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &1393729829
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1393729826}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 50
-  maxMoveSpeed: 6
-  moveSpeedIncrease: 0.15
-  moveSpeedDecay: 0.1
-  fallAcceleration: 9
-  heldJumpDecay: 8
-  releasedJumpDecay: 25
-  maxFallSpeed: 500
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 1
 --- !u!1 &1407412212
 GameObject:
   m_ObjectHideFlags: 0
@@ -28788,7 +27367,6 @@ Transform:
   m_Children:
   - {fileID: 1726049611}
   - {fileID: 1611505133}
-  - {fileID: 108932350}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1437834327
@@ -28818,6 +27396,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: 7ce47b5a08653a9478547ae07b347e32, type: 2}
   safePushSpeed: 6
 --- !u!114 &1437834328
 MonoBehaviour:
@@ -30766,7 +29345,6 @@ Transform:
   - {fileID: 1104824551}
   - {fileID: 1463389807}
   - {fileID: 1477676196}
-  - {fileID: 504955148}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!50 &1562469058
@@ -30823,6 +29401,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: 4b9497dfada790646a36dabbcc8d66c5, type: 2}
   safePushSpeed: 6
   inflateSize: 1.25
   bouncyShell: {fileID: 1477676195}
@@ -31132,141 +29711,6 @@ MonoBehaviour:
   serverOnly: 0
   visibility: 0
   hasSpawned: 0
---- !u!1 &1572305909
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1572305910}
-  - component: {fileID: 1572305914}
-  - component: {fileID: 1572305913}
-  - component: {fileID: 1572305912}
-  - component: {fileID: 1572305911}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1572305910
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1572305909}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 939940526}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1572305911
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1572305909}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: RollingLiquid
-  jumpForce: 0
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 0
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &1572305912
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1572305909}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Rolling
-  jumpForce: 12
-  maxMoveSpeed: 15
-  moveSpeedIncrease: 0.1
-  moveSpeedDecay: 0.01
-  fallAcceleration: 20
-  heldJumpDecay: 4
-  releasedJumpDecay: 8
-  maxFallSpeed: 1000
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
---- !u!114 &1572305913
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1572305909}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 3
-  maxMoveSpeed: 2
-  moveSpeedIncrease: 0.25
-  moveSpeedDecay: 0.1
-  fallAcceleration: 0.45
-  heldJumpDecay: 0.2
-  releasedJumpDecay: 0.5
-  maxFallSpeed: 8
-  gravity: 1
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &1572305914
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1572305909}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
-  identifier: Base
-  jumpForce: 40
-  maxMoveSpeed: 8.25
-  moveSpeedIncrease: 0.5
-  moveSpeedDecay: 0.075
-  fallAcceleration: 15
-  heldJumpDecay: 8
-  releasedJumpDecay: 15
-  maxFallSpeed: 1000
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
 --- !u!1 &1587224113
 GameObject:
   m_ObjectHideFlags: 0
@@ -31680,89 +30124,6 @@ Transform:
   - {fileID: 599690470}
   m_Father: {fileID: 1437834326}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1618020608
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1618020609}
-  - component: {fileID: 1618020611}
-  - component: {fileID: 1618020610}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1618020609
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1618020608}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 707728834}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1618020610
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1618020608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 0
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 0
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &1618020611
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1618020608}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 18
-  maxMoveSpeed: 6
-  moveSpeedIncrease: 0.75
-  moveSpeedDecay: 0.3
-  fallAcceleration: 8
-  heldJumpDecay: 3
-  releasedJumpDecay: 5
-  maxFallSpeed: 1000
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
 --- !u!1 &1625562906
 GameObject:
   m_ObjectHideFlags: 0
@@ -32557,7 +30918,6 @@ Transform:
   - {fileID: 1791851384}
   - {fileID: 995434382}
   - {fileID: 898200822}
-  - {fileID: 1069530542}
   - {fileID: 265786174}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -32588,6 +30948,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: 04a323fc4fa61a64f921149712187140, type: 2}
   safePushSpeed: 6
   drillPower: 5
   backOutSpeed: 1.5
@@ -33088,10 +31449,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1714602585}
-  - component: {fileID: 1714602589}
-  - component: {fileID: 1714602588}
-  - component: {fileID: 1714602587}
-  - component: {fileID: 1714602586}
   m_Layer: 3
   m_Name: MovementSettings
   m_TagString: Untagged
@@ -33114,106 +31471,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 495229745}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1714602586
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1714602584}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: FloatLiquid
-  jumpForce: 0
-  maxMoveSpeed: 1
-  moveSpeedIncrease: 0.01
-  moveSpeedDecay: 0.001
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: -40
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &1714602587
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1714602584}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Float
-  jumpForce: 0
-  maxMoveSpeed: 1.5
-  moveSpeedIncrease: 0.01
-  moveSpeedDecay: 0.001
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: -5
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &1714602588
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1714602584}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 0
-  maxMoveSpeed: 2
-  moveSpeedIncrease: 0.02
-  moveSpeedDecay: 0.002
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: -2
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &1714602589
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1714602584}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 0
-  maxMoveSpeed: 2
-  moveSpeedIncrease: 0.02
-  moveSpeedDecay: 0.002
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 25
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
 --- !u!1 &1715572171
 GameObject:
   m_ObjectHideFlags: 0
@@ -33853,89 +32110,6 @@ MonoBehaviour:
     position: {x: 0, y: 0}
     distance: 0
     angle: 0
---- !u!1 &1786383812
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1786383813}
-  - component: {fileID: 1786383815}
-  - component: {fileID: 1786383814}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1786383813
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1786383812}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 985510087}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1786383814
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1786383812}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 0
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 0
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &1786383815
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1786383812}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 13
-  maxMoveSpeed: 4
-  moveSpeedIncrease: 0.25
-  moveSpeedDecay: 0.3
-  fallAcceleration: 5
-  heldJumpDecay: 1
-  releasedJumpDecay: 3
-  maxFallSpeed: 500
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 0
 --- !u!1 &1791851383
 GameObject:
   m_ObjectHideFlags: 0
@@ -34589,89 +32763,6 @@ MonoBehaviour:
     position: {x: 0, y: 0}
     distance: 0
     angle: 0
---- !u!1 &1819017768
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1819017769}
-  - component: {fileID: 1819017771}
-  - component: {fileID: 1819017770}
-  m_Layer: 3
-  m_Name: MovementSettings
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1819017769
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1819017768}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 979788438}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1819017770
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1819017768}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Liquid
-  jumpForce: 20
-  maxMoveSpeed: 0
-  moveSpeedIncrease: 0
-  moveSpeedDecay: 0
-  fallAcceleration: 0
-  heldJumpDecay: 0
-  releasedJumpDecay: 0
-  maxFallSpeed: 0
-  gravity: 5
-  linearDampening: 0
-  angularDampening: 0
-  climbSpeed: 0
---- !u!114 &1819017771
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1819017768}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fac46acdb3b6ff7409b16748aa47c130, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementSettings
-  identifier: Base
-  jumpForce: 16
-  maxMoveSpeed: 6
-  moveSpeedIncrease: 1
-  moveSpeedDecay: 0.5
-  fallAcceleration: 4
-  heldJumpDecay: 1
-  releasedJumpDecay: 6
-  maxFallSpeed: 500
-  gravity: 2
-  linearDampening: 1
-  angularDampening: 0.05
-  climbSpeed: 2
 --- !u!1 &1819259475
 GameObject:
   m_ObjectHideFlags: 0
@@ -35867,7 +33958,6 @@ Transform:
   m_Children:
   - {fileID: 50242790}
   - {fileID: 1050289736}
-  - {fileID: 870650729}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!50 &1907840642
@@ -35924,6 +34014,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: 7dbccbaed6bbffe42a0090007a92f62d, type: 2}
   safePushSpeed: 6
   unlitStand: {fileID: 3564000502510323386, guid: 461d0010e04f2294685bc138f6bad203, type: 3}
   unlitJump: {fileID: 3681169168281293195, guid: ffc5828b33795d34fa88d4fc56e72673, type: 3}
@@ -36671,7 +34762,6 @@ Transform:
   m_Children:
   - {fileID: 827040685}
   - {fileID: 1541437387}
-  - {fileID: 491912795}
   - {fileID: 738462549}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -36702,6 +34792,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: 0611b4595ec49f7458914f5202d30137, type: 2}
   safePushSpeed: 6
 --- !u!114 &1974790656
 MonoBehaviour:
@@ -37691,7 +35782,6 @@ Transform:
   m_Children:
   - {fileID: 529771556}
   - {fileID: 390701944}
-  - {fileID: 1179799045}
   m_Father: {fileID: 1543584519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2018774658
@@ -37721,6 +35811,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: 120bfd0006fa03848a3158af5062d6ef, type: 2}
   safePushSpeed: 6
   wallHoldSprite: {fileID: 4445262642900537928, guid: 990b79332704bae48a4b59c8f773f1b8, type: 3}
   ceilingHoldSprite: {fileID: -8460753449235108017, guid: 7e307ebe9b1e463418a477c8df62f064, type: 3}
@@ -42678,7 +40769,6 @@ Transform:
   - {fileID: 1083339484}
   - {fileID: 112422035}
   - {fileID: 558345287}
-  - {fileID: 486479585}
   - {fileID: 1353514170}
   - {fileID: 970062742}
   - {fileID: 1769184854}
@@ -42793,6 +40883,7 @@ MonoBehaviour:
   isFalling: 0
   inLiquid: 0
   footDust: {fileID: 0}
+  movementProfile: {fileID: 11400000, guid: aea7c4dc208596f4b9ec6d8db4a3d0d9, type: 2}
   safePushSpeed: 6
   maxLinks: 200
   feet: {fileID: -8257340229632707990, guid: cb2448e4098970e4ebbb6d53fc6aad5f, type: 3}

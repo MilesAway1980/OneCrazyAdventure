@@ -79,11 +79,13 @@ public class Map : MonoBehaviour
     // The nearest thing on the Ground layer along a ray, or a hit with no collider if there is nothing. With
     // ignorePushable, anything marked PushableSolid is looked straight through, so it's the next thing that really
     // blocks the way. With ignoreBody, so is anything attached to that body: a character that has joined the Ground
-    // layer, such as a solid Brick, would otherwise find himself with every ray that starts inside him.
+    // layer, such as a solid Brick, would otherwise find himself with every ray that starts inside him. alsoIgnoreBody is one
+    // more body to look through: what that character is carrying, which is held out in front of him.
     private static RaycastHit2D NearestGround(
-        Vector3 point, Vector2 direction, float distance, bool ignorePushable, Rigidbody2D ignoreBody)
+        Vector3 point, Vector2 direction, float distance, bool ignorePushable, Rigidbody2D ignoreBody,
+        Rigidbody2D alsoIgnoreBody = null)
     {
-        if (!ignorePushable && !ignoreBody)
+        if (!ignorePushable && !ignoreBody && !alsoIgnoreBody)
         {
             return Physics2D.Raycast(point, direction, distance, LayerMask.GetMask("Ground"));
         }
@@ -99,6 +101,11 @@ public class Map : MonoBehaviour
             var hit = rayHits[i];
 
             if (ignoreBody && hit.collider.attachedRigidbody == ignoreBody)
+            {
+                continue;
+            }
+
+            if (alsoIgnoreBody && hit.collider.attachedRigidbody == alsoIgnoreBody)
             {
                 continue;
             }
@@ -123,9 +130,10 @@ public class Map : MonoBehaviour
     }
 
     public static float? DistanceFromDirection(
-        Vector3 point, Vector2 direction, float distance = 20, bool ignorePushable = false, Rigidbody2D ignoreBody = null)
+        Vector3 point, Vector2 direction, float distance = 20, bool ignorePushable = false, Rigidbody2D ignoreBody = null,
+        Rigidbody2D alsoIgnoreBody = null)
     {
-        var tile = NearestGround(point, direction, distance, ignorePushable, ignoreBody);
+        var tile = NearestGround(point, direction, distance, ignorePushable, ignoreBody, alsoIgnoreBody);
 
         if (!tile.collider)
         {
@@ -256,26 +264,21 @@ public class Map : MonoBehaviour
         return hit.point;
     }
 
-    public static (bool, float) IsInLiquid(Vector3 point)
+    // The liquid at a point, or null if it's in the air.
+    public static Fluid FluidAt(Vector3 point)
     {
-        var inWater = false;
-        float density = 1;
+        Fluid found = null;
 
         foreach (var tilemap in tilemaps)
         {
             var liquid = liquidMaps[tilemap];
-            if (liquid)
+            if (liquid && tilemap.GetTile(tilemap.WorldToCell(point)))
             {
-                var tileAtLocation = tilemap.GetTile(tilemap.WorldToCell(point));
-                if (tileAtLocation)
-                {
-                    inWater = true;
-                    density = liquid.densityMultiplier;
-                }
+                found = liquid.Fluid;
             }
         }
 
-        return (inWater, density);
+        return found;
     }
 
     private static readonly List<Vector2> shapePoints = new List<Vector2>();

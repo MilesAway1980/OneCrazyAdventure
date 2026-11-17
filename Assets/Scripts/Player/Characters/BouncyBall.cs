@@ -408,8 +408,7 @@ namespace Characters
 
             // The jump has the force of an ordinary one however he is when it's let go, as the action button is
             // usually still held then and the inflated settings are for bouncing, not jumping.
-            var (isInLiquid, density) = Map.IsInLiquid(transform.position);
-            currentMovementSettings = GetMovementSetting(isInLiquid ? "liquid" : "base", density);
+            currentMovementSettings = GetMovementSetting("base", currentFluid);
 
             Jump(true, value);
             chargeValue = 0;
@@ -418,45 +417,15 @@ namespace Characters
             chargedJumpTime = Time.time;
         }
 
-        protected override void GetCurrentMovementSetting(bool isInLiquid, float density)
+        protected override string GetMovementMode()
         {
-            string settingName;
-
             // Charging comes first: the action button is held then too, but he isn't inflated.
-            if (isInLiquid)
+            if (charging)
             {
-                if (charging)
-                {
-                    settingName = "chargingliquid";
-                }
-                else if (IsInflated())
-                {
-                    settingName = "bouncyliquid";
-                }
-                else
-                {
-                    settingName = "liquid";
-                }
-            }
-            else
-            {
-                if (charging)
-                {
-                    settingName = "charging";
-                }
-                else if (IsInflated())
-                {
-                    settingName = "bouncy";
-                }
-                else
-                {
-                    settingName = "base";
-                }
+                return "charging";
             }
 
-            currentMovementSettings = GetMovementSetting(settingName, density);
-
-            //Do not call the base function
+            return IsInflated() ? "bouncy" : "base";
         }
     }
 }

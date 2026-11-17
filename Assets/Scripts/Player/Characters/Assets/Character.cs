@@ -37,15 +37,57 @@ namespace Characters
 
         private float distFromGround;
 
+        // How fast he is walking, and which way: it ramps up while the player steers and down when they let go, and the walking
+        // step puts it into his speed. Anything that sets it to a speed of its own (a drill coasting, a brick going solid) is
+        // listened to: the number is its own from then on.
         protected float moveSpeed;
         protected bool canMove;
+
+        // The walking numbers (moveSpeedIncrease and moveSpeedDecay) are how much speed is gained or lost in a step this long,
+        // however long the steps really are.
+        private const float WalkStep = 0.02f;
+
+        // Speed beyond what walking puts in, such as a shove, a moving platform or a slide, is only kept if it's this much.
+        // Less than that is friction and the physics settling, which walking takes over from.
+        private const float ExternalSpeedMargin = 1f;
+
+        // Which way the player is steering (-1, 0 or 1), and the frame they last said so. The steering is read a frame at a time
+        // but the walking is worked out a physics step at a time, so it's kept until the next frame says otherwise. If nothing
+        // says so for a frame, nobody is steering him any more.
+        private float walkInput;
+        private int walkInputFrame = -10;
+
+        // What the walking put into his speed in the last step, and what moveSpeed was left at, to tell what's since been
+        // added by something else.
+        private float walkApplied;
+        private float lastMoveSpeed;
 
         //public float currentSpeed;
         public ParticleSystem footDust;
 
+        [Header("Movement")]
+        [Tooltip("How this character moves: what it's made of and how much it weighs. Make one with Tools > Movement, or Create > Movement > Profile.")]
+        public MovementProfile movementProfile;
+
         protected string currentMovementSettingName;
 
-        protected MovementSettings currentMovementSettings;
+        // How he moves just now, worked out from his profile for what he's doing and what he's in. It's the one object, refilled,
+        // so it's only good until the next time it's asked for.
+        protected ResolvedMovement currentMovementSettings;
+        private readonly ResolvedMovement resolvedMovement = new ResolvedMovement();
+
+        // The liquid his middle is in, or none in the air.
+        protected Fluid currentFluid;
+
+        // How much of him is in a liquid, from 0 to 1, which gives him buoyancy and lets him kick through it.
+        private float submerged;
+        private static readonly Collider2D[] bodyColliders = new Collider2D[8];
+        private const int SubmersionSamples = 5;
+        private const float SwimmingSubmersion = 0.3f;
+
+        // Slows him, as being frozen does: 1 is not at all, and 0 stops him.
+        private float speedScale = 1f;
+        private float jumpScale = 1f;
         protected SpriteRenderer spriteRenderer;
         protected Rigidbody2D rigidBody2D;
         protected bool performingAction;
@@ -61,8 +103,6 @@ namespace Characters
         private Vector3 originalFloorDetectorPosition;
         private Vector3 originalWallDetectorPosition;
 
-        private Dictionary<string, MovementSettings> movementSettings;
-        private MovementSettings overrideMovementSettings;
         private DamageableEntity hitPoints;
 
         private int characterNum;
@@ -167,37 +207,21 @@ namespace Characters
             var footDustObj = GameHelper.ChildObjectsWithTag(gameObject, "FootDust").FirstOrDefault();
             footDust = footDustObj?.GetComponent<ParticleSystem>();
 
-            var allMovements = GetComponentsInChildren<MovementSettings>();
-            movementSettings = new Dictionary<string, MovementSettings>();
-            var baseMovementSettings = allMovements.FirstOrDefault(m => m.identifier.ToLower() == "base");
-            if (!baseMovementSettings)
+            if (!movementProfile)
             {
-                print("ERROR: No base movement settings found on character " + gameObject.name);
-            }
-            /*else
-            {
-                baseMovementSettings.Initialize("base");
-            }*/
-
-            foreach (var ms in allMovements)
-            {
-                var settingsName = ms.identifier.ToLower();
-                if (movementSettings.ContainsKey(settingsName))
-                {
-                    print("ERROR on character " + gameObject.name + " has a duplicate movement setting: " +
-                          settingsName);
-                    continue;
-                }
-
-                /*if (settingsName != "base")
-                {
-                    ms.Initialize(settingsName, baseMovementSettings);
-                }*/
-
-                movementSettings.Add(ms.identifier.ToLower(), ms);
+                Debug.LogError($"{gameObject.name} has no Movement Profile, so it's been given a plain one. " +
+                               "Make one with Tools > Movement > Create Profiles For Characters, or Create > Movement > Profile.", this);
+                movementProfile = ScriptableObject.CreateInstance<MovementProfile>();
             }
 
-            currentMovementSettings = baseMovementSettings;
+            if (movementProfile.applyMass)
+            {
+                rigidBody2D.useAutoMass = false;
+                rigidBody2D.mass = movementProfile.mass;
+            }
+
+            currentMovementSettings = GetMovementSetting("base", null);
+
             if (characters == null)
             {
                 characters = new List<Character>();
@@ -280,6 +304,8 @@ namespace Characters
                 return;
             }
 
+            ApplyBuoyancy();
+
             //currentSpeed = rigidBody2D.linearVelocity.x;
             //print(rigidBody2D.linearVelocity);   
 
@@ -307,9 +333,9 @@ namespace Characters
                 maxFallSpeed = 0;
             }
 
+            // In a liquid he can kick off from nothing, which is how he swims up, and how something that floats climbs out.
             canJump =
-                distFromGround < 0.2f &&
-                rigidBody2D.linearVelocity.y < 0.01f &&
+                ((distFromGround < 0.2f && rigidBody2D.linearVelocity.y < 0.01f) || submerged >= SwimmingSubmersion) &&
                 Time.realtimeSinceStartup - timeOfLastJump > 0.25f;
 
             isJumping =
@@ -324,82 +350,30 @@ namespace Characters
                 maxFallSpeed = -rigidBody2D.linearVelocity.y;
             }
             
-            if (moveSpeed != 0)
-            {
-                var direction = moveSpeed > 0 ? Vector2.right : Vector2.left;
+            ApplyWalking();
+            lastMoveSpeed = moveSpeed;
 
-                var distance = float.PositiveInfinity;
-                foreach (var wallDetector in wallDetectors)
-                {
-                    // Pushable things aren't walls: walking into them is how they get pushed.
-                    var dist = Map.DistanceFromDirection(wallDetector.transform.position, direction, 5, true, rigidBody2D);
-                    if (dist != null && dist < distance)
-                    {
-                        distance = (float)dist;
-                    }
-                }
-
-                var isWall = distance <= 0.75f;
-
-                if (isWall == false)
-                {
-                    var newVelocity = rigidBody2D.linearVelocity.x + moveSpeed;
-                    if (moveSpeed < 0 && newVelocity < moveSpeed)
-                    {
-                        newVelocity = moveSpeed;
-                    }
-                    else if (moveSpeed > 0 && newVelocity > moveSpeed)
-                    {
-                        newVelocity = moveSpeed;
-                    }
-
-                    rigidBody2D.linearVelocityX = newVelocity;
-                }
-                else
-                {
-                    moveSpeed = 0;
-                }
-            }
-
-            if (moveSpeed > 0)
-            {
-                moveSpeed -= currentMovementSettings.moveSpeedDecay;
-                if (moveSpeed < 0)
-                {
-                    moveSpeed = 0;
-                    rigidBody2D.linearVelocity = new Vector2(0, rigidBody2D.linearVelocity.y);
-                }
-            }
-            else if (moveSpeed < 0)
-            {
-                moveSpeed += currentMovementSettings.moveSpeedDecay;
-                if (moveSpeed > 0)
-                {
-                    moveSpeed = 0;
-                    rigidBody2D.linearVelocity = new Vector2(0, rigidBody2D.linearVelocity.y);
-                }
-            }
+            // The extra pull is on his own weight, not on what a liquid holds him up by. It's left off while any of him is in a
+            // liquid, or something floating at the surface would weigh as much as when it falls, and settle too deep.
+            var pull = submerged > 0f ? 0f : Physics2D.gravity.y * currentMovementSettings.gravity;
 
             float fallVelocity;
             if (rigidBody2D.linearVelocity.y <= 0)
             {
                 //Falling
                 //Physics2D.gravity.y is a negative number (-9.81)
-                fallVelocity = Physics2D.gravity.y * rigidBody2D.gravityScale *
-                               (currentMovementSettings.fallAcceleration - 1) * Time.deltaTime;
+                fallVelocity = pull * (currentMovementSettings.fallAcceleration - 1) * Time.deltaTime;
             }
             else
             {
                 //Rising
                 if (holdingJump)
                 {
-                    fallVelocity = Physics2D.gravity.y * rigidBody2D.gravityScale *
-                                   (currentMovementSettings.heldJumpDecay - 1) * Time.deltaTime;
+                    fallVelocity = pull * (currentMovementSettings.heldJumpDecay - 1) * Time.deltaTime;
                 }
                 else
                 {
-                    fallVelocity = Physics2D.gravity.y * rigidBody2D.gravityScale *
-                                   (currentMovementSettings.releasedJumpDecay - 1) * Time.deltaTime;
+                    fallVelocity = pull * (currentMovementSettings.releasedJumpDecay - 1) * Time.deltaTime;
                 }
             }
 
@@ -411,6 +385,183 @@ namespace Characters
                 rigidBody2D.linearVelocity =
                     new Vector2(rigidBody2D.linearVelocity.x, -currentMovementSettings.maxFallSpeed);
             }
+        }
+
+        // The fastest he can walk. A character that can only walk some of the way, or faster, says so here.
+        protected virtual float MaxWalkSpeed
+        {
+            get { return Mathf.Max(0f, currentMovementSettings.maxMoveSpeed) * speedScale; }
+        }
+
+        // How much of him is in a liquid, and which. Sampled up his body, so it changes smoothly as he goes in.
+        private float SampleSubmersion(out Fluid fluid)
+        {
+            fluid = null;
+
+            var count = rigidBody2D.GetAttachedColliders(bodyColliders);
+            var bounds = new Bounds();
+            var found = false;
+
+            for (var i = 0; i < count; i++)
+            {
+                var body = bodyColliders[i];
+
+                if (body.isTrigger || !body.enabled)
+                {
+                    continue;
+                }
+
+                if (found)
+                {
+                    bounds.Encapsulate(body.bounds);
+                }
+                else
+                {
+                    bounds = body.bounds;
+                    found = true;
+                }
+            }
+
+            if (!found)
+            {
+                fluid = Map.FluidAt(transform.position);
+                return fluid ? 1f : 0f;
+            }
+
+            var inLiquidCount = 0;
+
+            for (var i = 0; i < SubmersionSamples; i++)
+            {
+                var y = Mathf.Lerp(bounds.min.y, bounds.max.y, (i + 0.5f) / SubmersionSamples);
+                var here = Map.FluidAt(new Vector3(bounds.center.x, y, transform.position.z));
+
+                if (here)
+                {
+                    inLiquidCount++;
+                    fluid = here;
+                }
+            }
+
+            return inLiquidCount / (float)SubmersionSamples;
+        }
+
+        // What the air or a liquid does to him, every physics step: holds him up by as much of him as is in it, against how dense
+        // he is, and slows him by how thick it is. Something lighter than a liquid is pushed up until only as much of it is under
+        // as it weighs, and settles there, bobbing, at the surface; something heavier sinks.
+        private void ApplyBuoyancy()
+        {
+            var t = MovementTuning.Current;
+            var settings = currentMovementSettings;
+
+            submerged = SampleSubmersion(out var fluid);
+
+            var fluidDensity = fluid ? fluid.density : t.airDensity;
+            var around = fluidDensity * submerged + t.airDensity * (1f - submerged);
+            var lift = Mathf.Min(around / Mathf.Max(0.0001f, settings.density), t.maxBuoyancyRatio);
+
+            rigidBody2D.gravityScale = settings.gravity * (1f - lift);
+
+            var thickness = fluid ? fluid.viscosity * submerged : 0f;
+            rigidBody2D.linearDamping = settings.linearDampening + thickness * t.fluidDamping;
+            rigidBody2D.angularDamping = settings.angularDampening;
+        }
+
+        // One physics step of walking: moveSpeed ramps toward where the player is steering, and his sideways speed follows it.
+        //
+        // Walking is added to whatever speed he already has rather than replacing it, so a shove, a moving platform or a slide
+        // in the way he's going isn't cut back to walking pace; it wears off by itself, through friction and damping. Speed
+        // against the way he's walking is still taken over by it, which is how he pushes against things in his way.
+        private void ApplyWalking()
+        {
+            var settings = currentMovementSettings;
+
+            if (settings == null)
+            {
+                return;
+            }
+
+            // Something else has set moveSpeed since the last step, so what walking put in no longer means anything.
+            if (moveSpeed != lastMoveSpeed)
+            {
+                walkApplied = 0f;
+            }
+
+            var before = moveSpeed;
+            var scale = Time.fixedDeltaTime / WalkStep;
+            var input = Time.frameCount - walkInputFrame <= 1 ? walkInput : 0f;
+
+            if (input != 0f)
+            {
+                // Turning round has to stop him as well as get him going again.
+                var rate = settings.moveSpeedIncrease;
+                if (moveSpeed * input < 0f)
+                {
+                    rate += settings.moveSpeedDecay;
+                }
+
+                moveSpeed += input * rate * scale;
+            }
+            else
+            {
+                moveSpeed = Mathf.MoveTowards(moveSpeed, 0f, settings.moveSpeedDecay * scale);
+            }
+
+            var fastest = MaxWalkSpeed;
+            moveSpeed = Mathf.Clamp(moveSpeed, -fastest, fastest);
+
+            // Speed that isn't walking: beyond what was put in last step, in the same way. If moveSpeed was just set by something
+            // else, it's what that said he's walking at that counts.
+            var seen = rigidBody2D.linearVelocity.x;
+            var reference = walkApplied != 0f ? walkApplied : before;
+            var external = 0f;
+
+            if (Mathf.Abs(seen) > Mathf.Abs(reference) && (reference == 0f || (seen > 0f) == (reference > 0f)))
+            {
+                external = seen - reference;
+
+                if (Mathf.Abs(external) < ExternalSpeedMargin)
+                {
+                    external = 0f;
+                }
+            }
+
+            if (moveSpeed == 0f)
+            {
+                // Walking has just run down to nothing: that part of his speed stops, and any other stays.
+                if (before != 0f)
+                {
+                    rigidBody2D.linearVelocityX = external;
+                }
+
+                walkApplied = 0f;
+                return;
+            }
+
+            var direction = moveSpeed > 0f ? Vector2.right : Vector2.left;
+
+            // What he's carrying is held out in front of him, so it isn't a wall either.
+            var carried = objectCarrying ? objectCarrying.GetComponent<Rigidbody2D>() : null;
+
+            var distance = float.PositiveInfinity;
+            foreach (var wallDetector in wallDetectors)
+            {
+                // Pushable things aren't walls: walking into them is how they get pushed.
+                var dist = Map.DistanceFromDirection(wallDetector.transform.position, direction, 5, true, rigidBody2D, carried);
+                if (dist != null && dist < distance)
+                {
+                    distance = (float)dist;
+                }
+            }
+
+            if (distance <= 0.75f)
+            {
+                moveSpeed = 0f;
+                walkApplied = 0f;
+                return;
+            }
+
+            rigidBody2D.linearVelocityX = moveSpeed + external;
+            walkApplied = moveSpeed;
         }
 
         protected virtual void Update()
@@ -425,10 +576,10 @@ namespace Characters
 
             SetSprite();
 
-            var (isInLiquid, density) = Map.IsInLiquid(transform.position);
-            GetCurrentMovementSetting(isInLiquid, density);
-
-            inLiquid = isInLiquid;
+            // Which liquid his middle is in, if any, and how he moves in it doing what he's doing.
+            currentFluid = Map.FluidAt(transform.position);
+            inLiquid = currentFluid != null;
+            currentMovementSettings = GetMovementSetting(GetMovementMode(), currentFluid);
 
             if (footDust)
             {
@@ -772,7 +923,7 @@ namespace Characters
                     holdingJump = true;
 
                     rigidBody2D.linearVelocity = new Vector2(rigidBody2D.linearVelocity.x,
-                        currentMovementSettings.jumpForce * jumpValue);
+                        currentMovementSettings.jumpForce * jumpValue * jumpScale);
 
                     timeOfLastJump = Time.realtimeSinceStartup;
                     alreadyJumping = true;
@@ -799,25 +950,21 @@ namespace Characters
                 return;
             }
             
-            var xPress = direction.x;
+            // Which way he's being steered. Only that is noted here: this is called a frame at a time, and the speeding up and
+            // slowing down is worked out in the physics step, so it doesn't depend on how fast the frames come. A character
+            // that can't move isn't steered either way.
+            var xPress = canMove ? direction.x : 0f;
 
-            if (xPress < 0)
+            walkInput = xPress < 0f ? -1f : xPress > 0f ? 1f : 0f;
+            walkInputFrame = Time.frameCount;
+
+            if (xPress < 0f)
             {
                 facing = CharacterFacing.Left;
-                moveSpeed -= currentMovementSettings.moveSpeedIncrease;
-                if (moveSpeed <= -currentMovementSettings.maxMoveSpeed)
-                {
-                    moveSpeed = -currentMovementSettings.maxMoveSpeed;
-                }
             }
-            else if (xPress > 0 && canMove)
+            else if (xPress > 0f)
             {
                 facing = CharacterFacing.Right;
-                moveSpeed += currentMovementSettings.moveSpeedIncrease;
-                if (moveSpeed >= currentMovementSettings.maxMoveSpeed)
-                {
-                    moveSpeed = currentMovementSettings.maxMoveSpeed;
-                }
             }
         }
 
@@ -900,6 +1047,19 @@ namespace Characters
 
             if (objectCarrying)
             {
+                // It goes through walls while it's held, so it's only put down where there's room for it.
+                if (!objectCarrying.CanPutDown())
+                {
+                    var text = GameText.Current.noRoomToPutDown;
+
+                    if (!ConnectionPlayer.Broadcast(text, 2.5f))
+                    {
+                        GameMessages.Show(text, 2.5f);
+                    }
+
+                    return;
+                }
+
                 objectCarrying.Drop();
                 objectCarrying = null;
                 return;
@@ -932,52 +1092,28 @@ namespace Characters
             return characterNum;
         }
 
-        public MovementSettings GetMovementSetting(string settingsName, float density)
+        // How he moves doing something (a mode of his profile, or "base" for nothing in particular) in a liquid, or in the air if
+        // there isn't one. It's worked out fresh every time, so changes to the profile or the tuning show straight away while
+        // playing, and the result is the same object each time.
+        public ResolvedMovement GetMovementSetting(string mode, Fluid fluid)
         {
-            var lower = settingsName.ToLower();
-            MovementSettings settings;
-            if (!movementSettings.TryGetValue(lower, out settings))
-            {
-                print($"No movement settings called \"{settingsName}:{lower}\" on character {name}");
-
-                if (!movementSettings.TryGetValue("base", out settings))
-                {
-                    print($"No movement settings called \"base\" on character {name}");
-                }
-            }
-
-            currentMovementSettingName = settingsName;
-
-            if (settings)
-            {
-                rigidBody2D.gravityScale = settings.gravity;
-                rigidBody2D.angularDamping = settings.angularDampening;
-                rigidBody2D.linearDamping = settings.linearDampening * density;
-            }
-
-            return settings;
+            currentMovementSettingName = mode;
+            movementProfile.Resolve(mode, fluid, MovementTuning.Current, resolvedMovement);
+            return resolvedMovement;
         }
 
-        protected virtual void GetCurrentMovementSetting(bool isInLiquid, float density)
+        // What he is doing, as far as how he moves goes: the name of one of the modes in his profile. Characters that move
+        // differently while they do something say so here; whether he's in a liquid is looked after without them.
+        protected virtual string GetMovementMode()
         {
-            string settingName;
-            if (isInLiquid)
-            {
-                settingName = "liquid";
-            }
-            else
-            {
-                settingName = "base";
-            }
-
-            currentMovementSettings = GetMovementSetting(settingName, density);
+            return "base";
         }
 
-        public void SetMovementSettingsOverride(MovementSettings overrideSettings)
+        // Slows him down: 1 is not at all, and 0 stops him. Being frozen does this.
+        public void SetMovementScale(float speed, float jump)
         {
-            overrideMovementSettings = overrideSettings;
-
-            //TODO Figure out how to blend movement settings.  Such as being underwater AND frozen
+            speedScale = Mathf.Clamp01(speed);
+            jumpScale = Mathf.Clamp01(jump);
         }
 
         public static List<Character> GetCharacters(bool enabledOnly)

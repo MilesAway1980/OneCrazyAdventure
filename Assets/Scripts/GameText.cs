@@ -71,6 +71,9 @@ public class GameText : ScriptableObject
     [Tooltip("The same, for a character that is already pinned.")]
     public string pinChoiceUnpin = "Release to unpin {character}";
 
+    [Tooltip("When a player tries to put down what they're carrying, but where they are is inside a wall or the ground.")]
+    public string noRoomToPutDown = "There's no room to put that down here.";
+
     [Tooltip("When the swap is finished with nobody at the hub.")]
     public string mustStay = "Someone has to stay at the hub.";
 

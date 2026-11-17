@@ -25,21 +25,10 @@ namespace Characters
             performingAction = active;
         }
 
-        protected override void GetCurrentMovementSetting(bool isInLiquid, float density)
+        // Held, he lets air in to float; otherwise he moves as anyone does. What the liquid does to him is looked after.
+        protected override string GetMovementMode()
         {
-            string settingName;
-            if (performingAction)
-            {
-                settingName = isInLiquid ? "floatliquid" : "float";
-            }
-            else
-            {
-                settingName = isInLiquid ? "liquid" : "base";
-            }
-
-            currentMovementSettings = GetMovementSetting(settingName, density);
-
-            //Do not call the base function
+            return performingAction ? "float" : "base";
         }
     }
 }

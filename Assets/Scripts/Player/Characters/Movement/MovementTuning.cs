@@ -123,9 +123,21 @@ public class MovementTuning : ScriptableObject
     [Min(0f)]
     public float swimKick = 1f;
 
+    [Tooltip("How much a liquid's thickness makes a kick or hop floaty: it goes as high as it's worked out to, but takes longer, as if gravity were weaker. The kick's time is multiplied by (1 + this x viscosity) / (1 + this), so water, which is 1, is as it is, and a liquid four times as thick takes twice as long at the default. 0 means every liquid kicks at the same pace.")]
+    [Min(0f)]
+    public float kickDrag = 0.5f;
+
     [Tooltip("How much a liquid's thickness slows a character that is moving through it. This is also what settles a floating character down after it bobs: the higher it is, the fewer bobs.")]
     [Min(0f)]
     public float fluidDamping = 4f;
+
+    [Tooltip("How hard a liquid slows something that goes in fast. On top of Fluid Damping, the faster something is moving through a liquid, the more it is slowed, so a dive is checked straight away from the surface, and smoothly: hard at first, then less as it slows. It has almost no effect at a slow sinking or bobbing speed. 0 turns it off.")]
+    [Min(0f)]
+    public float fluidSplashDrag = 0.8f;
+
+    [Range(0f, 1f)]
+    [Tooltip("How much a thing that's denser than the liquid weighs in it at the least, as a fraction of its weight in the air. Without this, something only a little denser than water (plastic, say) is held up almost as much as it weighs, and sinks very slowly. 0.5 means it sinks at least as if it weighed half as much.")]
+    public float minSinkWeight = 0.5f;
 
     [Tooltip("The most a liquid can lift a character, as a multiple of its weight. A lighter thing than this would rise too hard and leap out, so it floats a little deeper instead.")]
     [Min(1f)]

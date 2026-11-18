@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Sets the movement system up: the shared assets (the tuning, the materials, the liquids), a starting profile for every
+// Sets the movement system up: the shared assets (the tuning, the materials), a starting profile for every
 // character in the open scenes, and the old per-character movement settings taken off. Run these with the scene open, in the
 // editor, so the scene is changed the proper way rather than by editing its file.
 public static class MovementSetupMenu
@@ -33,7 +33,6 @@ public static class MovementSetupMenu
     public static void CreateDefaultAssets()
     {
         EnsureFolder("Assets/Resources");
-        EnsureFolder("Assets/Resources/Fluids");
         EnsureFolder(Root);
         EnsureFolder(Root + "/Materials");
         EnsureFolder(Root + "/Profiles");
@@ -41,8 +40,6 @@ public static class MovementSetupMenu
         var created = 0;
 
         created += LoadOrCreate<MovementTuning>("Assets/Resources/MovementTuning.asset", null, out _);
-        created += LoadOrCreate<Fluid>("Assets/Resources/Fluids/Water.asset", f => { f.density = 1f; f.viscosity = 1f; }, out _);
-        created += LoadOrCreate<Fluid>("Assets/Resources/Fluids/Oil.asset", f => { f.density = 0.9f; f.viscosity = 4f; }, out _);
 
         foreach (var (name, density) in Materials)
         {
@@ -50,7 +47,7 @@ public static class MovementSetupMenu
         }
 
         AssetDatabase.SaveAssets();
-        Debug.Log($"Movement: {created} new assets made, {Materials.Length + 3 - created} that were already there left alone.");
+        Debug.Log($"Movement: {created} new assets made, {Materials.Length + 1 - created} that were already there left alone.");
     }
 
     [MenuItem("Tools/Movement/Create Profiles For Characters")]
@@ -58,10 +55,8 @@ public static class MovementSetupMenu
     {
         CreateDefaultAssets();
 
-        var water = AssetDatabase.LoadAssetAtPath<Fluid>("Assets/Resources/Fluids/Water.asset");
         var made = 0;
         var assigned = 0;
-        var liquids = 0;
 
         foreach (var character in Object.FindObjectsByType<Character>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
@@ -89,21 +84,8 @@ public static class MovementSetupMenu
             assigned++;
         }
 
-        foreach (var liquid in Object.FindObjectsByType<LiquidMap>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-        {
-            if (!liquid.fluid && water)
-            {
-                var serialized = new SerializedObject(liquid);
-                serialized.FindProperty("fluid").objectReferenceValue = water;
-                serialized.ApplyModifiedProperties();
-
-                EditorSceneManager.MarkSceneDirty(liquid.gameObject.scene);
-                liquids++;
-            }
-        }
-
         AssetDatabase.SaveAssets();
-        Debug.Log($"Movement: {made} profiles made, {assigned} characters given one, {liquids} liquid maps set to Water. " +
+        Debug.Log($"Movement: {made} profiles made, {assigned} characters given one. " +
                   "Save the scene to keep them. Tools > Movement > Overview shows them side by side.");
     }
 

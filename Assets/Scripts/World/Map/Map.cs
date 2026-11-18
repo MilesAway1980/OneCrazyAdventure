@@ -301,16 +301,22 @@ public class Map : MonoBehaviour
     {
         Fluid found = null;
 
-        foreach (var tilemap in tilemaps)
+        if (tilemaps != null)
         {
-            var liquid = liquidMaps[tilemap];
-            if (liquid && tilemap.GetTile(tilemap.WorldToCell(point)))
+            foreach (var tilemap in tilemaps)
             {
-                found = liquid.Fluid;
+                var liquid = liquidMaps[tilemap];
+                if (liquid && tilemap.GetTile(tilemap.WorldToCell(point)))
+                {
+                    found = liquid.Fluid;
+                }
             }
         }
 
-        return found;
+        // An area of liquid, on top of a liquid tilemap if they overlap.
+        var inArea = LiquidArea.FluidAt(point);
+
+        return inArea ?? found;
     }
 
     private static readonly List<Vector2> shapePoints = new List<Vector2>();

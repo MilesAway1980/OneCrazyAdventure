@@ -28,9 +28,9 @@ any more.
 |---|---|---|
 | **Movement Tuning** | The formula: reference speeds, jump height and times, how weight changes them, and how liquids behave. There is only one. | `Assets/Resources/MovementTuning.asset` |
 | **Character Material** | What a character is made of. Its only setting is **density**, compared with water (water is 1). | `Assets/Movement/Materials/` |
-| **Fluid** | A liquid: **density** and **viscosity** (thickness), both compared with water (water is 1). | `Assets/Resources/Fluids/` (Water must stay here) |
 | **Movement Profile** | One per character: material, mass, traits, modes and overrides. | `Assets/Movement/Profiles/` |
-| **LiquidMap** | A component on a liquid tilemap that says which Fluid it is. Empty means Water. | on the tilemap |
+| **LiquidMap** | A component on a liquid tilemap that gives the liquid's **density** and **viscosity** (thickness), both compared with water (water is 1 and 1). | on the tilemap |
+| **Liquid Area** | An area of liquid in any shape (draggable points), with its own density and viscosity and an overlay. See [Liquids.md](Liquids.md). | on any object |
 
 A character points at its profile with the **Movement Profile** field on its `Character` component.
 
@@ -40,11 +40,11 @@ Changes to any of these assets are kept even if you make them while the game is 
 
 Do this once, with the scene open in the editor (it changes the scene through the editor, not by editing the scene file):
 
-1. **Tools > Movement > Create Default Assets.** Makes the tuning, 12 materials (Balloon, Foam, Cork, Fabric, Wood, Plastic,
-   Rubber, Resin, Brick, Glass, Stone, Steel) and two fluids (Water and Oil). It never overwrites anything that already exists,
+1. **Tools > Movement > Create Default Assets.** Makes the tuning, and 12 materials (Balloon, Foam, Cork, Fabric, Wood, Plastic,
+   Rubber, Resin, Brick, Glass, Stone, Steel). It never overwrites anything that already exists,
    so it is safe to run again.
 2. **Tools > Movement > Create Profiles For Characters.** For each character in the open scenes that has no profile, makes one
-   named after the object, seeds it and assigns it. It also sets any LiquidMap with no Fluid to Water. Save the scene afterwards.
+   named after the object, seeds it and assigns it. Save the scene afterwards.
 3. Optional: **Tools > Movement > Remove Old Movement Settings** takes the old per-character components off.
 
 The seeds are starting points, not decisions: mass is the character's current Rigidbody mass, and the material and modes are
@@ -72,12 +72,14 @@ profile isn't listed.
 
 ### Add a liquid
 
-1. **Assets > Create > Movement > Fluid.** Set **Density** and **Viscosity** (water is 1 and 1; the seeded Oil is 0.9 and 4).
-2. Select the liquid tilemap, and drag the Fluid into the **Fluid** field of its **LiquidMap** component.
+There's nothing to create. A liquid is just a **Density**, a **Viscosity** and a **Min Kick Height** (the least a character's kick
+there lifts it) on the thing that makes the liquid: a **Liquid Area**
+(see [Liquids.md](Liquids.md)) or the **LiquidMap** on a liquid tilemap. Water is 1 and 1; oil is about 0.9 and 4; honey is far
+thicker.
 
-Every profile Inspector and the Overview find all Fluids automatically, so the new liquid gets its own line and column showing
-what it does to each character. The file can go anywhere, except that **Water must stay in `Assets/Resources/Fluids`**, because
-that's where the default is loaded from.
+The profile Inspectors, the Overview and the Movement Lab show what each character does in two liquids, **Water** and **Oil**.
+Those two are written in `Fluid.cs` (`Fluid.Presets`), and the Lab also tries any other liquid a tilemap in the scene has. To see
+another liquid there, add it to the presets.
 
 ### Add or change a material
 
@@ -132,7 +134,8 @@ stopping, 0.25 for jumping, 0.15 for falling and 0.2 for terminal speed.
 
 **Jumping is a height, not a force.** The take-off speed is worked out from the height and the pull of gravity going up:
 `speed = sqrt(2 x gravity x riseGravity x height)`. With the button held the jump reaches the height; letting go early applies
-**Jump Cut** times as much gravity going up, so a short press makes a short jump.
+**Jump Cut** times as much gravity going up, so a short press makes a short jump. A kick or hop in a liquid is cut the same way: let
+go early and it's shorter, hold and it goes its full height (so the liquid's Min Kick Height is for a held press).
 
 **Gravity** on a character is the world's gravity times **Character Gravity** (default 2). **Air Damping** defaults to 0, so a jump
 goes as high as the numbers say.
@@ -174,9 +177,32 @@ Whether something floats is its **density against the liquid's**. A character in
   `gravity x (1 - lift)`, where `lift = (fluidDensity x fractionUnder + airDensity x fractionAbove) / characterDensity`.
 - **Is slowed** by the liquid's viscosity: walking and swimming speed drops by `1 / (1 + Swim Drag x viscosity)`, and the liquid
   damps its movement, which also settles the bobbing. A higher **Fluid Damping** means fewer bobs.
-- **Jumps as a kick** of `Swim Kick x its jump height`, with the liquid's drag. It can kick from nothing while 30% or more of it is
-  under, which is how a sinker swims up and a floater climbs out. The extra "snappy" jump and heavy-fall pulls are for the air
-  only, and are off while any of the character is in a liquid, so a floater settles where its density puts it.
+- **Is checked hard when it dives in.** On top of Fluid Damping, the liquid slows something more the faster it's moving through it:
+  `viscosity x (Fluid Damping x fractionUnder + Splash Drag x speed)`, and the speed part starts as soon as any of it is under. So a
+  dive is slowed from the surface, hard at first and then less as it slows, and it's only a small part of the drag at a slow sinking
+  or bobbing speed. Raise **Fluid Splash Drag** (default 0.8) to stop dives sooner, or lower it for a longer plunge. Floating crates
+  are the same.
+- **Sinks properly.** Something denser than the liquid never weighs less in it than **Min Sink Weight** (default 0.5) of its weight in
+  the air. Without that, something only a little denser than water, such as plastic, is held up almost as much as it weighs and
+  would sink at a crawl. Lighter things aren't affected, so floaters settle as before.
+- **Jumps from something solid, or hops from the surface.** It can jump off the floor, or something standing on the floor (a crate,
+  a platform). A liquid isn't a surface, so it can't jump off one in open water: in a liquid it can only jump from the bottom, as
+  a **kick** of `Swim Kick x its jump height`, with the liquid's drag, but never less than the liquid's **Min Kick Height**
+  (default 1.5 tiles, set on each Liquid Area or LiquidMap, so a deeper or thicker liquid can ask for more), so every character, including a weak jumper in a thick liquid and one that can't jump in the air at all, can at least jump
+  off the bottom of a pool and not be stuck there. That minimum is for liquids only: the jump in the air isn't changed. The exception is a **floater at the surface**: something lighter
+  than the liquid, with some of it under and the liquid ending at about the top of it (nothing more than 0.3 of a tile over it). It
+  can **hop out**, with the same kick. Something that sinks, or a floater that has been pushed deep, can't hop.
+  A kick is slower in a thicker liquid: it goes just as high but takes longer, as if gravity were weaker, so it's floaty. Its time
+  is multiplied by `(1 + Kick Drag x viscosity) / (1 + Kick Drag)` (default Kick Drag 0.5), so water is as it is and a liquid four
+  times as thick takes twice as long. Set Kick Drag to 0 for every liquid to kick at the same pace.
+  A kick goes as high as it's worked out to: it's a clean arc up to its top. The liquid's drag is switched off while it's rising,
+  its weight is fixed at the weight it had in the liquid when it kicked off (so it doesn't change as it comes out of the water, which
+  would shorten the rest of the rise), and its speed is worked out for that weight. If the middle of the character is out of the
+  liquid but its feet are in it, such as standing on the bottom of a shallow pool, it gets the kick it would have in the liquid
+  (including the minimum) unless its jump in the air is better. When the kick reaches its top, the drag comes back, and it sinks
+  as it normally does.
+  The extra "snappy" jump and heavy-fall pulls are for the air only, and are off while any of the character is in a liquid, so a
+  floater settles where its density puts it.
 
 **Max Buoyancy Ratio** (default 3) is the most a liquid can lift something, as a multiple of its weight. A lighter thing than that
 would rise too hard and leap out, so it floats a little deeper instead (with the default, at least a third of it is under).
@@ -230,8 +256,8 @@ and the Umbrella) is still whether its **middle** is in a liquid.
 
 | Menu | What it does |
 |---|---|
-| **Tools > Movement > Overview** | Every profile side by side: material, mass, traits (editable) and what they come to: speed, time to top speed, stopping distance, jump height and length, fall, and floats or sinks (and how far) in each liquid. Click a heading to sort. |
-| **Tools > Movement > Create Default Assets** | Makes the tuning, materials and fluids that don't exist yet. |
+| **Tools > Movement > Overview** | Every profile side by side: material, mass, traits (editable) and what they come to: speed, time to top speed, stopping distance, jump height and length, fall, and floats or sinks (and how far) in each liquid. Click a heading to sort. The columns grow to fit the window, headings wrap onto more lines rather than being cut off, and hovering over one says what it means. |
+| **Tools > Movement > Create Default Assets** | Makes the tuning and materials that don't exist yet. |
 | **Tools > Movement > Create Profiles For Characters** | Makes and assigns a profile for each character in the open scenes that has none. |
 | **Tools > Movement > Remove Old Movement Settings** | Takes the old `MovementSettings` components off. Ones that are part of a prefab are left and reported. |
 | **Tools > Movement > Movement Lab** | Runs every character through the same tests with the real physics and shows what it measured next to what the formula said. See below. |
@@ -250,7 +276,7 @@ joined, it stops and says so. The results are in the window, and in `Logs/Moveme
 each thing measured, for a spreadsheet).
 
 **What it does.** Each character is taken to a lane of its own, high above the level at (2000, 2000) and up, which is made for the
-test and removed at the end: a flat run, a drop, and a tank for each Fluid. They're tested all at once, each doing the same things
+test and removed at the end: a flat run, a drop, and a tank for each liquid (Water, Oil, and any other a tilemap has). They're tested all at once, each doing the same things
 with the same scripted buttons:
 
 | Test | What's measured |
@@ -261,7 +287,7 @@ with the same scripted buttons:
 | Jump at full speed | How far it jumps |
 | Fall from 40 tiles | How fast it ends up falling |
 | In each liquid: dropped in | Whether it floats or sinks, how much of it is under at rest, how many times it bobs, how long until it's still; for a sinker, how fast it sinks |
-| In each liquid: a kick | How far one kick lifts it |
+| In each liquid: a kick | How far one kick lifts it, from where it ends up. A floater at the surface hops with the same kick, so its figure is how high it hops. It's the height the kick reaches, from where it starts |
 | In each liquid: getting out | Steering toward a bank and kicking from the bottom, whether it gets out onto the bank (default 1 tile above the water) and how long it takes |
 
 A character whose action button changes how it moves (the Balloon, Umbrella and BowlingBall: the `actionPassTypes` list on the
@@ -285,13 +311,14 @@ touches the scene only while it runs: it moves the characters, brings the ones t
 |---|---|
 | "has no Movement Profile" in the Console | The character has no profile. Run **Create Profiles For Characters** or assign one. |
 | "no MovementTuning in a Resources folder" | Run **Create Default Assets**. |
-| A liquid does nothing | Its tilemap has no **LiquidMap**, or the Fluid is empty (that means Water; check the Overview shows the liquid). |
+| A liquid does nothing | Its tilemap has no **LiquidMap**, or there's no **Liquid Area** there. Check there's a `Map` in the scene. |
+| A character sinks too slowly | Something only a little denser than the liquid is held to **Min Sink Weight**: raise it. Lower **Fluid Damping** to sink faster. |
 | A character sinks that should float | Its density is higher than the liquid's. Check the material, and the mode's **Density** multiple. |
 | A floater sits too deep or too high | A material's density sets how far under it floats (about density / liquid density). Max Buoyancy Ratio also limits how high the lightest ones sit. |
 | A floater leaps out of the water or jitters | Lower **Max Buoyancy Ratio**; raise **Fluid Damping**. |
-| A character can't climb out of a liquid | Raise its Jump trait, **Swim Kick**, or lower the liquid's viscosity. The Overview's "kick" column and the Inspector's liquid line show what it can do. |
+| A character can't climb out of a liquid | A floater at the surface hops out with the same kick: raise its Jump trait or **Swim Kick**, or lower the liquid's viscosity. Something that sinks can only jump from the bottom: raise its Jump trait or **Swim Kick**, or lower the liquid's viscosity. The Inspector's liquid line shows what it can do. |
 | A character feels slow to start after the change | The old values weren't carried over. Lower its **Time To Top Speed** via a trait or an override. |
-| Pressed jump does nothing in the air | By design: it only jumps from the ground or when 30% or more is in a liquid. |
+| Pressed jump does nothing in the air | By design: it only jumps from something solid, or from the surface of a liquid it's floating in. |
 
 ## Where everything is
 
@@ -299,7 +326,7 @@ touches the scene only while it runs: it moves the characters, brings the ones t
 |---|---|
 | `Assets/Scripts/Player/Characters/Movement/MovementTuning.cs` | The formula's numbers. |
 | `Assets/Scripts/Player/Characters/Movement/MovementProfile.cs` | Profile, modes, traits, overrides, and `Resolve` (the formula itself). Also `ResolvedMovement`, the result the movement code reads. |
-| `Assets/Scripts/Player/Characters/Movement/CharacterMaterial.cs`, `Fluid.cs` | The material and liquid assets. |
+| `Assets/Scripts/Player/Characters/Movement/CharacterMaterial.cs`, `Fluid.cs` | The material asset, and the liquid (a plain density and viscosity, not an asset). |
 | `Assets/Scripts/Player/Characters/Assets/Character.cs` | Walking (`ApplyWalking`), buoyancy (`ApplyBuoyancy`, `SampleSubmersion`), jump, `GetMovementSetting`, `GetMovementMode`. |
 | `Assets/Scripts/World/Map/LiquidMap.cs`, `Map.cs` (`FluidAt`) | Which liquid is where. |
 | `Assets/Scripts/Editor/MovementSetupMenu.cs`, `MovementOverviewWindow.cs`, `MovementProfileEditor.cs` | The menu, the Overview table and the profile Inspector. The seeds for each character class are in `Seed` in the menu file. |

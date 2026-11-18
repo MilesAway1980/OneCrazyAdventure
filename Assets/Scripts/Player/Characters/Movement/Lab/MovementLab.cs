@@ -204,17 +204,20 @@ public class MovementLab : MonoBehaviour
 #endif
     }
 
-    // Every liquid there is: the ones in the Resources folder, and any a liquid in the scene uses.
+    // Every liquid to try: the presets, and any different one a liquid tilemap in the scene is.
     private void FindFluids()
     {
         fluids.Clear();
-        fluids.AddRange(Resources.LoadAll<Fluid>("Fluids"));
+        fluids.AddRange(Fluid.Presets);
 
         foreach (var map in FindObjectsByType<LiquidMap>(FindObjectsInactive.Include))
         {
-            if (map.fluid && !fluids.Contains(map.fluid))
+            var fluid = map.Fluid;
+
+            if (!fluids.Exists(f => Mathf.Approximately(f.density, fluid.density) && Mathf.Approximately(f.viscosity, fluid.viscosity)
+                && Mathf.Approximately(f.minKickHeight, fluid.minKickHeight)))
             {
-                fluids.Add(map.fluid);
+                fluids.Add(new Fluid($"Liquid {fluid.density:0.##}/{fluid.viscosity:0.##}", fluid.density, fluid.viscosity, fluid.minKickHeight));
             }
         }
 
@@ -255,7 +258,9 @@ public class MovementLab : MonoBehaviour
             drawing.sortingOrder = -4;
 
             var liquid = maker.AddComponent<LiquidMap>();
-            liquid.fluid = fluid;
+            liquid.density = fluid.density;
+            liquid.viscosity = fluid.viscosity;
+            liquid.minKickHeight = fluid.minKickHeight;
 
             var tile = ScriptableObject.CreateInstance<Tile>();
             tile.sprite = whiteSprite;

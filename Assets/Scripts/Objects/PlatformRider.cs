@@ -20,7 +20,9 @@ public class PlatformRider : MonoBehaviour
 
     public static void EnsureOn(GameObject thing)
     {
-        if (thing && !thing.GetComponent<PlatformRider>() && thing.GetComponent<Rigidbody2D>())
+        // A character is carried by its own code, which also lets it walk about on what carries it, so it isn't given this. (The
+        // Brick is a character that is also pushable.)
+        if (thing && !thing.GetComponent<PlatformRider>() && thing.GetComponent<Rigidbody2D>() && !thing.GetComponent<Characters.Character>())
         {
             thing.AddComponent<PlatformRider>();
         }

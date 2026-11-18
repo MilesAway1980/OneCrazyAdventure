@@ -93,11 +93,24 @@ namespace Characters
         // The liquid his middle is in, or none in the air.
         protected Fluid currentFluid;
 
-        // How much of him is in a liquid, from 0 to 1, which gives him buoyancy and lets him kick through it.
+        // How much of him is in a liquid, from 0 to 1, which gives him buoyancy and drag.
         private float submerged;
+        private bool floatingAtSurface;
+
+        // A kick in a liquid is a clean arc up to its top: until hopUntil, while he's rising, the liquid doesn't slow him, and his
+        // weight is kickWeight, whether he's in the liquid or out of it, so he goes as high as the kick is worked out to.
+        private float hopUntil;
+        private float kickWeight = 1f;
+
+        // What a kick's speed is multiplied by in the liquid he's in. The kick is worked out for the weight he has in the air, and
+        // something denser than the liquid is held up by it, so it would rise higher than the number says; this brings it back. A
+        // thicker liquid slows it further, which makes it floaty: the weight goes with the square of this, so the height stays.
+        private float kickScale = 1f;
+
+        // The liquid any of him is in, which is also what the kick is for when his middle is out of it but his feet are in.
+        private Fluid sampledFluid;
+        private readonly ResolvedMovement kickMovement = new ResolvedMovement();
         private static readonly Collider2D[] bodyColliders = new Collider2D[8];
-        private const int SubmersionSamples = 5;
-        private const float SwimmingSubmersion = 0.3f;
 
         // Slows him, as being frozen does: 1 is not at all, and 0 stops him.
         private float speedScale = 1f;
@@ -357,10 +370,11 @@ namespace Characters
                 maxFallSpeed = 0;
             }
 
-            // In a liquid he can kick off from nothing, which is how he swims up, and how something that floats climbs out. On
-            // something that's going up he isn't rising unless he's rising faster than it is.
+            // He can jump off something solid: the floor, or something standing on it. A liquid isn't, so in one he can't jump
+            // unless his feet are on the bottom, and then it's a kick through the liquid. The exception is floating at the surface,
+            // where he can hop out of it. On something that's going up he isn't rising unless he's rising faster than it is.
             canJump =
-                ((distFromGround < 0.2f && rigidBody2D.linearVelocity.y - ride.y < 0.01f) || submerged >= SwimmingSubmersion) &&
+                ((distFromGround < 0.2f && rigidBody2D.linearVelocity.y - ride.y < 0.01f) || floatingAtSurface) &&
                 Time.time - timeOfLastJump > 0.25f;
 
             isJumping =
@@ -408,7 +422,7 @@ namespace Characters
 
             // The extra pull is on his own weight, not on what a liquid holds him up by. It's left off while any of him is in a
             // liquid, or something floating at the surface would weigh as much as when it falls, and settle too deep.
-            var pull = submerged > 0f ? 0f : Physics2D.gravity.y * currentMovementSettings.gravity;
+            var pull = submerged > 0f || Kicking ? 0f : Physics2D.gravity.y * currentMovementSettings.gravity;
 
             float fallVelocity;
             if (rigidBody2D.linearVelocity.y <= 0)
@@ -466,55 +480,9 @@ namespace Characters
         }
 
         // How much of him is in a liquid, and which. Sampled up his body, so it changes smoothly as he goes in.
-        private float SampleSubmersion(out Fluid fluid)
+        private float SampleSubmersion(out Fluid fluid, out bool atSurface)
         {
-            fluid = null;
-
-            var count = rigidBody2D.GetAttachedColliders(bodyColliders);
-            var bounds = new Bounds();
-            var found = false;
-
-            for (var i = 0; i < count; i++)
-            {
-                var body = bodyColliders[i];
-
-                if (body.isTrigger || !body.enabled)
-                {
-                    continue;
-                }
-
-                if (found)
-                {
-                    bounds.Encapsulate(body.bounds);
-                }
-                else
-                {
-                    bounds = body.bounds;
-                    found = true;
-                }
-            }
-
-            if (!found)
-            {
-                fluid = Map.FluidAt(transform.position);
-                return fluid ? 1f : 0f;
-            }
-
-            var inLiquidCount = 0;
-
-            for (var i = 0; i < SubmersionSamples; i++)
-            {
-                var y = Mathf.Lerp(bounds.min.y, bounds.max.y, (i + 0.5f) / SubmersionSamples);
-                var here = Map.FluidAt(new Vector3(bounds.center.x, y, transform.position.z));
-
-                if (here)
-                {
-                    inLiquidCount++;
-                    fluid = here;
-                }
-            }
-
-            return inLiquidCount / (float)SubmersionSamples;
+            return Buoyancy.Sample(rigidBody2D, bodyColliders, out fluid, out atSurface);
         }
 
         // What the air or a liquid does to him, every physics step: holds him up by as much of him as is in it, against how dense
@@ -525,17 +493,54 @@ namespace Characters
             var t = MovementTuning.Current;
             var settings = currentMovementSettings;
 
-            submerged = SampleSubmersion(out var fluid);
+            submerged = SampleSubmersion(out var fluid, out var atSurface);
 
-            var fluidDensity = fluid ? fluid.density : t.airDensity;
+            // Floating at the surface: lighter than the liquid, so it holds him up, with the liquid ending about at the top of him.
+            floatingAtSurface = atSurface && fluid != null && settings.density < fluid.density;
+
+            var fluidDensity = fluid != null ? fluid.density : t.airDensity;
             var around = fluidDensity * submerged + t.airDensity * (1f - submerged);
             var lift = Mathf.Min(around / Mathf.Max(0.0001f, settings.density), t.maxBuoyancyRatio);
 
-            rigidBody2D.gravityScale = settings.gravity * (1f - lift);
+            var weight = Buoyancy.Weight(lift, fluidDensity, settings.density, t);
+            rigidBody2D.gravityScale = settings.gravity * weight;
 
-            var thickness = fluid ? fluid.viscosity * submerged : 0f;
-            rigidBody2D.linearDamping = settings.linearDampening + thickness * t.fluidDamping;
+            // Only something denser than the liquid is brought back: a floater leaves it, and gets its weight back as it does.
+            kickScale = fluid != null && settings.density > fluid.density ? Mathf.Sqrt(Mathf.Clamp(weight, 0.05f, 1f)) : 1f;
+
+            // A thicker liquid makes the kick slower, and floatier, without making it any lower.
+            if (fluid != null)
+            {
+                kickScale *= Buoyancy.KickPace(fluid, t);
+            }
+            sampledFluid = fluid;
+
+            if (Kicking)
+            {
+                // Letting go of the jump button early cuts the kick short, as it does a jump in the air: gravity pulls Jump Cut
+                // times as hard going up, so a tap is a short kick and holding is a full one.
+                rigidBody2D.gravityScale = settings.gravity * kickWeight * (holdingJump ? 1f : t.jumpCut);
+            }
+
+            // The liquid slows him by how thick it is, and by how fast he's going down or up through it, so a dive is checked from the
+            // surface instead of carrying on at full speed.
+            var drag = fluid != null ? Buoyancy.Damping(fluid, submerged, Mathf.Abs(rigidBody2D.linearVelocity.y), t) : 0f;
+
+            // A kick in a liquid isn't held back by it on the way up, or it would never get as high as it's worked out to, and
+            // nothing could get out.
+            if (Kicking)
+            {
+                drag = 0f;
+            }
+
+            rigidBody2D.linearDamping = settings.linearDampening + drag;
             rigidBody2D.angularDamping = settings.angularDampening;
+        }
+
+        // Whether a kick that was made in a liquid is still on its way up.
+        private bool Kicking
+        {
+            get { return Time.time < hopUntil && rigidBody2D.linearVelocity.y > 0f; }
         }
 
         // One physics step of walking: moveSpeed ramps toward where the player is steering, and his sideways speed follows it.
@@ -671,7 +676,7 @@ namespace Characters
             if (footDust)
             {
                 var module = footDust.emission;
-                if (canJump)
+                if (canJump && distFromGround < 0.2f)
                 {
                     module.rateOverTime = Mathf.Abs(rigidBody2D.linearVelocity.x) * 3.0f;
                 }
@@ -1009,8 +1014,47 @@ namespace Characters
                     climbing = false;
                     holdingJump = true;
 
-                    rigidBody2D.linearVelocity = new Vector2(rigidBody2D.linearVelocity.x,
-                        currentMovementSettings.jumpForce * jumpValue * jumpScale);
+                    // With any of him in a liquid, off the bottom or hopping from the surface, it's a kick: worked out for the
+                    // weight he has in the liquid, and then a clean arc to its top, with no drag and the same weight all the way,
+                    // even once he's out of the liquid. If his middle is out but his feet are in, it's the kick he would have in
+                    // the liquid, unless the jump in the air is better.
+                    var force = currentMovementSettings.jumpForce;
+                    var apex = currentMovementSettings.apexTime;
+                    var kick = 1f;
+                    var kicked = false;
+
+                    if (submerged > 0f)
+                    {
+                        if (currentFluid != null)
+                        {
+                            kick = kickScale;
+                            kicked = true;
+                        }
+                        else if (sampledFluid != null && movementProfile)
+                        {
+                            movementProfile.Resolve(GetMovementMode(), sampledFluid, MovementTuning.Current, kickMovement);
+
+                            if (kickMovement.jumpHeight > currentMovementSettings.jumpHeight)
+                            {
+                                force = kickMovement.jumpForce;
+                                apex = kickMovement.apexTime;
+                                kick = kickScale;
+                                kicked = true;
+                            }
+                        }
+                    }
+
+                    if (kicked)
+                    {
+                        kickWeight = kick * kick;
+                        hopUntil = Time.time + apex / Mathf.Max(0.05f, kick);
+                    }
+                    else
+                    {
+                        hopUntil = 0f;
+                    }
+
+                    rigidBody2D.linearVelocity = new Vector2(rigidBody2D.linearVelocity.x, force * kick * jumpValue * jumpScale);
 
                     timeOfLastJump = Time.time;
                     alreadyJumping = true;

@@ -7,6 +7,7 @@ Notes for working on the game. They're meant to be kept up to date as things cha
 | Doc | What it covers |
 |---|---|
 | [Movement.md](Movement.md) | How a character's running, jumping, falling and floating are worked out from its weight and material, and how to add a character, a liquid or a material. |
+| [Liquids.md](Liquids.md) | Making bodies of water: Liquid Areas (freeform outlines with a fluid and an overlay), and what responds to them. |
 | [MovingPlatform.md](MovingPlatform.md) | The moving platform switchable object: path, corners, movement methods, and how levers and buttons run it. |
 | [Drawbridge.md](Drawbridge.md) | The drawbridge switchable object: how to set one up, and how speed and weight make it slam or settle. |
 | [CharacterRoles.md](CharacterRoles.md) | What each character does, what puzzles it solves and how it helps the others. |

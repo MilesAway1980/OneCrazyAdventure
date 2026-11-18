@@ -31,6 +31,9 @@ public class CarryableObject : MonoBehaviour
         // Something that can be carried by a character is carried by a platform it stands on, too.
         PlatformRider.EnsureOn(gameObject);
 
+        // And floats or sinks in a liquid: as wood, unless it's been given something else to be made of.
+        FloatsInFluid.EnsureOn(gameObject);
+
         /*var allColliders = GetComponentsInChildren<Collider2D>();
         foreach (var col in allColliders)
         {
@@ -44,6 +47,12 @@ public class CarryableObject : MonoBehaviour
     void Update()
     {
 
+    }
+
+    // Whether a character is holding it.
+    public bool IsCarried
+    {
+        get { return beingCarried; }
     }
 
     // Joins this to the character's carry point. False if it can't be carried by them: there is no joint on this, or the

@@ -28,9 +28,9 @@ public class MovementProfileEditor : Editor
             EditorGUILayout.LabelField($"Mode \"{mode.name}\"", Summary(result), EditorStyles.wordWrappedLabel);
         }
 
-        var fluids = FindFluids();
+        var fluids = Fluid.Presets;
 
-        if (fluids.Count > 0)
+        if (fluids.Length > 0)
         {
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("In liquids", EditorStyles.boldLabel);
@@ -55,23 +55,6 @@ public class MovementProfileEditor : Editor
         {
             Repaint();
         }
-    }
-
-    private static List<Fluid> FindFluids()
-    {
-        var found = new List<Fluid>();
-
-        foreach (var guid in AssetDatabase.FindAssets("t:Fluid"))
-        {
-            var fluid = AssetDatabase.LoadAssetAtPath<Fluid>(AssetDatabase.GUIDToAssetPath(guid));
-
-            if (fluid)
-            {
-                found.Add(fluid);
-            }
-        }
-
-        return found;
     }
 
     private static string Summary(ResolvedMovement r)

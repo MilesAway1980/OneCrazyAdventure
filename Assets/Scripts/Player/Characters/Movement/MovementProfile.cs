@@ -77,7 +77,7 @@ public class MovementProfile : ScriptableObject
         var terminalSpeed = Auto(overrides.terminalSpeed, t.terminalSpeed * Mathf.Pow(heavy, t.terminalMassExponent)) * mode.terminalSpeed;
         var jumpCut = t.jumpCut;
 
-        if (fluid)
+        if (fluid != null)
         {
             // A liquid slows him, and his jump is a kick through it. The extra pull that makes a jump snappy or a fall heavy is
             // for the air: the liquid's own drag does that job here.
@@ -85,6 +85,10 @@ public class MovementProfile : ScriptableObject
 
             topSpeed *= drag;
             jumpHeight *= t.swimKick * drag;
+
+            // Whatever it comes to, every character gets at least what the liquid says in it, even one that can't jump in the
+            // air, or it would be stuck on the bottom for good. It's only in a liquid: the jump in the air is left as it is.
+            jumpHeight = Mathf.Max(jumpHeight, fluid.minKickHeight);
             riseGravity = 1f;
             fallGravity = 1f;
             jumpCut = 1f;
@@ -128,12 +132,20 @@ public class MovementProfile : ScriptableObject
     {
         var density = Density * Mathf.Max(0.0001f, FindMode(modeName).density);
         var ratio = Mathf.Min(fluid.density / density, t.maxBuoyancyRatio);
-        var damping = t.airDamping + fluid.viscosity * t.fluidDamping;
-        var pull = Mathf.Abs(Physics2D.gravity.y) * t.characterGravity;
+        var linear = Mathf.Max(0.0001f, t.airDamping + fluid.viscosity * t.fluidDamping);
+        var splash = fluid.viscosity * t.fluidSplashDrag;
+        var gravity = Mathf.Abs(Physics2D.gravity.y) * t.characterGravity;
+
+        // A sinker weighs at least Min Sink Weight, and a floater, deep down, is pushed up by how much more the liquid weighs.
+        var net = gravity * (ratio < 1f ? Mathf.Max(1f - ratio, t.minSinkWeight) : ratio - 1f);
 
         floats = ratio > 1f;
         submergedAtRest = floats ? 1f / ratio : 1f;
-        speed = Mathf.Abs(pull * (1f - ratio)) / Mathf.Max(0.0001f, damping);
+
+        // The speed at which what the liquid slows it by (linear x speed + splash x speed squared) equals what pulls or pushes it.
+        speed = splash > 0.0001f
+            ? (-linear + Mathf.Sqrt(linear * linear + 4f * splash * net)) / (2f * splash)
+            : net / linear;
     }
 }
 

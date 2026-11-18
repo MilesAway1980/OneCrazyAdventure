@@ -192,10 +192,31 @@ and the Umbrella) is still whether its **middle** is in a liquid.
 - **Walking** is `Character.ApplyWalking`, once per physics step. `Move()` only records which way the player is steering. Speeding
   up and slowing down are per 0.02 s step, scaled to the real step length, so they don't change with the frame rate.
 - Walking is **added** to the speed a character already has, so a shove, a force switch or a moving platform in the direction it's
-  walking isn't cut back to walking pace; it wears off through friction and damping. Speed against the walking direction is still
+  walking isn't cut back to walking pace. That other speed wears off **on the ground**, at the rate the character can stop itself
+  (its time to stop), as friction would; a character standing with no input slows to a halt the same way. In the air it's kept,
+  so jumps carry on. (Don't rely on friction or air damping for this: Air Damping defaults to 0, and some characters use a
+  zero-friction material.) Speed against the walking direction is still
   overridden, which is how a character pushes crates.
 - Something that sets `moveSpeed` itself (a drill coasting, a brick going solid, a teleport) is noticed, and the walking drops what
   it had put in.
+- **Riding.** A character standing on a **kinematic** body that moves sideways (a moving platform, a drawbridge, a door) is carried
+  by it. This doesn't depend on friction, which some characters and floors don't have: `Character.RideSpeed` works out how fast the
+  place under the character's feet is going from how far it moved in the last step, and that is added to the character's speed
+  after the walking has been worked out without it. So the character walks about on a platform as it does on the ground, and a
+  jump keeps the platform's speed. Stepping off onto other ground drops it; going off the edge into the air keeps it. Only sideways
+  movement is carried: a platform going up pushes the character up as usual, and one going down faster than the character falls
+  will leave it behind. A platform moved by its transform, with no kinematic Rigidbody2D, carries nobody. Things that aren't
+  characters, such as a crate, aren't carried this way; they rely on friction.
+- **Standing on things that aren't "Ground".** The floor detectors only look for the **Ground** layer, so a platform, crate or
+  bridge on another layer would look like thin air: no jumping, and the jump picture. Instead `Character.FindSupport` also counts
+  touching anything solid on a flat enough surface (about 45 degrees or flatter) under the character as standing on the ground, on
+  any layer. That's what decides whether it can jump. On something that's going up, the character can jump when it isn't rising
+  faster than the thing is. Platforms don't need to be on the Ground layer, which has other effects (enemies treat things on it
+  as walls).
+- **Walls.** A character stops pushing into a wall so it can't cling to it (pressing into one hard enough, friction holds a character
+  there against gravity). The detectors find walls on the **Ground** layer ahead of time; a wall that's a **kinematic body** on
+  another layer, such as a drawbridge standing up, a platform's side or a door, is found when the character touches it
+  (`FindSupport`). Tile walls aren't judged by touch, as the joins between tiles make contacts that aren't walls.
 - A piton without its head, or any character that can only walk some of the way, overrides `MaxWalkSpeed`.
 - **Freezing** slows speed and jump through `Character.SetMovementScale`, whatever else the character is doing or in.
 - `GetMovementSetting(mode, fluid)` fills in the character's current numbers every frame, so changes to a profile or the tuning

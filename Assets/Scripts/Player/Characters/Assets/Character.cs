@@ -62,6 +62,28 @@ namespace Characters
         private float walkApplied;
         private float lastMoveSpeed;
 
+        // Riding something that moves, such as a platform: the kinematic body he's standing on, a point on it that he was over (as a
+        // place in the world, and on the body itself, so that how far it has moved can be told), and how much of his sideways speed
+        // is the body's, so that his own can be told from it.
+        private Rigidbody2D rideBody;
+        private bool rideWasRiding;
+        private bool rideMeasured;
+
+        // Whether a kinematic body, such as a platform or a bridge standing up, is touching him on that side.
+        private bool wallOnLeft;
+        private bool wallOnRight;
+        private Vector2 rideWorldPoint;
+        private Vector2 rideLocalPoint;
+        private float rideSpeed;
+        private ContactFilter2D rideFilter;
+        private readonly ContactPoint2D[] rideContacts = new ContactPoint2D[16];
+
+        // How flat a surface has to be, as how much of its direction is up, for him to be standing on it.
+        private const float FlatEnough = 0.7f;
+
+        // He has to be this close to the ground, if the ground that carried him goes, to be taken to be standing on other ground.
+        private const float StillOnGround = 0.3f;
+
         //public float currentSpeed;
         public ParticleSystem footDust;
 
@@ -324,6 +346,16 @@ namespace Characters
                 }
             }
 
+            // Standing on anything solid, whatever layer it's on, is standing on the ground: a platform, a crate, a bridge, another
+            // character. The detectors above only look for the Ground layer, which they'd otherwise never see. What's under him can
+            // also be moving, and if so carries him (below).
+            var ride = FindSupport(out var riding, out var measured, out var standing);
+
+            if (standing)
+            {
+                distFromGround = 0f;
+            }
+
             if (
                 (isFalling && rigidBody2D.linearVelocity.y > 0.1f) ||
                 (isFalling && distFromGround < 1.0f)
@@ -333,9 +365,10 @@ namespace Characters
                 maxFallSpeed = 0;
             }
 
-            // In a liquid he can kick off from nothing, which is how he swims up, and how something that floats climbs out.
+            // In a liquid he can kick off from nothing, which is how he swims up, and how something that floats climbs out. On
+            // something that's going up he isn't rising unless he's rising faster than it is.
             canJump =
-                ((distFromGround < 0.2f && rigidBody2D.linearVelocity.y < 0.01f) || submerged >= SwimmingSubmersion) &&
+                ((distFromGround < 0.2f && rigidBody2D.linearVelocity.y - ride.y < 0.01f) || submerged >= SwimmingSubmersion) &&
                 Time.time - timeOfLastJump > 0.25f;
 
             isJumping =
@@ -350,8 +383,36 @@ namespace Characters
                 maxFallSpeed = -rigidBody2D.linearVelocity.y;
             }
             
+            // What he's standing on carries him, if it moves. His own speed, the walking, is worked out without it, and it's added
+            // back after, so he can walk about on a platform as he would on the ground, and jump from it.
+            if (riding && measured && !rideMeasured)
+            {
+                // The first step that the ground's speed is known. His speed is the ground's or his own, whichever makes him the
+                // slower on it: landing on a platform from the ground he's carried along, and coming back down on one that has been
+                // carrying him he isn't carried twice.
+                var speed = rigidBody2D.linearVelocity.x;
+                rideSpeed = Mathf.Abs(speed) < Mathf.Abs(speed - ride.x) ? 0f : ride.x;
+            }
+            else if (!riding && rideWasRiding)
+            {
+                // Got off. In the air he keeps the speed he was carried at; on other ground he doesn't.
+                if (distFromGround < StillOnGround)
+                {
+                    rigidBody2D.linearVelocityX -= rideSpeed;
+                }
+
+                rideSpeed = 0f;
+            }
+
+            rideWasRiding = riding;
+            rideMeasured = riding && measured;
+            rigidBody2D.linearVelocityX -= rideSpeed;
+
             ApplyWalking();
             lastMoveSpeed = moveSpeed;
+
+            rigidBody2D.linearVelocityX += ride.x;
+            rideSpeed = ride.x;
 
             // The extra pull is on his own weight, not on what a liquid holds him up by. It's left off while any of him is in a
             // liquid, or something floating at the surface would weigh as much as when it falls, and settle too deep.
@@ -391,6 +452,95 @@ namespace Characters
         protected virtual float MaxWalkSpeed
         {
             get { return Mathf.Max(0f, currentMovementSettings.maxMoveSpeed) * speedScale; }
+        }
+
+        // What he's standing on, from what he's touching: whether it is anything solid on a flat enough surface under him, whatever
+        // layer it's on (standing), and, if some of it is a kinematic body such as a platform, how fast that is moving, which is the
+        // speed at the place he's over, from how far that place on the body has gone since the last step. A turning body is
+        // carried round by it as well.
+        //
+        // riding is whether he's on a kinematic body. measured is whether he has been for long enough, since the last step, to say
+        // how fast it moves: the first step on it can't.
+        private Vector2 FindSupport(out bool riding, out bool measured, out bool standing)
+        {
+            riding = false;
+            measured = false;
+            standing = false;
+            wallOnLeft = false;
+            wallOnRight = false;
+
+            rideFilter = new ContactFilter2D { useTriggers = false };
+
+            var count = rigidBody2D.GetContacts(rideFilter, rideContacts);
+            Rigidbody2D found = null;
+            var point = Vector2.zero;
+
+            for (var i = 0; i < count; i++)
+            {
+                var contact = rideContacts[i];
+                var ours = contact.rigidbody == rigidBody2D;
+                var other = ours ? contact.otherRigidbody : contact.rigidbody;
+                var otherCollider = ours ? contact.otherCollider : contact.collider;
+
+                // Not part of him: what he's carrying is held by his own kinematic point.
+                if (other == rigidBody2D ||
+                    (other && other.transform.IsChildOf(transform)) ||
+                    (otherCollider && otherCollider.transform.IsChildOf(transform)))
+                {
+                    continue;
+                }
+
+                // A wall he's against the side of, if it's a kinematic body such as a platform, a bridge standing up or a door. He
+                // doesn't walk into it: pressing into it hard enough, friction would hold him there against gravity. (The ground
+                // layer's walls are seen coming, by the detectors; tiles aren't used here, as the joins between them can make
+                // contacts that aren't walls.)
+                if (other && other.bodyType == RigidbodyType2D.Kinematic && Mathf.Abs(contact.normal.x) >= FlatEnough)
+                {
+                    if (contact.point.x > rigidBody2D.worldCenterOfMass.x)
+                    {
+                        wallOnRight = true;
+                    }
+                    else
+                    {
+                        wallOnLeft = true;
+                    }
+                }
+
+                // He's on top of it, rather than against the side of it or under it.
+                if (Mathf.Abs(contact.normal.y) < FlatEnough || contact.point.y >= rigidBody2D.worldCenterOfMass.y)
+                {
+                    continue;
+                }
+
+                standing = true;
+
+                if (!found && other && other.bodyType == RigidbodyType2D.Kinematic)
+                {
+                    found = other;
+                    point = contact.point;
+                }
+            }
+
+            if (!found)
+            {
+                rideBody = null;
+                return Vector2.zero;
+            }
+
+            var speed = Vector2.zero;
+
+            // The same body as last step: that place on it, as it is now, against where it was.
+            if (found == rideBody && Time.fixedDeltaTime > 0f)
+            {
+                speed = (found.GetRelativePoint(rideLocalPoint) - rideWorldPoint) / Time.fixedDeltaTime;
+                measured = true;
+            }
+
+            rideBody = found;
+            rideWorldPoint = point;
+            rideLocalPoint = found.GetPoint(point);
+            riding = true;
+            return speed;
         }
 
         // How much of him is in a liquid, and which. Sampled up his body, so it changes smoothly as he goes in.
@@ -469,8 +619,9 @@ namespace Characters
         // One physics step of walking: moveSpeed ramps toward where the player is steering, and his sideways speed follows it.
         //
         // Walking is added to whatever speed he already has rather than replacing it, so a shove, a moving platform or a slide
-        // in the way he's going isn't cut back to walking pace; it wears off by itself, through friction and damping. Speed
-        // against the way he's walking is still taken over by it, which is how he pushes against things in his way.
+        // in the way he's going isn't cut back to walking pace. On the ground that other speed wears off, at the rate he can
+        // stop himself; in the air it's kept. Speed against the way he's walking is still taken over by it, which is how he
+        // pushes against things in his way.
         private void ApplyWalking()
         {
             var settings = currentMovementSettings;
@@ -525,12 +676,25 @@ namespace Characters
                 }
             }
 
+            // On the ground, speed that isn't walking wears off as friction would take it, as fast as he can stop himself, so a
+            // nudge from landing, or a shove, doesn't stay with him and turn into a burst of speed when he next runs. Nothing
+            // else takes it off: there may be no friction, and the air doesn't slow him. In the air it's kept, so a jump carries on.
+            var onGround = distFromGround < 0.2f;
+            var brake = onGround ? settings.moveSpeedDecay * scale : 0f;
+
+            external = Mathf.MoveTowards(external, 0f, brake);
+
             if (moveSpeed == 0f)
             {
-                // Walking has just run down to nothing: that part of his speed stops, and any other stays.
                 if (before != 0f)
                 {
+                    // Walking has just run down to nothing: that part of his speed stops, and any other stays.
                     rigidBody2D.linearVelocityX = external;
+                }
+                else if (onGround && seen != 0f)
+                {
+                    // Not walking at all: whatever speed is left slows to nothing, as it would with friction.
+                    rigidBody2D.linearVelocityX = Mathf.MoveTowards(seen, 0f, brake);
                 }
 
                 walkApplied = 0f;
@@ -553,7 +717,8 @@ namespace Characters
                 }
             }
 
-            if (distance <= 0.75f)
+            // A wall ahead by the detectors, or one he's touching that they can't see.
+            if (distance <= 0.75f || (moveSpeed > 0f ? wallOnRight : wallOnLeft))
             {
                 moveSpeed = 0f;
                 walkApplied = 0f;

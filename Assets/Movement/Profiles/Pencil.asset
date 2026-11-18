@@ -18,7 +18,7 @@ MonoBehaviour:
   traits:
     runSpeed: 3
     acceleration: 2
-    jump: 3
+    jump: 2
     floatiness: 1
   modes: []
   overrides:

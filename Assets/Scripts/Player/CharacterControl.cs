@@ -33,6 +33,12 @@ public static class CharacterControl
             : null;
     }
 
+    // Every character a player is controlling, and which player (by id) is.
+    public static IEnumerable<KeyValuePair<Character, int>> Controlled
+    {
+        get { return playerOfCharacter; }
+    }
+
     // The player (seat) controlling this character, if anyone is.
     public static bool TryGetPlayerId(Character character, out int playerId)
     {

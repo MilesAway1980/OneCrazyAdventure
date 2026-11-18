@@ -84,8 +84,38 @@ public class Player : MonoBehaviour
         }
     }
 
+    // The character this player was controlling when last looked, to tell when it changes, and the hint that is showing for it.
+    private Character lastCharacter;
+    private SwitchHint hint;
+
+    // When the character this player controls changes (switched to, or given one when they arrive or when theirs is put away), shows
+    // a hint of which it is, in a game with one player. This is looked at here, on the machine the player is on, so it works the same for a player on the host
+    // and one who has joined someone else's game.
+    private void WatchCharacter()
+    {
+        var now = character;
+
+        if (now == lastCharacter)
+        {
+            return;
+        }
+
+        lastCharacter = now;
+
+        if (hint)
+        {
+            hint.Cancel();
+        }
+
+        // With one player in the game, a pointer shows which character they have. With several, each character has the number of the
+        // player controlling it over it all the time (PlayerTags), so this isn't needed.
+        hint = now && now.InGame && !PlayerTags.IsMultiplayer ? SwitchHint.Show(now) : null;
+    }
+
     void Update()
     {
+        WatchCharacter();
+
         if (GameSession.IsClientOnly)
         {
             // The host looks after who has which character, so all there is to do is ask for a seat.

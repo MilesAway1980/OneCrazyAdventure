@@ -55,6 +55,83 @@ public class ConnectionPlayer : NetworkBehaviour
         return count;
     }
 
+    // The seats of the players on other machines, in the order they joined: the numbers after the host's own players'.
+    public static List<int> RemoteSeatIds()
+    {
+        var ids = new List<int>();
+
+        foreach (var link in onHost)
+        {
+            if (link)
+            {
+                ids.AddRange(link.seats.Keys);
+            }
+        }
+
+        ids.Sort();
+        return ids;
+    }
+
+    // How many players there are in the game, on all machines together, and which number (as in P1) is controlling which character,
+    // by network id. The host works them out, the same for every connection, and every machine reads them to show the player numbers
+    // over the characters.
+    [SyncVar] private int playerTotal;
+    public readonly SyncDictionary<uint, int> controllerNumbers = new SyncDictionary<uint, int>();
+
+    public int PlayerTotal
+    {
+        get { return playerTotal; }
+    }
+
+    private readonly List<KeyValuePair<Character, int>> numbersNow = new List<KeyValuePair<Character, int>>();
+    private readonly Dictionary<uint, int> numbersWanted = new Dictionary<uint, int>();
+    private readonly List<uint> numbersStale = new List<uint>();
+
+    private void UpdatePlayerNumbers()
+    {
+        var total = PlayerTags.Compute(numbersNow);
+
+        if (playerTotal != total)
+        {
+            playerTotal = total;
+        }
+
+        numbersWanted.Clear();
+
+        foreach (var pair in numbersNow)
+        {
+            var netId = NetIdOf(pair.Key);
+
+            if (netId != 0)
+            {
+                numbersWanted[netId] = pair.Value;
+            }
+        }
+
+        numbersStale.Clear();
+
+        foreach (var key in controllerNumbers.Keys)
+        {
+            if (!numbersWanted.ContainsKey(key))
+            {
+                numbersStale.Add(key);
+            }
+        }
+
+        foreach (var key in numbersStale)
+        {
+            controllerNumbers.Remove(key);
+        }
+
+        foreach (var pair in numbersWanted)
+        {
+            if (!controllerNumbers.TryGetValue(pair.Key, out var current) || current != pair.Value)
+            {
+                controllerNumbers[pair.Key] = pair.Value;
+            }
+        }
+    }
+
     // Tells the players on every machine in the game a message, the host's own included. False if there is nobody to tell it through
     // yet, in which case it hasn't been shown anywhere.
     public static bool Broadcast(string text, float seconds)
@@ -117,6 +194,7 @@ public class ConnectionPlayer : NetworkBehaviour
         {
             UpdateSeats();
             UpdateRoster();
+            UpdatePlayerNumbers();
         }
         else if (isLocalPlayer)
         {

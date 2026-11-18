@@ -28,6 +28,9 @@ public class CarryableObject : MonoBehaviour
 
         characters = new List<Character>();
 
+        // Something that can be carried by a character is carried by a platform it stands on, too.
+        PlatformRider.EnsureOn(gameObject);
+
         /*var allColliders = GetComponentsInChildren<Collider2D>();
         foreach (var col in allColliders)
         {

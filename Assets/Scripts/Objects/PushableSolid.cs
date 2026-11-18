@@ -11,5 +11,8 @@ public class PushableSolid : MonoBehaviour
     void Start()
     {
         CanTriggerFloorCollapse.EnsureOn(gameObject);
+
+        // Something that can be pushed is carried by a platform it stands on.
+        PlatformRider.EnsureOn(gameObject);
     }
 }

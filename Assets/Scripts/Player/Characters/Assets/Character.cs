@@ -62,24 +62,16 @@ namespace Characters
         private float walkApplied;
         private float lastMoveSpeed;
 
-        // Riding something that moves, such as a platform: the kinematic body he's standing on, a point on it that he was over (as a
-        // place in the world, and on the body itself, so that how far it has moved can be told), and how much of his sideways speed
-        // is the body's, so that his own can be told from it.
-        private Rigidbody2D rideBody;
+        // What he's standing on, from what he's touching (see SupportTracker), and, riding something that moves such as a platform,
+        // how much of his sideways speed is its, so that his own can be told from it.
+        private readonly SupportTracker support = new SupportTracker();
         private bool rideWasRiding;
         private bool rideMeasured;
+        private float rideSpeed;
 
         // Whether a kinematic body, such as a platform or a bridge standing up, is touching him on that side.
         private bool wallOnLeft;
         private bool wallOnRight;
-        private Vector2 rideWorldPoint;
-        private Vector2 rideLocalPoint;
-        private float rideSpeed;
-        private ContactFilter2D rideFilter;
-        private readonly ContactPoint2D[] rideContacts = new ContactPoint2D[16];
-
-        // How flat a surface has to be, as how much of its direction is up, for him to be standing on it.
-        private const float FlatEnough = 0.7f;
 
         // He has to be this close to the ground, if the ground that carried him goes, to be taken to be standing on other ground.
         private const float StillOnGround = 0.3f;
@@ -454,93 +446,23 @@ namespace Characters
             get { return Mathf.Max(0f, currentMovementSettings.maxMoveSpeed) * speedScale; }
         }
 
-        // What he's standing on, from what he's touching: whether it is anything solid on a flat enough surface under him, whatever
-        // layer it's on (standing), and, if some of it is a kinematic body such as a platform, how fast that is moving, which is the
-        // speed at the place he's over, from how far that place on the body has gone since the last step. A turning body is
-        // carried round by it as well.
+        // What he's standing on: whether it is anything solid on a flat enough surface under him, whatever layer it's on (standing),
+        // and, if some of it is a kinematic body such as a platform, how fast that is moving (the result), which is its speed at the
+        // place he's over.
         //
         // riding is whether he's on a kinematic body. measured is whether he has been for long enough, since the last step, to say
         // how fast it moves: the first step on it can't.
         private Vector2 FindSupport(out bool riding, out bool measured, out bool standing)
         {
-            riding = false;
-            measured = false;
-            standing = false;
-            wallOnLeft = false;
-            wallOnRight = false;
+            support.Update(rigidBody2D, transform);
 
-            rideFilter = new ContactFilter2D { useTriggers = false };
+            riding = support.riding;
+            measured = support.measured;
+            standing = support.standing;
+            wallOnLeft = support.wallOnLeft;
+            wallOnRight = support.wallOnRight;
 
-            var count = rigidBody2D.GetContacts(rideFilter, rideContacts);
-            Rigidbody2D found = null;
-            var point = Vector2.zero;
-
-            for (var i = 0; i < count; i++)
-            {
-                var contact = rideContacts[i];
-                var ours = contact.rigidbody == rigidBody2D;
-                var other = ours ? contact.otherRigidbody : contact.rigidbody;
-                var otherCollider = ours ? contact.otherCollider : contact.collider;
-
-                // Not part of him: what he's carrying is held by his own kinematic point.
-                if (other == rigidBody2D ||
-                    (other && other.transform.IsChildOf(transform)) ||
-                    (otherCollider && otherCollider.transform.IsChildOf(transform)))
-                {
-                    continue;
-                }
-
-                // A wall he's against the side of, if it's a kinematic body such as a platform, a bridge standing up or a door. He
-                // doesn't walk into it: pressing into it hard enough, friction would hold him there against gravity. (The ground
-                // layer's walls are seen coming, by the detectors; tiles aren't used here, as the joins between them can make
-                // contacts that aren't walls.)
-                if (other && other.bodyType == RigidbodyType2D.Kinematic && Mathf.Abs(contact.normal.x) >= FlatEnough)
-                {
-                    if (contact.point.x > rigidBody2D.worldCenterOfMass.x)
-                    {
-                        wallOnRight = true;
-                    }
-                    else
-                    {
-                        wallOnLeft = true;
-                    }
-                }
-
-                // He's on top of it, rather than against the side of it or under it.
-                if (Mathf.Abs(contact.normal.y) < FlatEnough || contact.point.y >= rigidBody2D.worldCenterOfMass.y)
-                {
-                    continue;
-                }
-
-                standing = true;
-
-                if (!found && other && other.bodyType == RigidbodyType2D.Kinematic)
-                {
-                    found = other;
-                    point = contact.point;
-                }
-            }
-
-            if (!found)
-            {
-                rideBody = null;
-                return Vector2.zero;
-            }
-
-            var speed = Vector2.zero;
-
-            // The same body as last step: that place on it, as it is now, against where it was.
-            if (found == rideBody && Time.fixedDeltaTime > 0f)
-            {
-                speed = (found.GetRelativePoint(rideLocalPoint) - rideWorldPoint) / Time.fixedDeltaTime;
-                measured = true;
-            }
-
-            rideBody = found;
-            rideWorldPoint = point;
-            rideLocalPoint = found.GetPoint(point);
-            riding = true;
-            return speed;
+            return support.velocity;
         }
 
         // How much of him is in a liquid, and which. Sampled up his body, so it changes smoothly as he goes in.

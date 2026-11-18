@@ -52,8 +52,9 @@ are circled. Check it before playing.
 ## Things to know
 
 - **Characters ride it.** A character standing on the platform is carried with it, and can still walk and jump. This needs the
-  platform to have a Kinematic Rigidbody2D, and carries sideways movement only (see Riding in [Movement.md](Movement.md)). A crate
-  or anything else that isn't a character isn't carried by this: it only moves with the platform if there's friction.
+  platform to have a Kinematic Rigidbody2D, and carries sideways movement only (see Riding in [Movement.md](Movement.md)).
+- **So do crates.** A carryable crate, or anything with a `PushableSolid`, is carried by the platform it stands on, and can still be
+  pushed along it. For anything else the physics moves, add a `PlatformRider` component.
 - **In a loop** the platform begins on the rounded path, which is just inside its start point when Corner Radius is above 0, so it
   moves slightly when the game starts.
 - **At the end of a path that Stops**, the platform stays at the end until it's been taken back: switching it on again does nothing

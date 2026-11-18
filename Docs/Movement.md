@@ -205,8 +205,12 @@ and the Umbrella) is still whether its **middle** is in a liquid.
   after the walking has been worked out without it. So the character walks about on a platform as it does on the ground, and a
   jump keeps the platform's speed. Stepping off onto other ground drops it; going off the edge into the air keeps it. Only sideways
   movement is carried: a platform going up pushes the character up as usual, and one going down faster than the character falls
-  will leave it behind. A platform moved by its transform, with no kinematic Rigidbody2D, carries nobody. Things that aren't
-  characters, such as a crate, aren't carried this way; they rely on friction.
+  will leave it behind. A platform moved by its transform, with no kinematic Rigidbody2D, carries nobody. **Crates and other
+  things the physics moves** are carried the same way by `PlatformRider`, which is added by itself to anything with a
+  `CarryableObject` or a `PushableSolid`, or can be added by hand to any dynamic body. It adds the platform's sideways speed to the
+  crate's own, so a crate can still be pushed along a platform. The measuring (what's under a body, and how fast it's moving) is
+  shared, in `SupportTracker`. A character standing on a crate on a platform isn't carried by the platform itself, only by the
+  crate, through friction.
 - **Standing on things that aren't "Ground".** The floor detectors only look for the **Ground** layer, so a platform, crate or
   bridge on another layer would look like thin air: no jumping, and the jump picture. Instead `Character.FindSupport` also counts
   touching anything solid on a flat enough surface (about 45 degrees or flatter) under the character as standing on the ground, on

@@ -198,6 +198,20 @@ public static class NetworkCharactersMenu
             count += NetworkPosition(door.gameObject, door.door ? door.door : door.transform) ? 1 : 0;
         }
 
+        // A drawbridge sends where it is and how it's turned.
+        foreach (var drawbridge in Object.FindObjectsByType<SwitchDrawbridge>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            var bridge = drawbridge.bridge ? drawbridge.bridge : drawbridge.transform;
+            count += NetworkPosition(bridge.gameObject, bridge) ? 1 : 0;
+        }
+
+        // A moving platform sends where it is.
+        foreach (var mover in Object.FindObjectsByType<SwitchMovingPlatform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            var platform = mover.platform ? mover.platform : mover.transform;
+            count += NetworkPosition(platform.gameObject, platform) ? 1 : 0;
+        }
+
         foreach (var button in Object.FindObjectsByType<ButtonSwitch>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             if (!button.Pad)
@@ -399,6 +413,16 @@ public static class NetworkCharactersMenu
         foreach (var door in Object.FindObjectsByType<SwitchDoor>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             objects.Add(door.gameObject);
+        }
+
+        foreach (var drawbridge in Object.FindObjectsByType<SwitchDrawbridge>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            objects.Add(drawbridge.bridge ? drawbridge.bridge.gameObject : drawbridge.gameObject);
+        }
+
+        foreach (var mover in Object.FindObjectsByType<SwitchMovingPlatform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            objects.Add(mover.platform ? mover.platform.gameObject : mover.gameObject);
         }
 
         foreach (var button in Object.FindObjectsByType<ButtonSwitch>(FindObjectsInactive.Include, FindObjectsSortMode.None))

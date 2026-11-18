@@ -15,7 +15,7 @@ using UnityEngine;
 //    Distance only makes it slower, never violent.
 //
 // It switches things on once it has gone down as far as Percent Pressed To Activate, and off again when it comes back above that.
-// With Pass On Amount, the things it switches that can move by an amount, such as a door, are given how far down the pad is
+// With Allow Partial Presses, the things it switches that can move by an amount, such as a door, are given how far down the pad is
 // instead, so they follow it.
 //
 // Needs a pad: a child with a Rigidbody2D, set to Kinematic. Tools > Buttons > Upgrade Button Prefab sets the project's Button
@@ -33,7 +33,7 @@ public class ButtonSwitch : MonoBehaviour
     [Tooltip("Once it has been pressed far enough, it stays down, and stays on, even when the weight goes.")]
     public bool stayPressed;
 
-    [Tooltip("While it's pressed far enough, it keeps switching things on, every frame. Things that switch themselves off, " +
+    [Tooltip("While it's pressed far enough, it keeps switching things on every frame. Things that switch themselves off, " +
              "after a time or straight away, are held on for as long as it's pressed, and only start to go off once it's let go. " +
              "Without it, things are switched on once, and are left to switch themselves off. Needed for doors and the like " +
              "that should close again when the weight is taken off.")]
@@ -63,10 +63,12 @@ public class ButtonSwitch : MonoBehaviour
     [Tooltip("The time, in seconds, it takes to come all the way back up when the weight is taken off.")]
     public float returnTime = 0.5f;
 
-    [Tooltip("Things this switches that can be moved by an amount, such as a door, are given how far down the pad is, from none " +
-             "to all, and follow it. A door that needs a mass of 50 to open, with a mass of 20 on the button, opens 40 percent of " +
-             "the way. Percent Pressed To Activate doesn't apply to those, as they move as soon as the pad does. " +
+    [Tooltip("Allows for a partial amount of the press to be passed on to things that this switches.  This allows switchable objects, " +
+             "such as a door, to move a fraction of the button press.  Example: A door that needs a mass of 50 to open, with a mass of 20 " +
+             "on the button, opens 40 percent of the way." +
+             "Percent Pressed To Activate doesn't apply to these, as they move as soon as the pad does. " +
              "Everything else it switches is still switched on and off as usual.")]
+    [InspectorLabel("Allow Partial Presses")]
     public bool passOnAmount;
 
     // The quickest the pad is allowed to go down, in seconds for the whole way, however low Resistance is. Faster and whatever is

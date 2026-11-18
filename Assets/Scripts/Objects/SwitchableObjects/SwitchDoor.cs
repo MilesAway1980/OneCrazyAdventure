@@ -5,7 +5,7 @@ using UnityEngine;
 //
 //  - With a button, tick Stays Active When On on the button, so that it keeps telling the door while it's pressed. The door
 //    closes again once it is let go.
-//  - A button set to Pass On Amount opens it by how far down the button is pressed: a button pressed 40 percent of the way
+//  - A button set to Allow Partial Presses opens it by how far down the button is pressed: a button pressed 40 percent of the way
 //    opens it 40 percent of the way.
 //  - With a lever, the door opens when the lever is thrown, and closes when it's thrown back. A lever that is One Time
 //    leaves it open.

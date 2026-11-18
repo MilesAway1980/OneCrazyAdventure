@@ -25,6 +25,8 @@ global fix described in the last section.
 | Characters (position, facing, in the game) | A, B | `CharacterNetwork`, position sync |
 | Flashlight, Bulb | B | `FlashlightNetwork`, `BulbNetwork` |
 | `SwitchDoor` | A | position sync, guard |
+| `SwitchMovingPlatform` | A | position sync, guard |
+| `SwitchDrawbridge` | A | position and rotation sync, guard. The slam sound and event happen on the host only. |
 | `ButtonSwitch` | A (the pad) | position sync of the pad, guard |
 | `LeverSwitch` | B | `LeverNetwork`, guard |
 | `CharacterPickup` | B | `PickupNetwork`; the roster of found characters rides on `ConnectionPlayer` |

@@ -90,6 +90,25 @@ public class LiquidArea : MonoBehaviour
     [Tooltip("Where in its cycle the tide starts, from 0 to 1, so that areas next to each other aren't in step. It's the same on every machine in a network game.")]
     public float tidePhase = 0f;
 
+    [Header("Waves")]
+    [Min(0f)]
+    [Tooltip("How high the waves are, from trough to crest, in units. The surface is a wave instead of a straight line, and the crests reach the level of the water, with the troughs this far below it. 0 keeps the surface flat.")]
+    public float waveHeight = 0f;
+
+    [Min(0.2f)]
+    [Tooltip("The distance between one crest and the next, in units.")]
+    public float waveLength = 4f;
+
+    [Tooltip("How fast the waves travel along the surface, in units a second. Positive goes right, and negative goes left. 0 holds them still.")]
+    public float waveSpeed = 1f;
+
+    [Range(0f, 1f)]
+    [Tooltip("How choppy it is: 0 is one smooth wave, and 1 adds smaller, faster waves going both ways on top of it, so it's rough and never the same twice.")]
+    public float choppiness = 0f;
+
+    [Tooltip("Whether things in the liquid move with the waves: the surface they float on, and where it's the liquid, goes up and down. If it's off, the liquid is as if the surface were flat, half way down the waves, and the waves are only for show.")]
+    public bool wavesMoveThings = true;
+
     private const string OverlayName = "Liquid Overlay";
 
     // Every liquid area that's switched on, which is what's asked where a liquid is.
@@ -195,9 +214,52 @@ public class LiquidArea : MonoBehaviour
         }
     }
 
+    // The time the tide and the waves go by: in a network game, the time every machine shares, so they agree.
+    private static double SharedTime()
+    {
+        return NetworkClient.active || NetworkServer.active ? NetworkTime.time : Time.timeAsDouble;
+    }
+
+    // Whether the surface is made of waves.
+    public bool HasWaves
+    {
+        get { return waveHeight > 0f; }
+    }
+
+    // The wave at a place across the world, from 0 (the bottom of a trough) to 1 (a crest). It goes by where it is in the world, not in
+    // the area, so waves carry on across areas that are side by side. With choppiness, smaller and faster waves, some going the other
+    // way, are added to the main one.
+    private float WaveAt(float x)
+    {
+        var now = SharedTime();
+        var k = System.Math.PI * 2.0 / System.Math.Max(0.2, waveLength);
+
+        var main = System.Math.Sin(k * (x - waveSpeed * now));
+        var chop = choppiness;
+        var second = System.Math.Sin(k * 2.1 * (x + 1.3 * waveSpeed * now) + 1.1);
+        var third = System.Math.Sin(k * 4.3 * (x - 1.9 * waveSpeed * now) + 2.4);
+
+        var total = main + 0.5 * chop * second + 0.3 * chop * third;
+        var most = 1.0 + 0.8 * chop;
+
+        return (float)(0.5 + 0.5 * total / most);
+    }
+
+    // How high the surface is in the world at a place across it, given the level the waves reach to (the crests). With waves, the
+    // troughs are the wave height below it; if the waves are for show only, it's the same everywhere, half way down them.
+    private float SurfaceAt(float x, float levelSurface)
+    {
+        if (!HasWaves)
+        {
+            return levelSurface;
+        }
+
+        return wavesMoveThings ? levelSurface - waveHeight * (1f - WaveAt(x)) : levelSurface - waveHeight * 0.5f;
+    }
+
     private float WorkOutTide()
     {
-        var now = NetworkClient.active || NetworkServer.active ? NetworkTime.time : Time.timeAsDouble;
+        var now = SharedTime();
         var cycles = (float)(now / Mathf.Max(0.5f, tidePeriod)) + tidePhase;
 
         // A smooth rise and fall, 0 at the top of the tide and 1 at the bottom, or the same drifting about without a pattern.
@@ -296,12 +358,15 @@ public class LiquidArea : MonoBehaviour
             return false;
         }
 
-        // Not above the surface, if it's not full.
+        // Not above the surface, if it's not full, or the surface is waves.
         var level = Level;
 
-        if (level < 1f && (level <= 0f || point.y > SurfaceY))
+        if (level < 1f || HasWaves)
         {
-            return false;
+            if (level <= 0f || point.y > SurfaceAt(point.x, SurfaceY))
+            {
+                return false;
+            }
         }
 
         // Even-odd: a ray to the right crosses the outline an odd number of times if the point is inside.
@@ -584,7 +649,7 @@ public class LiquidArea : MonoBehaviour
 
         // Not full, the overlay is cut by the surface, which is level in the world, so it's made again whenever the area could have moved.
         if (drawnVersion != shapeVersion || drawnSprite != overlay || drawnStyle != overlayStyle || drawnTint != tint
-            || drawnTransparency != transparency || drawnLevel != Level || Level < 1f)
+            || drawnTransparency != transparency || drawnLevel != Level || Level < 1f || HasWaves)
         {
             BuildMesh();
             drawnLevel = Level;
@@ -648,7 +713,20 @@ public class LiquidArea : MonoBehaviour
 
         var level = Level;
 
-        if (level >= 1f)
+        // A polygon in the world, from the waves' cutting, added to the mesh.
+        void Emit(List<Vector2> polygon)
+        {
+            var first = Add(transform.InverseTransformPoint(polygon[0]));
+
+            for (var k = 1; k + 1 < polygon.Count; k++)
+            {
+                indexes.Add(first);
+                indexes.Add(Add(transform.InverseTransformPoint(polygon[k])));
+                indexes.Add(Add(transform.InverseTransformPoint(polygon[k + 1])));
+            }
+        }
+
+        if (level >= 1f && !HasWaves)
         {
             foreach (var point in points)
             {
@@ -656,6 +734,10 @@ public class LiquidArea : MonoBehaviour
             }
 
             indexes.AddRange(triangles);
+        }
+        else if (level > 0f && HasWaves)
+        {
+            WaveBody(SurfaceY, Emit);
         }
         else if (level > 0f)
         {
@@ -693,6 +775,120 @@ public class LiquidArea : MonoBehaviour
         mesh.SetColors(colours);
         mesh.SetTriangles(indexes, 0);
         mesh.RecalculateBounds();
+    }
+
+    private readonly List<Vector2> shapeA = new List<Vector2>();
+    private readonly List<Vector2> shapeB = new List<Vector2>();
+    private readonly List<Vector2> shapeC = new List<Vector2>();
+    private readonly List<Vector2> shapeD = new List<Vector2>();
+    private readonly List<Vector2> shapeE = new List<Vector2>();
+
+    // Makes the liquid, with waves, as polygons in the world, given to emit. Each triangle of the outline is cut by the highest the surface
+    // goes. Under the lowest it goes it's kept whole. Between the two it's cut into narrow strips, each cut by the line the surface makes
+    // across it, so the top follows the waves.
+    private void WaveBody(float crestY, System.Action<List<Vector2>> emit)
+    {
+        var troughY = crestY - waveHeight;
+
+        // How wide the strips are: fine enough to follow the waves, as many as there are eighths of a wavelength.
+        var step = Mathf.Max(0.05f, waveLength / 8f);
+
+        for (var i = 0; i + 2 < triangles.Count; i += 3)
+        {
+            shapeA.Clear();
+            shapeA.Add(transform.TransformPoint(points[triangles[i]]));
+            shapeA.Add(transform.TransformPoint(points[triangles[i + 1]]));
+            shapeA.Add(transform.TransformPoint(points[triangles[i + 2]]));
+
+            // No higher than the crests.
+            ClipHalfPlane(shapeA, shapeB, new Vector2(0f, 1f), crestY);
+
+            if (shapeB.Count < 3)
+            {
+                continue;
+            }
+
+            // The part under every trough.
+            ClipHalfPlane(shapeB, shapeC, new Vector2(0f, 1f), troughY);
+
+            if (shapeC.Count >= 3)
+            {
+                emit(shapeC);
+            }
+
+            // The part between the troughs and the crests.
+            ClipHalfPlane(shapeB, shapeC, new Vector2(0f, -1f), -troughY);
+
+            if (shapeC.Count < 3)
+            {
+                continue;
+            }
+
+            var minX = float.MaxValue;
+            var maxX = float.MinValue;
+
+            foreach (var corner in shapeC)
+            {
+                minX = Mathf.Min(minX, corner.x);
+                maxX = Mathf.Max(maxX, corner.x);
+            }
+
+            // A very wide shape has wider strips, so there are never more than a few hundred.
+            var width = Mathf.Max(step, (maxX - minX) / 300f);
+            var x0 = Mathf.Floor(minX / width) * width;
+
+            for (; x0 < maxX; x0 += width)
+            {
+                var x1 = x0 + width;
+
+                ClipHalfPlane(shapeC, shapeD, new Vector2(-1f, 0f), -x0);
+                ClipHalfPlane(shapeD, shapeE, new Vector2(1f, 0f), x1);
+
+                if (shapeE.Count < 3)
+                {
+                    continue;
+                }
+
+                // Under the line the surface makes from one side of the strip to the other.
+                var y0 = SurfaceAt(x0, crestY);
+                var y1 = SurfaceAt(x1, crestY);
+                var slope = (y1 - y0) / width;
+
+                ClipHalfPlane(shapeE, shapeD, new Vector2(-slope, 1f), y0 - slope * x0);
+
+                if (shapeD.Count >= 3)
+                {
+                    emit(shapeD);
+                }
+            }
+        }
+    }
+
+    // Keeps the part of a shape on the side of a line that is under it: where the point's place along the normal is no more than the
+    // limit. Each side that crosses the line is cut where it does.
+    private static void ClipHalfPlane(List<Vector2> from, List<Vector2> into, Vector2 normal, float limit)
+    {
+        into.Clear();
+
+        for (var i = 0; i < from.Count; i++)
+        {
+            var current = from[i];
+            var previous = from[(i + from.Count - 1) % from.Count];
+            var currentAlong = Vector2.Dot(normal, current);
+            var previousAlong = Vector2.Dot(normal, previous);
+            var currentUnder = currentAlong <= limit;
+            var previousUnder = previousAlong <= limit;
+
+            if (currentUnder != previousUnder)
+            {
+                into.Add(Vector2.Lerp(previous, current, (limit - previousAlong) / (currentAlong - previousAlong)));
+            }
+
+            if (currentUnder)
+            {
+                into.Add(current);
+            }
+        }
     }
 
     // Cuts the shape in clipFrom (in the area's own space) to what is under a level in the world, into clipTo: each side that crosses
@@ -791,6 +987,29 @@ public class LiquidArea : MonoBehaviour
         for (int i = 0, j = points.Count - 1; i < points.Count; j = i++)
         {
             Gizmos.DrawLine(points[j], points[i]);
+        }
+
+        // The waves, as they are now, across the area.
+        if (HasWaves)
+        {
+            Gizmos.matrix = Matrix4x4.identity;
+            Gizmos.color = new Color(colour.r, colour.g, colour.b, colour.a * 0.8f);
+
+            var span = WorldRect;
+            var crest = SurfaceY;
+            var across = Mathf.Max(8, Mathf.CeilToInt(span.width / Mathf.Max(0.1f, waveLength / 6f)));
+            var last = new Vector3(span.xMin, SurfaceAt(span.xMin, crest), 0f);
+
+            for (var i = 1; i <= across; i++)
+            {
+                var x = Mathf.Lerp(span.xMin, span.xMax, i / (float)across);
+                var next = new Vector3(x, SurfaceAt(x, crest), 0f);
+
+                Gizmos.DrawLine(last, next);
+                last = next;
+            }
+
+            Gizmos.matrix = transform.localToWorldMatrix;
         }
 
         // How far down the tide takes the surface at its lowest, across the area, when it has one.

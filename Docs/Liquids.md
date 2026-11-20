@@ -79,6 +79,28 @@ level as the switch (below), and works with or without one.
   on where the surface is. Everything in the liquid responds as it moves, as it does for a switch.
 - In the scene view, with the area selected, a faint line across it marks the lowest the tide takes the surface.
 
+## Waves: a surface that isn't a straight line
+
+A Liquid Area can have a **wavy or choppy surface** instead of a straight line. The waves travel along it, and the overlay's top edge
+follows them.
+
+| Setting | What it does |
+|---|---|
+| **Wave Height** | How high the waves are, from trough to crest, in units. 0 (the default) keeps the surface flat. |
+| **Wave Length** | The distance from one crest to the next, in units. |
+| **Wave Speed** | How fast the waves travel along the surface, in units a second. Positive goes right, negative goes left, 0 holds them still. |
+| **Choppiness** | 0 is one smooth wave. Up to 1 adds smaller, faster waves going both ways on top of it, so it's rough and never the same twice. |
+| **Waves Move Things** | On (the default): what's liquid follows the waves, so a floating crate or a character at the surface rides them. Off: the waves are only for show, and the liquid is as if the surface were flat, half way down them. |
+
+- **The crests reach the level of the water**, and the troughs are the Wave Height below it. So with the area full, the crests touch the
+  top of the outline, as with the tide: the area as drawn is the highest the surface goes.
+- The waves go by **where they are in the world**, not in the area, so areas side by side have waves that carry on across the join.
+- They're worked out from the shared time (the network's, in a network game), so every machine sees the same wave in the same place.
+- Waves go with the **tide** and a **switch**: they ride the level, whatever it is.
+- In the scene view, with the area selected, the waves are drawn as they are now across the area. Press play to see them travel.
+- A very choppy surface with big waves moves things around a lot. For something calm, keep the Wave Height small (a quarter of a tile or
+  less) and the Wave Length long.
+
 ## Raising and lowering the liquid
 
 A **Switch Liquid** (a switchable object, so a lever or button works it, as they do a door) raises and lowers the liquid in a Liquid Area.

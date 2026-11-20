@@ -110,6 +110,10 @@ public class MovementTuning : ScriptableObject
     [Min(0f)]
     public float angularDamping = 0.05f;
 
+    [Tooltip("How fast a character on the ground loses speed that isn't its own walking, such as from a shove, a fan or landing, in tiles per second, every second. It's the same for every character whatever its weight or traits, as friction is, so a force moves something light further than something heavy. Walking and stopping at the stick use each character's own acceleration and time to stop instead.")]
+    [Min(0f)]
+    public float groundFriction = 4f;
+
     [Tooltip("How dense the air is, compared with water, which is 1. Something lighter than this rises in air.")]
     [Min(0f)]
     public float airDensity = 0.0012f;

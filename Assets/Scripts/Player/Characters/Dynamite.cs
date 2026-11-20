@@ -229,7 +229,7 @@ namespace Characters
                 var direction = distance > 0.0001f ? offset / distance : Vector2.up;
                 var force = (explosionDistance - distance) * explosionForce;
 
-                body.AddForce(direction * force, ForceMode2D.Impulse);
+                Character.Push(body, direction * force, ForceMode2D.Impulse);
             }
         }
 

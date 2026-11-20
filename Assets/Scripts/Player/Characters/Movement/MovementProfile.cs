@@ -178,13 +178,13 @@ public class MovementMode
 public class MovementTraits
 {
     [Tooltip("How fast it runs, compared with others of its weight.")]
-    [Range(0.2f, 3f)] public float runSpeed = 1f;
+    [Min(0.2f)] public float runSpeed = 1f;
     [Tooltip("How quickly it gets going and stops, compared with others of its weight.")]
-    [Range(0.2f, 3f)] public float acceleration = 1f;
+    [Min(0.2f)] public float acceleration = 1f;
     [Tooltip("How high it jumps, compared with others of its weight.")]
-    [Range(0.2f, 3f)] public float jump = 1f;
+    [Min(0.2f)] public float jump = 1f;
     [Tooltip("How slowly it falls, compared with others of its weight. Over 1 is lighter on its feet.")]
-    [Range(0.2f, 3f)] public float floatiness = 1f;
+    [Min(0.2f)] public float floatiness = 1f;
 }
 
 // Values that are used as they are instead of being worked out. -1 means to work it out.

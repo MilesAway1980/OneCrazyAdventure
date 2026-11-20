@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 // The master list of the words the game shows the players: the hub menu, the messages along the top of the screen, the join and
@@ -96,22 +98,47 @@ public class GameText : ScriptableObject
     [Tooltip("Along the top while a player holds the leave button. {player} is their name.")]
     public string playerLeaving = "{player} leaving...";
 
-    [Header("Tutorial hints")]
-    [Tooltip("Hints shown while someone is in a Tutorial Prompt's area. The controls in curly brackets are replaced with the buttons the player is using: {move}, {jump}, {action}, {interact}, {next} and {previous}.")]
-    public string hintMove = "Move with {move}.";
-
-    public string hintJump = "Press {jump} to jump.";
-    public string hintSwitch = "Press {next} or {previous} to switch to another character.";
-    public string hintInteract = "Press {interact} next to a lever to pull it.";
-    public string hintCarry = "Press {interact} next to a crate to pick it up, and again to put it down.";
-    public string hintButton = "Stand on a button to press it. The door only stays open while it's pressed.";
-    public string hintSwitchOnButton = "Leave one character on the button, press {next} to switch to another, and walk through.";
-    public string hintTeamwork = "Some doors need everyone. Put a character on each button, and send another through.";
-    public string hintHub = "A hub! Stand here and press {interact} to swap characters.";
+    [Header("Hints")]
+    [Tooltip("The hints that a Hint component in the world can show, each with the topic that names it and its words. A Hint is given a topic (any text), and shows the words of the entry with the same topic, ignoring capitals. Add as many as you like here. The controls in curly brackets are replaced with the buttons the player is using: {move}, {jump}, {action}, {interact}, {next} and {previous}.")]
+    public List<HintText> hints = new List<HintText>
+    {
+        new HintText("Move", "Move with {move}."),
+        new HintText("Jump", "Press {jump} to jump."),
+        new HintText("SwitchCharacter", "Press {next} or {previous} to switch to another character."),
+        new HintText("Interact", "Press {interact} next to a lever to pull it."),
+        new HintText("Carry", "Press {interact} next to a crate to pick it up, and again to put it down."),
+        new HintText("Button", "Stand on a button to press it. The door only stays open while it's pressed."),
+        new HintText("SwitchOnButton", "Leave one character on the button, press {next} to switch to another, and walk through."),
+        new HintText("Teamwork", "Some doors need everyone. Put a character on each button, and send another through."),
+        new HintText("Hub", "A hub! Stand here and press {interact} to swap characters.")
+    };
 
     [Header("Meters")]
     [Tooltip("Across the Flashlight's battery bar when it has run flat.")]
     public string batteryFlat = "FLAT";
+
+    // The words of the hint with this topic, if there is one. The topic is matched ignoring capitals and spaces at its ends.
+    public bool TryGetHint(string topic, out string text)
+    {
+        text = null;
+        topic = topic == null ? "" : topic.Trim();
+
+        if (topic.Length == 0 || hints == null)
+        {
+            return false;
+        }
+
+        foreach (var entry in hints)
+        {
+            if (entry != null && string.Equals((entry.topic ?? "").Trim(), topic, StringComparison.OrdinalIgnoreCase))
+            {
+                text = entry.text;
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private static GameText current;
     private static bool warnedMissing;
@@ -166,5 +193,26 @@ public class GameText : ScriptableObject
         }
 
         return text;
+    }
+}
+
+// One hint: the topic that names it, and what it says.
+[Serializable]
+public class HintText
+{
+    [Tooltip("What a Hint component's Topic is set to, to show this. Any text, without needing to be unique, though the first with a topic is the one found.")]
+    public string topic;
+
+    [TextArea]
+    public string text;
+
+    public HintText()
+    {
+    }
+
+    public HintText(string topic, string text)
+    {
+        this.topic = topic;
+        this.text = text;
     }
 }

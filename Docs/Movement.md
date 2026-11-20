@@ -218,11 +218,31 @@ and the Umbrella) is still whether its **middle** is in a liquid.
 - **Walking** is `Character.ApplyWalking`, once per physics step. `Move()` only records which way the player is steering. Speeding
   up and slowing down are per 0.02 s step, scaled to the real step length, so they don't change with the frame rate.
 - Walking is **added** to the speed a character already has, so a shove, a force switch or a moving platform in the direction it's
-  walking isn't cut back to walking pace. That other speed wears off **on the ground**, at the rate the character can stop itself
-  (its time to stop), as friction would; a character standing with no input slows to a halt the same way. In the air it's kept,
-  so jumps carry on. (Don't rely on friction or air damping for this: Air Damping defaults to 0, and some characters use a
+  walking isn't cut back to walking pace. That other speed wears off **on the ground** at one rate for every character, **Ground Friction** in the tuning (default 4 tiles/s
+  every second), whatever its weight or traits, as friction does; a character standing with no input slows to a halt the same way.
+  In the air it's kept, so jumps carry on. Because it's the same for all, a force such as a fan's, which gives acceleration of
+  force / mass, moves a light character further than a heavy one. (Walking, and stopping when the stick is let go, still use each
+  character's own acceleration and time to stop.) (Don't rely on friction or air damping for this: Air Damping defaults to 0, and some characters use a
   zero-friction material.) Speed against the walking direction is still
   overridden, which is how a character pushes crates.
+- **Brushes.** Sideways speed that appears while a character is touching something at its side (a wall, the corner of a tile, a join
+  between tiles) is dropped, not kept: it's the physics throwing the character off the edge, not a shove, and kept through a jump it
+  would come back as a random burst of speed on landing. A contact counts if its surface is steeper than flat (see
+  `SupportTracker.FlatEnough`), and for 0.1 s after. To catch one that gets through, tick **Log Speed Gains** on the character: it
+  writes to the Console whenever speed appears that isn't walking or a push, saying whether it was dropped (a brush) or kept.
+- **Walls.** When the wall detectors (or a kinematic wall touching the side) say a wall is ahead, the character's walking stops
+  *and so does the speed that walking had given it*. If that speed were left, it would be read next step as other speed, kept
+  through the air, and then added to the walking when the character cleared the wall, which doubled its speed. Only speed that
+  wasn't walking stays.
+- **Pushes** (a fan's wind, a blast) go through `Character.Push`, which keeps them as **momentum** separate from walking: the
+  character's sideways speed is `walking + push`, so walking is added to a push and doesn't cancel it. A force adds to the push each
+  step by force / mass, and on the ground Ground Friction takes it off at one rate for all (so a push that doesn't beat the friction
+  doesn't move anyone). So a strong wind that blows a light character away is hard to walk into: the push keeps building as it
+  gets nearer the fan, until the character can't make headway, and a heavy character, which the same force moves less, can walk
+  into more of it. And a push in one direction has to be overcome, by it wearing off or by walking faster than it, before the
+  character can go the other way. A wall or crate in the way, or a liquid's drag, takes speed off a push. Up and down is left to the
+  physics. Anything else that pushes characters with a force should call `Character.Push(body, force, mode)` instead of
+  `AddForce`, to get the same (`BlowerFan` and the Dynamite's blast do).
 - Something that sets `moveSpeed` itself (a drill coasting, a brick going solid, a teleport) is noticed, and the walking drops what
   it had put in.
 - **Riding.** A character standing on a **kinematic** body that moves sideways (a moving platform, a drawbridge, a door) is carried

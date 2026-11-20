@@ -22,7 +22,7 @@ Each lesson uses the one before it, and nothing needs a power, so the whole area
 | Piece | What it is | Notes |
 |---|---|---|
 | **Character Hub** | A hub: reached by touching, checkpoint, swap menu | One with **Start Hub** ticked at the start, one at the end. |
-| **Tutorial Prompt** | A hint shown while someone is in its area | New. Pick the hint from a list, or write your own. The words are in the master text. Controls are filled in with the player's own buttons. |
+| **Hint** | A hint shown while someone is in its area | New (see [Hints.md](Hints.md)). Give it a topic that names a hint in the master text, or write your own. The words are in the master text. Controls are filled in with the player's own buttons. |
 | **Button** (prefab) | A pressure pad, moved by the script (no spring). It goes down by the fraction of **Minimum Weight** that's on it, as slowly as **Resistance** says, and switches things on once it's **Percent Pressed To Activate** of the way down. | Tick **Stays Active When On** so the door keeps being told while it's pressed. Run **Tools > Buttons > Upgrade Button Prefab** once. |
 | **Lever** (prefab) | Pulled with Interact | Gives its target a push to open or close. |
 | **Switch Door** | A door or gate that moves out of the way | New. Set **Open Offset** (for example 0, 4 to rise four units) and the speed. |

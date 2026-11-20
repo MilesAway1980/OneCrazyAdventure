@@ -51,6 +51,9 @@ namespace Characters
         // Less than that is friction and the physics settling, which walking takes over from.
         private const float ExternalSpeedMargin = 1f;
 
+        // How much speed has to have been taken off a push in a step to count, so that rounding doesn't wear it away.
+        private const float PushLossMargin = 0.02f;
+
         // Which way the player is steering (-1, 0 or 1), and the frame they last said so. The steering is read a frame at a time
         // but the walking is worked out a physics step at a time, so it's kept until the next frame says otherwise. If nothing
         // says so for a frame, nobody is steering him any more.
@@ -61,6 +64,22 @@ namespace Characters
         // added by something else.
         private float walkApplied;
         private float lastMoveSpeed;
+
+        // Sideways speed from being pushed by a force (a fan, a blast), which is kept as momentum rather than being overridden by
+        // walking: walking is added to it. pushDelta is what pushes have added since the last step, and lastSetSpeed is the sideways
+        // speed he was left with at the end of the last step, to tell what has been taken off a push since (by a wall, say).
+        private float pushSpeed;
+        private float pushDelta;
+        private float lastSetSpeed;
+
+        // Until when he has been brushing against something at his side, such as a wall, or the corner of a tile. A brush can throw him
+        // sideways, and speed that comes from it isn't his to keep.
+        private float brushedUntil;
+        private float externalLastStep;
+        private const float BrushSeconds = 0.1f;
+
+        [Tooltip("For finding a random speed boost: writes to the Console each time he picks up speed that isn't his walking or a push, saying whether it came from brushing something (and was dropped) or from nowhere that could be seen (and was kept).")]
+        public bool logSpeedGains;
 
         // What he's standing on, from what he's touching (see SupportTracker), and, riding something that moves such as a platform,
         // how much of his sideways speed is its, so that his own can be told from it.
@@ -328,6 +347,8 @@ namespace Characters
             {
                 Climb();
                 rigidBody2D.gravityScale = 0;
+                pushSpeed = 0f;
+                pushDelta = 0f;
                 return;
             }
 
@@ -590,7 +611,19 @@ namespace Characters
             // Speed that isn't walking: beyond what was put in last step, in the same way. If moveSpeed was just set by something
             // else, it's what that said he's walking at that counts.
             var seen = rigidBody2D.linearVelocity.x;
-            var reference = walkApplied != 0f ? walkApplied : before;
+
+            // Something in the way (a wall, a crate that won't move) takes speed off a push, and a push is only what's left of it.
+            // The liquid's drag does too.
+            var shortfall = seen - lastSetSpeed;
+
+            if (pushSpeed != 0f && Mathf.Abs(shortfall) > PushLossMargin && (shortfall > 0f) != (pushSpeed > 0f))
+            {
+                pushSpeed = pushSpeed > 0f ? Mathf.Max(0f, pushSpeed + shortfall) : Mathf.Min(0f, pushSpeed + shortfall);
+            }
+
+            // The push is part of the speed he already has, which walking and the other speed are added to.
+            var pushSeen = pushSpeed;
+            var reference = (walkApplied != 0f ? walkApplied : before) + pushSeen;
             var external = 0f;
 
             if (Mathf.Abs(seen) > Mathf.Abs(reference) && (reference == 0f || (seen > 0f) == (reference > 0f)))
@@ -603,28 +636,63 @@ namespace Characters
                 }
             }
 
-            // On the ground, speed that isn't walking wears off as friction would take it, as fast as he can stop himself, so a
-            // nudge from landing, or a shove, doesn't stay with him and turn into a burst of speed when he next runs. Nothing
-            // else takes it off: there may be no friction, and the air doesn't slow him. In the air it's kept, so a jump carries on.
+            // Speed picked up while brushing against something at his side isn't kept: it's the physics throwing him off a corner or
+            // a join in the ground, not a shove, and kept in the air it would turn into a random burst of speed on landing.
+            if (external != 0f)
+            {
+                if (Time.time < brushedUntil)
+                {
+                    if (logSpeedGains && externalLastStep == 0f)
+                    {
+                        Debug.Log($"{name}: picked up {external:0.00} of sideways speed while brushing something, and dropped it " +
+                                  $"(seen {seen:0.00}, walking {reference:0.00}, up/down {rigidBody2D.linearVelocity.y:0.00}).", this);
+                    }
+
+                    external = 0f;
+                }
+                else if (logSpeedGains && externalLastStep == 0f)
+                {
+                    Debug.Log($"{name}: picked up {external:0.00} of sideways speed with nothing brushing him, and kept it " +
+                              $"(seen {seen:0.00}, walking {reference:0.00}, on the ground {distFromGround < 0.2f}, up/down {rigidBody2D.linearVelocity.y:0.00}).", this);
+                }
+            }
+
+            // On the ground, speed that isn't walking wears off as friction would take it, at the same rate for everyone (Ground
+            // Friction in the tuning), whatever he weighs or how well he can stop himself. So a nudge from landing, or a shove, doesn't
+            // stay with him and turn into a burst of speed when he next runs, and a force such as a fan's, which moves something
+            // light further than something heavy, isn't cancelled by how well he happens to stop. Nothing else takes it off: there
+            // may be no friction material, and the air doesn't slow him. In the air it's kept, so a jump carries on.
             var onGround = distFromGround < 0.2f;
-            var brake = onGround ? settings.moveSpeedDecay * scale : 0f;
+            var brake = onGround ? MovementTuning.Current.groundFriction * Time.fixedDeltaTime : 0f;
 
             external = Mathf.MoveTowards(external, 0f, brake);
+            externalLastStep = external;
+
+            // What pushed him since last step, and the same friction on the ground. A push that is no stronger than the friction
+            // doesn't move him at all. It's kept in the air, and so is momentum, so it has to be beaten before he can turn round.
+            pushSpeed += pushDelta;
+            pushDelta = 0f;
+            pushSpeed = Mathf.MoveTowards(pushSpeed, 0f, brake);
 
             if (moveSpeed == 0f)
             {
                 if (before != 0f)
                 {
                     // Walking has just run down to nothing: that part of his speed stops, and any other stays.
-                    rigidBody2D.linearVelocityX = external;
+                    rigidBody2D.linearVelocityX = external + pushSpeed;
                 }
-                else if (onGround && seen != 0f)
+                else if (onGround)
                 {
                     // Not walking at all: whatever speed is left slows to nothing, as it would with friction.
-                    rigidBody2D.linearVelocityX = Mathf.MoveTowards(seen, 0f, brake);
+                    rigidBody2D.linearVelocityX = Mathf.MoveTowards(seen - pushSeen, 0f, brake) + pushSpeed;
+                }
+                else
+                {
+                    rigidBody2D.linearVelocityX = seen + (pushSpeed - pushSeen);
                 }
 
                 walkApplied = 0f;
+                lastSetSpeed = rigidBody2D.linearVelocityX;
                 return;
             }
 
@@ -644,16 +712,78 @@ namespace Characters
                 }
             }
 
-            // A wall ahead by the detectors, or one he's touching that they can't see.
+            // A wall ahead by the detectors, or one he's touching that they can't see. His walking stops, and so does the speed it
+            // had given him: if that were left, it would turn into other speed, kept through the air, and when he was clear of the
+            // wall and walking again it would be added to his walking, and he'd be going twice as fast. Speed that wasn't his
+            // walking stays.
             if (distance <= 0.75f || (moveSpeed > 0f ? wallOnRight : wallOnLeft))
             {
                 moveSpeed = 0f;
                 walkApplied = 0f;
+                rigidBody2D.linearVelocityX = external + pushSpeed;
+                lastSetSpeed = rigidBody2D.linearVelocityX;
                 return;
             }
 
-            rigidBody2D.linearVelocityX = moveSpeed + external;
+            rigidBody2D.linearVelocityX = moveSpeed + external + pushSpeed;
             walkApplied = moveSpeed;
+            lastSetSpeed = rigidBody2D.linearVelocityX;
+        }
+
+        // Notes that he is touching something at his side, not under him, so what that does to his speed isn't mistaken for a shove.
+        void OnCollisionEnter2D(Collision2D collision)
+        {
+            NoteBrush(collision);
+        }
+
+        void OnCollisionStay2D(Collision2D collision)
+        {
+            NoteBrush(collision);
+        }
+
+        private void NoteBrush(Collision2D collision)
+        {
+            for (var i = 0; i < collision.contactCount; i++)
+            {
+                if (Mathf.Abs(collision.GetContact(i).normal.y) < SupportTracker.FlatEnough)
+                {
+                    brushedUntil = Time.time + BrushSeconds;
+                    return;
+                }
+            }
+        }
+
+        // Pushes him with a force (a fan's, which is applied every physics step) or an impulse (a blast). Up and down is left to the
+        // physics, as gravity and the liquids act on it. Sideways, it changes his push speed, so that it's kept as momentum and he
+        // has to beat it to walk against it: walking into a strong fan gets harder the nearer he gets, until he can't, and a push to
+        // the left has to be overcome before he can go right. It's the same push, a force over his mass, whatever he's walking.
+        // Something that isn't a character is just pushed.
+        public static void Push(Rigidbody2D body, Vector2 amount, ForceMode2D mode)
+        {
+            var character = body ? body.GetComponent<Character>() : null;
+
+            if (character)
+            {
+                character.ApplyPush(amount, mode);
+            }
+            else if (body)
+            {
+                body.AddForce(amount, mode);
+            }
+        }
+
+        private void ApplyPush(Vector2 amount, ForceMode2D mode)
+        {
+            // In someone else's game, the host moves everything, and it's shown here by where it's sent.
+            if (GameSession.IsClientOnly)
+            {
+                return;
+            }
+
+            var mass = Mathf.Max(0.0001f, rigidBody2D.mass);
+
+            pushDelta += mode == ForceMode2D.Impulse ? amount.x / mass : amount.x / mass * Time.fixedDeltaTime;
+            rigidBody2D.AddForce(new Vector2(0f, amount.y), mode);
         }
 
         protected virtual void Update()

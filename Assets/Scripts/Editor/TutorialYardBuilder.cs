@@ -508,18 +508,18 @@ public class TutorialYardBuilder : EditorWindow
 
     private void BuildPrompts(Transform parent)
     {
-        MakePrompt(parent, "Prompt: Move", TutorialPrompt.Hint.Move, 6f, new Vector2(10f, 6f));
-        MakePrompt(parent, "Prompt: Jump", TutorialPrompt.Hint.Jump, JumpsStartX - 2f, new Vector2(5f, 6f));
-        MakePrompt(parent, "Prompt: Button", TutorialPrompt.Hint.Button, ButtonAX - 4f, new Vector2(5f, 6f));
-        MakePrompt(parent, "Prompt: Switch On Button", TutorialPrompt.Hint.SwitchOnButton, ButtonAX, new Vector2(5f, 6f));
-        MakePrompt(parent, "Prompt: Switch Character", TutorialPrompt.Hint.SwitchCharacter, GateAX - 3f, new Vector2(5f, 8f));
-        MakePrompt(parent, "Prompt: Carry", TutorialPrompt.Hint.Carry, LedgeStartX + 1f, new Vector2(8f, 8f));
-        MakePrompt(parent, "Prompt: Lever", TutorialPrompt.Hint.Interact, LeverX, new Vector2(7f, 6f));
-        MakePrompt(parent, "Prompt: Teamwork", TutorialPrompt.Hint.Teamwork, (ButtonD1X + GateD2X) / 2f, new Vector2(10f, 8f));
-        MakePrompt(parent, "Prompt: Hub", TutorialPrompt.Hint.Hub, ExitHubX + 4.5f, new Vector2(9f, 6f));
+        MakePrompt(parent, "Prompt: Move", "Move", 6f, new Vector2(10f, 6f));
+        MakePrompt(parent, "Prompt: Jump", "Jump", JumpsStartX - 2f, new Vector2(5f, 6f));
+        MakePrompt(parent, "Prompt: Button", "Button", ButtonAX - 4f, new Vector2(5f, 6f));
+        MakePrompt(parent, "Prompt: Switch On Button", "SwitchOnButton", ButtonAX, new Vector2(5f, 6f));
+        MakePrompt(parent, "Prompt: Switch Character", "SwitchCharacter", GateAX - 3f, new Vector2(5f, 8f));
+        MakePrompt(parent, "Prompt: Carry", "Carry", LedgeStartX + 1f, new Vector2(8f, 8f));
+        MakePrompt(parent, "Prompt: Lever", "Interact", LeverX, new Vector2(7f, 6f));
+        MakePrompt(parent, "Prompt: Teamwork", "Teamwork", (ButtonD1X + GateD2X) / 2f, new Vector2(10f, 8f));
+        MakePrompt(parent, "Prompt: Hub", "Hub", ExitHubX + 4.5f, new Vector2(9f, 6f));
     }
 
-    private void MakePrompt(Transform parent, string objectName, TutorialPrompt.Hint hint, float x, Vector2 size)
+    private void MakePrompt(Transform parent, string objectName, string topic, float x, Vector2 size)
     {
         var prompt = new GameObject(objectName);
         prompt.transform.SetParent(parent, false);
@@ -529,7 +529,7 @@ public class TutorialYardBuilder : EditorWindow
         area.isTrigger = true;
         area.size = size;
 
-        prompt.AddComponent<TutorialPrompt>().hint = hint;
+        prompt.AddComponent<Hint>().topic = topic;
     }
 
     // One in the pit, close under the floor so nobody falls far, and one far below the whole Yard for anything else.

@@ -30,8 +30,8 @@ public class BlowerFan : MonoBehaviour
     [Tooltip("How far out from the fan it blows, in units. Nothing further than this feels it.")]
     public float range = 8f;
 
-    [Tooltip("How much of the strength is left at each distance from the fan. The bottom axis is how far out, from 0 at the fan to 1 at the end of the range, and the side axis is the fraction of the strength, so the default straight line falls from the full strength to none.")]
-    public AnimationCurve falloff = AnimationCurve.Linear(0f, 1f, 1f, 0f);
+    [Tooltip("How much of the strength there is at each distance from the fan. The bottom axis is how close to the fan: 1 is right at the fan and 0 is at the end of the range. The side axis is the fraction of the strength. So that the curve presets, which all rise from left to right, work as they are, a curve that rises is strongest at the fan and weaker the further out, and the default straight line goes from none at the end of the range up to the full strength at the fan.")]
+    public AnimationCurve falloff = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 
     [Header("Area")]
     public AreaShape shape = AreaShape.Column;
@@ -43,6 +43,9 @@ public class BlowerFan : MonoBehaviour
     [Range(1f, 180f)]
     [Tooltip("Cone only: how wide the wedge is, in degrees, across the whole of it.")]
     public float coneAngle = 45f;
+
+    [Tooltip("How far the area is shifted from the fan, in units: across (X, to the right) and up (Y), measured in the fan's own space, as a collider's Offset is, so it turns with the object but not with the Angle. The whole of the column or cone moves, and the strength still falls with the distance out from where the area now starts.")]
+    public Vector2 offset;
 
     [Tooltip("Which layers it pushes. Only things with a Rigidbody2D that moves are pushed.")]
     public LayerMask affects = ~0;
@@ -108,8 +111,8 @@ public class BlowerFan : MonoBehaviour
             return;
         }
 
-        var origin = (Vector2)transform.position;
         var direction = BlowDirection();
+        var origin = AreaOrigin();
 
         var count = FindColliders(origin, direction);
 
@@ -127,6 +130,12 @@ public class BlowerFan : MonoBehaviour
 
             Push(body, origin, direction);
         }
+    }
+
+    // Where the area starts: the fan, shifted by the offset, in the fan's own space.
+    private Vector2 AreaOrigin()
+    {
+        return (Vector2)(transform.position + transform.rotation * (Vector3)offset);
     }
 
     // The way it blows, as a direction in the world.
@@ -182,7 +191,7 @@ public class BlowerFan : MonoBehaviour
             return;
         }
 
-        var strengthHere = strength * Mathf.Max(falloff.Evaluate(Mathf.Clamp01(distance / range)), 0f);
+        var strengthHere = strength * Mathf.Max(falloff.Evaluate(1f - Mathf.Clamp01(distance / range)), 0f);
 
         var catcher = body.GetComponentInParent<WindCatcher>();
         if (catcher)
@@ -194,7 +203,8 @@ public class BlowerFan : MonoBehaviour
         {
             var force = direction * strengthHere;
 
-            body.AddForce(force, ForceMode2D.Force);
+            // A character is pushed so that the push is kept as momentum and has to be beaten to walk against it.
+            Characters.Character.Push(body, force, ForceMode2D.Force);
 
             // So that what has a WindCatcher can tell it is being blown, and which way.
             if (catcher)
@@ -237,12 +247,50 @@ public class BlowerFan : MonoBehaviour
         return false;
     }
 
+#if UNITY_EDITOR
+    // Puts the falloff back to the default: the full strength at the fan, falling to none at the end of the range. In the component's
+    // menu (the three dots, or right-click its name) in the Inspector.
+    [ContextMenu("Reset Falloff (strongest at the fan)")]
+    private void ResetFalloff()
+    {
+        UnityEditor.Undo.RecordObject(this, "Reset fan falloff");
+        falloff = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+        UnityEditor.EditorUtility.SetDirty(this);
+    }
+
+    // Turns the falloff curve round, left for right, for a fan that was made when the curve went the other way: one that is
+    // strongest at the end of its range comes out strongest at the fan, and the other way round.
+    [ContextMenu("Flip Falloff Direction")]
+    private void FlipFalloff()
+    {
+        var keys = falloff.keys;
+        var flipped = new Keyframe[keys.Length];
+
+        for (var i = 0; i < keys.Length; i++)
+        {
+            var key = keys[keys.Length - 1 - i];
+            flipped[i] = new Keyframe(1f - key.time, key.value, -key.outTangent, -key.inTangent);
+        }
+
+        UnityEditor.Undo.RecordObject(this, "Flip fan falloff");
+        falloff = new AnimationCurve(flipped);
+        UnityEditor.EditorUtility.SetDirty(this);
+    }
+#endif
+
     // The area, in the scene view while the fan is selected, with lines across it that are fainter the weaker the wind is.
     void OnDrawGizmosSelected()
     {
-        var origin = (Vector2)transform.position;
         var direction = (Vector2)(Quaternion.Euler(0f, 0f, -angle) * transform.up);
+        var origin = AreaOrigin();
         var side = new Vector2(-direction.y, direction.x);
+
+        // How far it's been shifted from the fan.
+        if (offset != Vector2.zero)
+        {
+            Gizmos.color = new Color(1f, 1f, 1f, 0.5f);
+            Gizmos.DrawLine(transform.position, origin);
+        }
 
         var edge = new Color(0.3f, 0.8f, 1f, 1f);
 
@@ -294,7 +342,7 @@ public class BlowerFan : MonoBehaviour
     // The colour for how strong the wind is a fraction of the way out.
     private Color Fade(Color colour, float t)
     {
-        colour.a = Mathf.Clamp01(falloff.Evaluate(t));
+        colour.a = Mathf.Clamp01(falloff.Evaluate(1f - t));
         return colour;
     }
 }

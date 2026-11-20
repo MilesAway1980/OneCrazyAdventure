@@ -317,10 +317,10 @@ public class MovementOverviewWindow : EditorWindow
             }
 
             profile.mass = Mathf.Max(0.01f, mass);
-            profile.traits.runSpeed = Mathf.Clamp(run, 0.2f, 3f);
-            profile.traits.acceleration = Mathf.Clamp(accel, 0.2f, 3f);
-            profile.traits.jump = Mathf.Clamp(jump, 0.2f, 3f);
-            profile.traits.floatiness = Mathf.Clamp(floatiness, 0.2f, 3f);
+            profile.traits.runSpeed = Mathf.Max(run, 0.2f);
+            profile.traits.acceleration = Mathf.Max(accel, 0.2f);
+            profile.traits.jump = Mathf.Max(jump, 0.2f);
+            profile.traits.floatiness = Mathf.Max(floatiness, 0.2f);
 
             EditorUtility.SetDirty(profile);
             profile.Resolve("base", null, tuning, r);

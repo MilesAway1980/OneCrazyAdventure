@@ -79,36 +79,62 @@ public static class TutorialHints
     }
 }
 
-// A hint for the players that shows while anyone in the party is in its area, and goes when they all leave. For teaching the
-// controls and the puzzles in the Tutorial Yard, as each one comes up.
+// A hint for the players that shows while anyone in the party is in its area, and goes when they all leave, if hints are turned on
+// (from the hub menu). For teaching the controls and the puzzles, as each one comes up.
 //
-// Give it a trigger collider on a layer that collides with the characters. The words come from the master text (Tools > Game
-// Text > Open Master Text), unless it is set to use its own.
-public class TutorialPrompt : MonoBehaviour
+// To make one: make a GameObject, give it a Box Collider 2D for the area (or any other Collider2D), and add this. The collider is made
+// a trigger for you, so characters walk through it. (GameObject > Hint does all of that in one go.) The collider needs to be on a layer
+// that collides with the characters, which the default layer does.
+//
+// What it says is found by its Topic, which is any text, in the master text (Tools > Game Text > Open Master Text), in the list of
+// hints. Add a hint there, with a topic and its words, and give a Hint that topic. If no hint has the topic, it warns, in the
+// Inspector and in the Console, and shows nothing.
+public class Hint : MonoBehaviour
 {
-    public enum Hint
-    {
-        Move,
-        Jump,
-        SwitchCharacter,
-        Interact,
-        Carry,
-        Button,
-        SwitchOnButton,
-        Teamwork,
-        Hub,
-        Custom
-    }
-
-    [Tooltip("Which hint it shows. The words of each are in the master text. Custom shows the text below.")]
-    public Hint hint = Hint.Move;
+    [Tooltip("Names the hint to show: the topic of one of the hints in the master text. Capitals don't matter. A warning is shown here if there isn't one with this topic.")]
+    public string topic;
 
     [TextArea]
-    [Tooltip("Only for Custom. Controls can be put in curly brackets: {move}, {jump}, {action}, {interact}, {next} and {previous}.")]
+    [Tooltip("Optional. If this has anything in it, it's shown instead of looking up the topic, for a hint that's only used once. Controls can be put in curly brackets: {move}, {jump}, {action}, {interact}, {next} and {previous}.")]
     public string customText;
 
     [Tooltip("Show it only the first time someone goes in, and not again after they have left.")]
     public bool onlyOnce;
+
+    // From before the topic was text, when it was picked from a list in this order. A hint that was made then, and hasn't been looked at
+    // since, still has its choice here, and is given the matching topic. Nothing sets this any more.
+    [SerializeField, HideInInspector]
+    private int hint = -1;
+
+    private static readonly string[] OldTopics =
+    {
+        "Move", "Jump", "SwitchCharacter", "Interact", "Carry", "Button", "SwitchOnButton", "Teamwork", "Hub"
+    };
+
+    // The topic to look up: the one set, or one carried over from the old list.
+    public string TopicKey
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(topic))
+            {
+                return topic;
+            }
+
+            return hint >= 0 && hint < OldTopics.Length ? OldTopics[hint] : "";
+        }
+    }
+
+    // The words that would be shown, with the controls not yet filled in, or null if there's no text for it.
+    public string FindWords()
+    {
+        if (!string.IsNullOrWhiteSpace(customText))
+        {
+            return customText;
+        }
+
+        return GameText.Current.TryGetHint(TopicKey, out var found) ? found : null;
+    }
 
     private readonly HashSet<Character> inside = new HashSet<Character>();
     private bool shown;
@@ -120,22 +146,54 @@ public class TutorialPrompt : MonoBehaviour
         if (!GetComponent<Collider2D>())
         {
             var box = gameObject.AddComponent<BoxCollider2D>();
-            box.isTrigger = true;
             box.size = new Vector2(4f, 3f);
+        }
+
+        MakeTriggers();
+    }
+
+    void OnValidate()
+    {
+        MakeTriggers();
+
+        // Carries the old list's choice over to a topic, once, so it can be seen and changed.
+        if (string.IsNullOrWhiteSpace(topic) && hint >= 0 && hint < OldTopics.Length)
+        {
+            topic = OldTopics[hint];
+            hint = -1;
         }
     }
 
     void Start()
     {
-        var area = GetComponent<Collider2D>();
+        MakeTriggers();
 
-        if (area)
+        if (!GetComponent<Collider2D>())
         {
-            area.isTrigger = true;
+            Debug.LogWarning($"{name}: the Hint has no collider, so it can never be seen. Add a Box Collider 2D to its object.", this);
         }
-        else
+
+        if (FindWords() == null)
         {
-            Debug.LogWarning($"{name}: the Tutorial Prompt has no collider, so it can never be seen.", this);
+            Debug.LogWarning(
+                $"{name}: the Hint's topic \"{TopicKey}\" doesn't match any hint in the master text, so it shows nothing. " +
+                "Add one with that topic (Tools > Game Text > Open Master Text), or change the topic.", this);
+        }
+    }
+
+    // Any collider on the object is only for telling who is in the area, so it's made a trigger: characters walk through it. This is
+    // done as the hint is added, when anything changes, and in the Inspector, so it doesn't matter which was added first.
+    public void MakeTriggers()
+    {
+        foreach (var area in GetComponents<Collider2D>())
+        {
+            if (!area.isTrigger)
+            {
+                area.isTrigger = true;
+#if UNITY_EDITOR
+                UnityEditor.EditorUtility.SetDirty(area);
+#endif
+            }
         }
     }
 
@@ -289,20 +347,6 @@ public class TutorialPrompt : MonoBehaviour
 
     private string Words()
     {
-        var words = GameText.Current;
-
-        switch (hint)
-        {
-            case Hint.Move: return words.hintMove;
-            case Hint.Jump: return words.hintJump;
-            case Hint.SwitchCharacter: return words.hintSwitch;
-            case Hint.Interact: return words.hintInteract;
-            case Hint.Carry: return words.hintCarry;
-            case Hint.Button: return words.hintButton;
-            case Hint.SwitchOnButton: return words.hintSwitchOnButton;
-            case Hint.Teamwork: return words.hintTeamwork;
-            case Hint.Hub: return words.hintHub;
-            default: return customText;
-        }
+        return FindWords();
     }
 }

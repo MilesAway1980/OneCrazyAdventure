@@ -70,7 +70,7 @@ characters, `WindCatcher`.
 
 ## Local only (D)
 
-`GameMessages`, `HubMenu` (see below), `TutorialPrompt` (see below), `PlayerPrompts`, `ScreenMeter`, `ParallaxBackground`,
+`GameMessages`, `HubMenu` (see below), `Hint` (see below), `PlayerPrompts`, `ScreenMeter`, `ParallaxBackground`,
 `GlobalLightSettings`, `GameText`, the camera code, the map editor and every editor tool.
 
 ## Needs events or spawning (E)
@@ -86,7 +86,7 @@ characters, `WindCatcher`.
 - **`HubMenu` and joined players.** The menu belongs to a `Player` on the host's own machine, so a joined player can't open it. It
   needs the controls routed to the host (or a menu run on the joined machine that sends choices), and the roster and party on the
   joined machine, which is already copied.
-- **`TutorialPrompt`.** It shows hints when a player's character is inside its area, found by a trigger. A joined machine's
+- **`Hint`.** It shows hints when a player's character is inside its area, found by a trigger. A joined machine's
   characters have no colliders, so nothing is ever found there. It should test the position of each local player's character
   against the area.
 - **`GameMessages` from the host.** Anything the host announces ("found a character", "sent back to the hub") shows on the host's

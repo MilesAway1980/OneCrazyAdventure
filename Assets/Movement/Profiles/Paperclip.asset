@@ -16,9 +16,9 @@ MonoBehaviour:
   mass: 20
   applyMass: 1
   traits:
-    runSpeed: 2
-    acceleration: 1.5
-    jump: 2.4
+    runSpeed: 1.5
+    acceleration: 1.25
+    jump: 1.8
     floatiness: 1
   modes: []
   overrides:

@@ -229,6 +229,12 @@ public static class NetworkCharactersMenu
             count += NetworkWith<LeverNetwork>(lever.gameObject) ? 1 : 0;
         }
 
+        // A liquid that is raised and lowered sends how full it is.
+        foreach (var liquid in Object.FindObjectsByType<SwitchLiquid>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            count += NetworkWith<LiquidLevelNetwork>(liquid.gameObject) ? 1 : 0;
+        }
+
         foreach (var pickup in Object.FindObjectsByType<CharacterPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             count += NetworkWith<PickupNetwork>(pickup.gameObject) ? 1 : 0;
@@ -438,6 +444,11 @@ public static class NetworkCharactersMenu
             objects.Add(lever.gameObject);
         }
 
+        foreach (var liquid in Object.FindObjectsByType<SwitchLiquid>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            objects.Add(liquid.gameObject);
+        }
+
         foreach (var pickup in Object.FindObjectsByType<CharacterPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             objects.Add(pickup.gameObject);
@@ -483,6 +494,7 @@ public static class NetworkCharactersMenu
             RemoveIfThere<DarkTileMapNetwork>(go);
             RemoveIfThere<LightSourceNetwork>(go);
             RemoveIfThere<LeverNetwork>(go);
+            RemoveIfThere<LiquidLevelNetwork>(go);
             RemoveIfThere<PickupNetwork>(go);
             RemoveIfThere<NetworkRigidbodyUnreliable2D>(go);
             RemoveIfThere<NetworkTransformUnreliable>(go);

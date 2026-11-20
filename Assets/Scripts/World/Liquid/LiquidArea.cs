@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Mirror;
 using UnityEngine;
 
 // An area of liquid, in any shape. Anything inside it is in that liquid: characters, and what has a FloatsInFluid, respond to it as
@@ -72,6 +73,23 @@ public class LiquidArea : MonoBehaviour
     [Tooltip("Which things the overlay is drawn in front of. Higher is in front.")]
     public int sortingOrder = 5;
 
+    [Header("Tide")]
+    [Range(0f, 100f)]
+    [Tooltip("How far the surface rises and falls by itself, as a percentage of how full the area is: 5 means it slowly drops up to 5 percent below the top and comes back up. The area as drawn is the top, so it never goes above it. 0 keeps it still.")]
+    public float tideRange = 0f;
+
+    [Min(0.5f)]
+    [Tooltip("How long one whole rise and fall takes, in seconds.")]
+    public float tidePeriod = 20f;
+
+    [Range(0f, 1f)]
+    [Tooltip("How uneven the tide is: 0 is a smooth, regular rise and fall, and 1 drifts about without a pattern.")]
+    public float tideRandomness = 0f;
+
+    [Range(0f, 1f)]
+    [Tooltip("Where in its cycle the tide starts, from 0 to 1, so that areas next to each other aren't in step. It's the same on every machine in a network game.")]
+    public float tidePhase = 0f;
+
     private const string OverlayName = "Liquid Overlay";
 
     // Every liquid area that's switched on, which is what's asked where a liquid is.
@@ -92,6 +110,15 @@ public class LiquidArea : MonoBehaviour
     private OverlayStyle drawnStyle;
     private Color drawnTint;
     private float drawnTransparency;
+
+    // How full the area is, from 0 (none) to 1 (all of it, as drawn), by height: the liquid is the part of the outline below a level surface
+    // that is that fraction of the way up it. Raised and lowered by a SwitchLiquid. It isn't saved: the area is full to begin with.
+    private float fill = 1f;
+    private float drawnLevel = 1f;
+
+    // The tide's drop for the frame it was last worked out in.
+    private int tideFrame = -1;
+    private float tideDropNow;
 
     private Fluid fluid;
     private GameObject drawing;
@@ -130,6 +157,89 @@ public class LiquidArea : MonoBehaviour
         {
             EnsureShape();
             return triangles;
+        }
+    }
+
+    // How full it is, from 0 to 1, as set from outside (a SwitchLiquid). The tide takes a little off it: see Level.
+    public float Fill
+    {
+        get { return fill; }
+        set { fill = Mathf.Clamp01(value); }
+    }
+
+    // How full it is now, from 0 to 1: Fill, less the tide. The liquid is the part of the area under a level surface that far up from the
+    // lowest point of the outline to the highest, in the world, so the surface is level however the area is turned.
+    public float Level
+    {
+        get { return fill * (1f - TideDrop); }
+    }
+
+    // How far the tide has taken the surface down, as a fraction of how full it is, now: from 0 to Tide Range. It's worked out from the
+    // time, so it needs nothing run each frame, and (with the time that's shared in a network game) is the same on every machine.
+    public float TideDrop
+    {
+        get
+        {
+            if (tideRange <= 0f)
+            {
+                return 0f;
+            }
+
+            if (tideFrame != Time.frameCount)
+            {
+                tideFrame = Time.frameCount;
+                tideDropNow = WorkOutTide();
+            }
+
+            return tideDropNow;
+        }
+    }
+
+    private float WorkOutTide()
+    {
+        var now = NetworkClient.active || NetworkServer.active ? NetworkTime.time : Time.timeAsDouble;
+        var cycles = (float)(now / Mathf.Max(0.5f, tidePeriod)) + tidePhase;
+
+        // A smooth rise and fall, 0 at the top of the tide and 1 at the bottom, or the same drifting about without a pattern.
+        var regular = 0.5f - 0.5f * Mathf.Cos(cycles * Mathf.PI * 2f);
+        var drifting = Mathf.PerlinNoise(cycles * 0.9f, tidePhase * 100f + 0.37f);
+
+        return Mathf.Clamp01(Mathf.Lerp(regular, drifting, tideRandomness)) * tideRange / 100f;
+    }
+
+    // The box the outline covers in the world, however it's moved, turned or scaled.
+    public Rect WorldRect
+    {
+        get
+        {
+            if (points.Count == 0)
+            {
+                return new Rect(transform.position, Vector2.zero);
+            }
+
+            float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
+
+            foreach (var point in points)
+            {
+                var world = transform.TransformPoint(point);
+
+                minX = Mathf.Min(minX, world.x);
+                minY = Mathf.Min(minY, world.y);
+                maxX = Mathf.Max(maxX, world.x);
+                maxY = Mathf.Max(maxY, world.y);
+            }
+
+            return Rect.MinMaxRect(minX, minY, maxX, maxY);
+        }
+    }
+
+    // How high the surface is in the world at the level it's filled to now.
+    public float SurfaceY
+    {
+        get
+        {
+            var rect = WorldRect;
+            return Mathf.Lerp(rect.yMin, rect.yMax, Level);
         }
     }
 
@@ -182,6 +292,14 @@ public class LiquidArea : MonoBehaviour
         var local = (Vector2)transform.InverseTransformPoint(point);
 
         if (!localBounds.Contains(local))
+        {
+            return false;
+        }
+
+        // Not above the surface, if it's not full.
+        var level = Level;
+
+        if (level < 1f && (level <= 0f || point.y > SurfaceY))
         {
             return false;
         }
@@ -464,10 +582,12 @@ public class LiquidArea : MonoBehaviour
         meshRenderer.sortingOrder = sortingOrder;
         drawing.GetComponent<MeshFilter>().sharedMesh = mesh;
 
+        // Not full, the overlay is cut by the surface, which is level in the world, so it's made again whenever the area could have moved.
         if (drawnVersion != shapeVersion || drawnSprite != overlay || drawnStyle != overlayStyle || drawnTint != tint
-            || drawnTransparency != transparency)
+            || drawnTransparency != transparency || drawnLevel != Level || Level < 1f)
         {
             BuildMesh();
+            drawnLevel = Level;
             drawnVersion = shapeVersion;
             drawnSprite = overlay;
             drawnStyle = overlayStyle;
@@ -476,14 +596,13 @@ public class LiquidArea : MonoBehaviour
         }
     }
 
+    private readonly List<Vector2> clipFrom = new List<Vector2>();
+    private readonly List<Vector2> clipTo = new List<Vector2>();
+
     private void BuildMesh()
     {
         var texture = overlay.texture;
         material.mainTexture = texture;
-
-        var vertices = new Vector3[points.Count];
-        var uvs = new Vector2[points.Count];
-        var colours = new Color[points.Count];
 
         var colour = tint;
         colour.a *= 1f - Mathf.Clamp01(transparency / 100f);
@@ -498,34 +617,110 @@ public class LiquidArea : MonoBehaviour
             Debug.LogWarning("The overlay on " + name + " is set to Tile, but its texture's Wrap Mode isn't Repeat, so it won't repeat.", this);
         }
 
-        for (var i = 0; i < points.Count; i++)
-        {
-            var point = points[i];
+        var vertices = new List<Vector3>();
+        var uvs = new List<Vector2>();
+        var colours = new List<Color>();
+        var indexes = new List<int>();
 
-            vertices[i] = new Vector3(point.x, point.y, 0f);
-            colours[i] = colour;
+        // A vertex at a point of the outline, with where it is in the picture. The picture stays where it is on the area as the level
+        // goes up and down, so the level uncovers it, and doesn't squash it.
+        int Add(Vector2 point)
+        {
+            vertices.Add(new Vector3(point.x, point.y, 0f));
+            colours.Add(colour);
 
             if (overlayStyle == OverlayStyle.Tile)
             {
-                uvs[i] = new Vector2(point.x / tileWidth, point.y / tileHeight);
+                uvs.Add(new Vector2(point.x / tileWidth, point.y / tileHeight));
             }
             else
             {
                 var across = localBounds.width > 0f ? (point.x - localBounds.xMin) / localBounds.width : 0f;
                 var up = localBounds.height > 0f ? (point.y - localBounds.yMin) / localBounds.height : 0f;
 
-                uvs[i] = new Vector2(
+                uvs.Add(new Vector2(
                     (window.xMin + across * window.width) / texture.width,
-                    (window.yMin + up * window.height) / texture.height);
+                    (window.yMin + up * window.height) / texture.height));
+            }
+
+            return vertices.Count - 1;
+        }
+
+        var level = Level;
+
+        if (level >= 1f)
+        {
+            foreach (var point in points)
+            {
+                Add(point);
+            }
+
+            indexes.AddRange(triangles);
+        }
+        else if (level > 0f)
+        {
+            // Each triangle of the outline, cut by the surface: what's under it is kept.
+            var surface = SurfaceY;
+
+            for (var i = 0; i + 2 < triangles.Count; i += 3)
+            {
+                clipFrom.Clear();
+                clipFrom.Add(points[triangles[i]]);
+                clipFrom.Add(points[triangles[i + 1]]);
+                clipFrom.Add(points[triangles[i + 2]]);
+
+                ClipBelow(surface);
+
+                if (clipTo.Count < 3)
+                {
+                    continue;
+                }
+
+                var first = Add(clipTo[0]);
+
+                for (var k = 1; k + 1 < clipTo.Count; k++)
+                {
+                    indexes.Add(first);
+                    indexes.Add(Add(clipTo[k]));
+                    indexes.Add(Add(clipTo[k + 1]));
+                }
             }
         }
 
         mesh.Clear();
-        mesh.vertices = vertices;
-        mesh.uv = uvs;
-        mesh.colors = colours;
-        mesh.SetTriangles(triangles, 0);
+        mesh.SetVertices(vertices);
+        mesh.SetUVs(0, uvs);
+        mesh.SetColors(colours);
+        mesh.SetTriangles(indexes, 0);
         mesh.RecalculateBounds();
+    }
+
+    // Cuts the shape in clipFrom (in the area's own space) to what is under a level in the world, into clipTo: each side that crosses
+    // the level is cut where it does.
+    private void ClipBelow(float surface)
+    {
+        clipTo.Clear();
+
+        for (var i = 0; i < clipFrom.Count; i++)
+        {
+            var current = clipFrom[i];
+            var previous = clipFrom[(i + clipFrom.Count - 1) % clipFrom.Count];
+            var currentY = transform.TransformPoint(current).y;
+            var previousY = transform.TransformPoint(previous).y;
+            var currentUnder = currentY <= surface;
+            var previousUnder = previousY <= surface;
+
+            if (currentUnder != previousUnder)
+            {
+                var across = (surface - previousY) / (currentY - previousY);
+                clipTo.Add(Vector2.Lerp(previous, current, across));
+            }
+
+            if (currentUnder)
+            {
+                clipTo.Add(current);
+            }
+        }
     }
 
     // Overlays left behind by an earlier version of this component, such as before the scripts were recompiled.
@@ -596,6 +791,18 @@ public class LiquidArea : MonoBehaviour
         for (int i = 0, j = points.Count - 1; i < points.Count; j = i++)
         {
             Gizmos.DrawLine(points[j], points[i]);
+        }
+
+        // How far down the tide takes the surface at its lowest, across the area, when it has one.
+        if (tideRange > 0f)
+        {
+            Gizmos.matrix = Matrix4x4.identity;
+            Gizmos.color = new Color(colour.r, colour.g, colour.b, colour.a * 0.6f);
+
+            var rect = WorldRect;
+            var low = Mathf.Lerp(rect.yMin, rect.yMax, fill * (1f - tideRange / 100f));
+
+            Gizmos.DrawLine(new Vector3(rect.xMin, low, 0f), new Vector3(rect.xMax, low, 0f));
         }
     }
 }

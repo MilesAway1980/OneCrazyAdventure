@@ -26,6 +26,8 @@ global fix described in the last section.
 | Flashlight, Bulb | B | `FlashlightNetwork`, `BulbNetwork` |
 | `SwitchDoor` | A | position sync, guard |
 | `SwitchMovingPlatform` | A | position sync, guard |
+| `LiquidArea` tide | A | Worked out from `NetworkTime`, so every machine agrees without sending anything |
+| `SwitchLiquid` | A | `LiquidLevelNetwork` sends how full it is; the host does the switching and everything in the liquid |
 | `SwitchDrawbridge` | A | position and rotation sync, guard. The slam sound and event happen on the host only. |
 | `ButtonSwitch` | A (the pad) | position sync of the pad, guard |
 | `LeverSwitch` | B | `LeverNetwork`, guard |

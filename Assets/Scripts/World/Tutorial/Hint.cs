@@ -101,28 +101,10 @@ public class Hint : MonoBehaviour
     [Tooltip("Show it only the first time someone goes in, and not again after they have left.")]
     public bool onlyOnce;
 
-    // From before the topic was text, when it was picked from a list in this order. A hint that was made then, and hasn't been looked at
-    // since, still has its choice here, and is given the matching topic. Nothing sets this any more.
-    [SerializeField, HideInInspector]
-    private int hint = -1;
-
-    private static readonly string[] OldTopics =
-    {
-        "Move", "Jump", "SwitchCharacter", "Interact", "Carry", "Button", "SwitchOnButton", "Teamwork", "Hub"
-    };
-
-    // The topic to look up: the one set, or one carried over from the old list.
+    // The topic to look up.
     public string TopicKey
     {
-        get
-        {
-            if (!string.IsNullOrWhiteSpace(topic))
-            {
-                return topic;
-            }
-
-            return hint >= 0 && hint < OldTopics.Length ? OldTopics[hint] : "";
-        }
+        get { return topic ?? ""; }
     }
 
     // The words that would be shown, with the controls not yet filled in, or null if there's no text for it.
@@ -155,13 +137,6 @@ public class Hint : MonoBehaviour
     void OnValidate()
     {
         MakeTriggers();
-
-        // Carries the old list's choice over to a topic, once, so it can be seen and changed.
-        if (string.IsNullOrWhiteSpace(topic) && hint >= 0 && hint < OldTopics.Length)
-        {
-            topic = OldTopics[hint];
-            hint = -1;
-        }
     }
 
     void Start()

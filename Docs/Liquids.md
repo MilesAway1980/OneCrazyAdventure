@@ -62,6 +62,48 @@ Everything asks `Map.FluidAt(point)` where a liquid is, and areas answer it as t
   0.6), which floats. To change it, or to make anything else float, add `FloatsInFluid` by hand and set its Material or Density. A
   crate being carried isn't affected while it's held.
 
+## Tide: a surface that rises and falls by itself
+
+A Liquid Area can slowly rise and fall on its own, by a small percentage, so the water is never perfectly still. It uses the same
+level as the switch (below), and works with or without one.
+
+| Setting | What it does |
+|---|---|
+| **Tide Range** | How far the surface drops below the top, as a percentage of how full the area is. 5 means it rises and falls within the top 5 percent. 0 (the default) keeps it still. The area as drawn is the top, so it never goes above it. |
+| **Tide Period** | How long one whole rise and fall takes, in seconds (default 20). |
+| **Tide Randomness** | 0 is a smooth, regular rise and fall; 1 drifts about with no pattern. |
+| **Tide Phase** | Where in its cycle it starts, 0 to 1, so areas next to each other aren't in step. |
+
+- The tide takes a percentage **of the current level**, so a drained area (level 0) stays empty, and a half-full one moves by half as much.
+- It works out from the time, with no per-frame work, and in a network game from the time every machine shares, so the host and the others agree
+  on where the surface is. Everything in the liquid responds as it moves, as it does for a switch.
+- In the scene view, with the area selected, a faint line across it marks the lowest the tide takes the surface.
+
+## Raising and lowering the liquid
+
+A **Switch Liquid** (a switchable object, so a lever or button works it, as they do a door) raises and lowers the liquid in a Liquid Area.
+Put it on the Liquid Area's object, or give it the area in the **Area** field.
+
+The liquid is the part of the area **below a level surface**, and the surface is a fraction of the way up the area's height, from the
+lowest point of its outline to the highest, in the world, so it's level however the area is turned. The area as drawn is **100%**.
+
+| Setting | What it does |
+|---|---|
+| **On Level** | How full the area is when this is switched **on**, 0 to 1. Default 1: the area as it is. |
+| **Off Level** | How full it is when switched **off**, 0 to 1. Default 0: empty, so the liquid sinks from the top of the area to the bottom. The game starts here. |
+| **Rise Speed** | How fast the surface rises, in units a second. |
+| **Lower Speed** | How fast it sinks. 0 is the same as Rise Speed. |
+
+- For a pool that is full to begin with and **drains** when the switch is on, swap the levels: On Level 0, Off Level 1.
+- A button set to **Allow Partial Presses** sets the level by how far it is pressed, between Off Level and On Level. A lever or a button
+  that stays active goes between the two.
+- **Stay Switched On** and **Switch Off Time**, on the Switch Liquid, work as they do on a door.
+- The overlay is cut by the surface, and its picture stays where it is on the area, so lowering uncovers it rather than squashing it.
+- Whatever is in the liquid responds as it goes: what's liquid at a point changes with the level, so characters sink and crates drop as
+  it drains, and float up as it fills.
+- In the scene view, with it selected, the surface is drawn across the area at each level, blue for on and white for off.
+- In a network game the host does it, and sends how full it is (`LiquidLevelNetwork`, added by **Tools > Network > Make World Networked**).
+
 ## Liquid tilemaps
 
 The older way: a tilemap with a `LiquidMap` component, which has the same **Density**, **Viscosity** and **Min Kick Height**. Everything on a tile of it is in that liquid. It still

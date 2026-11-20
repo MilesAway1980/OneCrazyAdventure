@@ -45,6 +45,6 @@ The collider needs to be on a layer that collides with the characters, which the
 `Assets/Scripts/GameText.cs` has the list of hints (`hints`, each a `HintText`) and the lookup (`TryGetHint`).
 `Assets/Scripts/Editor/HintEditor.cs` has the Inspector and the menu.
 
-This was called `TutorialPrompt` before, and its topic was picked from a list. Existing ones in a scene keep working: the script's
-identity (its `.meta`) was moved with it, and a hint that still has its old choice is given the matching topic (Move, Jump and so on)
-the first time it's looked at or the scene is saved. The old nine texts moved into the master text's list under those same topics.
+This was called `TutorialPrompt` before, and its topic was picked from a list. The script's identity (its `.meta`) was moved with
+it, so hints in scenes kept working. The old nine texts are in the master text's list under the topics Move, Jump, SwitchCharacter,
+Interact, Carry, Button, SwitchOnButton, Teamwork and Hub.

@@ -438,9 +438,11 @@ public class ButtonSwitch : MonoBehaviour
         }
     }
 
-    // Selected in the scene view: where the pad sits, and how far down it goes.
+    // Selected in the scene view: an arrow to each of the things this switches, where the pad sits, and how far down it goes.
     void OnDrawGizmosSelected()
     {
+        SwitchLinkGizmo.Draw(transform.position, switchableObject);
+
         var body = Pad;
 
         if (!body)

@@ -164,6 +164,17 @@ public class SwitchLiquid : SwitchableObject
         }
     }
 
+    // The arrows to this point at the middle of the area it works.
+    public override Vector3 GizmoPoint
+    {
+        get
+        {
+            var shown = area ? area : GetComponent<LiquidArea>();
+
+            return shown ? (Vector3)shown.WorldRect.center : transform.position;
+        }
+    }
+
     // Where the surface is at each of the two levels, across the area, in the scene view while this is selected: blue for on, white for off.
     void OnDrawGizmosSelected()
     {

@@ -18,6 +18,11 @@ public class LeverSwitch : InteractableObject
 
     public SwitchableObject[] switchableObjects;
 
+    protected override System.Collections.Generic.IEnumerable<SwitchableObject> SwitchTargets
+    {
+        get { return switchableObjects; }
+    }
+
     private float angle;
     private bool interactedWith;
     private bool activated;

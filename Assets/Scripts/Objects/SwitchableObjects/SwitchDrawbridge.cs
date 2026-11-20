@@ -299,6 +299,11 @@ public class SwitchDrawbridge : SwitchableObject
     }
 
     // The way it swings, and the place it ends up, drawn when the bridge is selected.
+    public override Vector3 GizmoPoint
+    {
+        get { return bridge ? bridge.position : transform.position; }
+    }
+
     void OnDrawGizmosSelected()
     {
         var target = bridge ? bridge : transform;

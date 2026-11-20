@@ -43,7 +43,8 @@ A picture drawn over the area, to show the water.
 | Setting | What it does |
 |---|---|
 | **Overlay** | The sprite. Nothing is drawn if it's empty. |
-| **Overlay Style** | **Stretch** fits the picture to the area's box. **Tile** repeats it across the area at its own size. For Tile, the picture's texture needs its **Wrap Mode** set to **Repeat** in its import settings, and the sprite should be the whole texture. The console says so if it isn't. |
+| **Overlay Style** | **Stretch** fits the picture to the area's box. **Tile** repeats it across the whole area at its own size, so the surface is covered in copies of the sprite. It works with any sprite, a whole texture or one cut from a sprite sheet, and doesn't need the texture's Wrap Mode set to Repeat (it has a shader of its own, `Assets/Resources/TiledSprite.shader`). |
+| **Tile Scale** | Tile only: how big each copy is, compared with the sprite's own size. 1 is as big as the sprite, 2 is twice as big, 0.5 is half. |
 | **Tint** | A colour the picture is tinted. White leaves it as it is. |
 | **Transparency** | How see-through it is, as a percentage: **0 is solid, 100 is invisible**. |
 | **Sorting Order** | Which things it's drawn in front of. The default, 5, is in front of ordinary things, so a character in the water looks under it. |

@@ -776,6 +776,11 @@ public class SwitchMovingPlatform : SwitchableObject
     }
 
     // The path, as it will be followed, with its points, drawn when the platform is selected.
+    public override Vector3 GizmoPoint
+    {
+        get { return platform ? platform.position : transform.position; }
+    }
+
     void OnDrawGizmosSelected()
     {
         var target = platform ? platform : transform;

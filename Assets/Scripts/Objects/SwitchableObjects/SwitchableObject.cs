@@ -74,4 +74,11 @@ public class SwitchableObject : MonoBehaviour
             activated = false;
         }
     }
+
+    // Where the arrows from the levers and buttons that switch this point to in the scene view: this object, unless what it moves or
+    // changes is somewhere else.
+    public virtual Vector3 GizmoPoint
+    {
+        get { return transform.position; }
+    }
 }

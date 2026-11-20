@@ -11,6 +11,7 @@ Notes for working on the game. They're meant to be kept up to date as things cha
 | [MovingPlatform.md](MovingPlatform.md) | The moving platform switchable object: path, corners, movement methods, and how levers and buttons run it. |
 | [Drawbridge.md](Drawbridge.md) | The drawbridge switchable object: how to set one up, and how speed and weight make it slam or settle. |
 | [CharacterRoles.md](CharacterRoles.md) | What each character does, what puzzles it solves and how it helps the others. |
+| [SwitchArrows.md](SwitchArrows.md) | The scene-view arrows from levers and buttons to the things they switch, and how to turn them off. |
 | [Hints.md](Hints.md) | The Hint component: how to put a hint in the world with a collider and one component, and how the words and the on/off setting work. |
 | [SwayRotation.md](SwayRotation.md) | An object that swings back and forth between two angles, for a spotlight that doesn't stay pointing one way: speed, easing, randomness and wobble. |
 | [SwitchHint.md](SwitchHint.md) | Showing who controls which character: a pointer above its head with one player, and a P1 to P4 tag with several. |

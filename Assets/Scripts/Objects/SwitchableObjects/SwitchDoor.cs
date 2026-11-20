@@ -131,6 +131,11 @@ public class SwitchDoor : SwitchableObject
         }
     }
 
+    public override Vector3 GizmoPoint
+    {
+        get { return door ? door.position : transform.position; }
+    }
+
     void OnDrawGizmosSelected()
     {
         var start = door ? (Vector2)door.position : (Vector2)transform.position;

@@ -25,8 +25,8 @@ public class LiquidArea : MonoBehaviour
     {
         // The picture is stretched to fit the area.
         Stretch,
-        // The picture is repeated across it, at its own size. The picture's texture needs its Wrap Mode set to Repeat, and the sprite
-        // should be the whole texture.
+        // The picture is repeated across it, at its size on screen, times Tile Scale. It can be any sprite, a whole texture or part of
+        // one, whatever the texture's Wrap Mode.
         Tile
     }
 
@@ -60,8 +60,12 @@ public class LiquidArea : MonoBehaviour
     [Tooltip("The picture drawn over the area. Nothing is drawn if it's empty.")]
     public Sprite overlay;
 
-    [Tooltip("Stretch makes the picture fit the area; Tile repeats it across it.")]
+    [Tooltip("Stretch makes the picture fit the area; Tile repeats it across it, at its own size (times Tile Scale), from the object's centre, so the pattern stays put as the level and the waves move.")]
     public OverlayStyle overlayStyle = OverlayStyle.Stretch;
+
+    [Min(0.05f)]
+    [Tooltip("Tile only: how big each repeat of the picture is, compared with its own size. 1 is as big as the sprite is, 2 is twice as big, 0.5 is half.")]
+    public float tileScale = 1f;
 
     [Tooltip("The colour the picture is tinted. White leaves it as it is.")]
     public Color tint = Color.white;
@@ -143,6 +147,8 @@ public class LiquidArea : MonoBehaviour
     private GameObject drawing;
     private Mesh mesh;
     private Material material;
+    private Material tileMaterial;
+    private float drawnTileScale;
 
     // The liquid this area is of, from its density, viscosity and minimum kick. It's only made again when one of them changes.
     public Fluid EffectiveFluid
@@ -643,13 +649,25 @@ public class LiquidArea : MonoBehaviour
             drawnVersion = -1;
         }
 
-        meshRenderer.sharedMaterial = material;
+        // The Tile style repeats the picture with a shader of its own, which doesn't depend on the texture's Wrap Mode. If it can't be found,
+        // the ordinary one is used, and the texture has to be set to repeat.
+        if (overlayStyle == OverlayStyle.Tile && !tileMaterial)
+        {
+            var tileShader = Resources.Load<Shader>("TiledSprite");
+
+            if (tileShader)
+            {
+                tileMaterial = new Material(tileShader) { hideFlags = HideFlags.HideAndDontSave };
+            }
+        }
+
+        meshRenderer.sharedMaterial = overlayStyle == OverlayStyle.Tile && tileMaterial ? tileMaterial : material;
         meshRenderer.sortingOrder = sortingOrder;
         drawing.GetComponent<MeshFilter>().sharedMesh = mesh;
 
         // Not full, the overlay is cut by the surface, which is level in the world, so it's made again whenever the area could have moved.
         if (drawnVersion != shapeVersion || drawnSprite != overlay || drawnStyle != overlayStyle || drawnTint != tint
-            || drawnTransparency != transparency || drawnLevel != Level || Level < 1f || HasWaves)
+            || drawnTransparency != transparency || drawnTileScale != tileScale || drawnLevel != Level || Level < 1f || HasWaves)
         {
             BuildMesh();
             drawnLevel = Level;
@@ -658,6 +676,7 @@ public class LiquidArea : MonoBehaviour
             drawnStyle = overlayStyle;
             drawnTint = tint;
             drawnTransparency = transparency;
+            drawnTileScale = tileScale;
         }
     }
 
@@ -669,17 +688,36 @@ public class LiquidArea : MonoBehaviour
         var texture = overlay.texture;
         material.mainTexture = texture;
 
+        if (tileMaterial)
+        {
+            tileMaterial.mainTexture = texture;
+        }
+
         var colour = tint;
         colour.a *= 1f - Mathf.Clamp01(transparency / 100f);
 
         var picture = overlay.rect;
-        var tileWidth = Mathf.Max(0.0001f, picture.width / overlay.pixelsPerUnit);
-        var tileHeight = Mathf.Max(0.0001f, picture.height / overlay.pixelsPerUnit);
+        var scale = Mathf.Max(0.05f, tileScale);
+        var tileWidth = Mathf.Max(0.0001f, picture.width / overlay.pixelsPerUnit * scale);
+        var tileHeight = Mathf.Max(0.0001f, picture.height / overlay.pixelsPerUnit * scale);
         var window = overlay.textureRect;
 
-        if (overlayStyle == OverlayStyle.Tile && texture.wrapMode != TextureWrapMode.Repeat)
+        // The tile shader is told where the sprite is in its texture, a little in from the edge so a neighbour's pixels aren't blended in.
+        if (overlayStyle == OverlayStyle.Tile && tileMaterial)
         {
-            Debug.LogWarning("The overlay on " + name + " is set to Tile, but its texture's Wrap Mode isn't Repeat, so it won't repeat.", this);
+            var insetX = 0.5f / texture.width;
+            var insetY = 0.5f / texture.height;
+
+            tileMaterial.SetVector("_TileRect", new Vector4(
+                window.xMin / texture.width + insetX,
+                window.yMin / texture.height + insetY,
+                window.width / texture.width - insetX * 2f,
+                window.height / texture.height - insetY * 2f));
+        }
+        else if (overlayStyle == OverlayStyle.Tile && texture.wrapMode != TextureWrapMode.Repeat)
+        {
+            Debug.LogWarning("The overlay on " + name + " is set to Tile, but the tile shader can't be found and its texture's Wrap Mode isn't Repeat, so it won't repeat. " +
+                             "Check that Assets/Resources/TiledSprite.shader is there.", this);
         }
 
         var vertices = new List<Vector3>();
@@ -950,9 +988,15 @@ public class LiquidArea : MonoBehaviour
             DestroyObject(material);
         }
 
+        if (tileMaterial)
+        {
+            DestroyObject(tileMaterial);
+        }
+
         drawing = null;
         mesh = null;
         material = null;
+        tileMaterial = null;
         drawnVersion = -1;
     }
 

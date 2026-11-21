@@ -1,3 +1,4 @@
+using System;
 using Characters;
 using UnityEngine;
 
@@ -18,10 +19,28 @@ public class LeverSwitch : InteractableObject
 
     public SwitchableObject[] switchableObjects;
 
+    [Header("Timing")]
+    [Min(0f)]
+    [Tooltip("When this switches more than one thing, how many seconds it waits between one and the next, in the order of the list: the first at once, the second after this long, the third after twice as long, and so on. For lights that come on one by one. 0 switches them all at the same moment.")]
+    public float delayBetweenObjects;
+
+    [Tooltip("How the things are switched off, if there's a delay between them: all at once, one after another in the same order, or one after another with the last first. Only matters when Delay Between Objects is more than 0.")]
+    public SwitchOffOrder switchOffOrder = SwitchOffOrder.AllAtOnce;
+
     protected override System.Collections.Generic.IEnumerable<SwitchableObject> SwitchTargets
     {
         get { return switchableObjects; }
     }
+
+    // The arrows to the things are numbered in the order they're switched, when there's a delay between them.
+    protected override bool NumberSwitchTargets
+    {
+        get { return delayBetweenObjects > 0f; }
+    }
+
+    // Switches the things one after another, when there's a delay between them.
+    private readonly SwitchSequence sequence = new SwitchSequence();
+    private static readonly Func<SwitchableObject, bool> usable = thing => thing.enabled;
 
     private float angle;
     private bool interactedWith;
@@ -47,6 +66,12 @@ public class LeverSwitch : InteractableObject
     
     void Update()
     {
+        // The things that are waiting for their turn.
+        if (sequence.Pending && !GameSession.IsClientOnly)
+        {
+            sequence.Tick(switchableObjects, false, usable);
+        }
+
         if (interactedWith)
         {
             if (leftToRight)
@@ -154,7 +179,23 @@ public class LeverSwitch : InteractableObject
             return;
         }
 
+        var starting = !activated;
         activated = true;
+
+        // One after another, if there's a delay between them.
+        if (delayBetweenObjects > 0f)
+        {
+            if (starting)
+            {
+                sequence.Begin(switchableObjects, true, delayBetweenObjects, false, usable);
+            }
+
+            sequence.Tick(switchableObjects, staysActiveWhenOn, usable);
+            return;
+        }
+
+        sequence.Cancel();
+
         foreach (var switchableObject in switchableObjects)
         {
             if (!switchableObject)
@@ -177,6 +218,17 @@ public class LeverSwitch : InteractableObject
         }
 
         activated = false;
+
+        // One after another, if there's a delay between them and they're to go off that way.
+        if (delayBetweenObjects > 0f && switchOffOrder != SwitchOffOrder.AllAtOnce)
+        {
+            sequence.Begin(switchableObjects, false, delayBetweenObjects, switchOffOrder == SwitchOffOrder.ReverseOrder, usable);
+            sequence.Tick(switchableObjects, false, usable);
+            return;
+        }
+
+        sequence.Cancel();
+
         foreach (var switchableObject in switchableObjects)
         {
             if (!switchableObject)

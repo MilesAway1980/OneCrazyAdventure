@@ -101,6 +101,13 @@ public static class CharacterControl
         Clean();
 
         var current = GetCharacter(playerId);
+
+        // Not while it's on its way through a teleporter, or the camera would be left behind.
+        if (current && current.InTransit)
+        {
+            return current;
+        }
+
         var all = Character.GetCharacters(false);
         var count = all.Count;
 

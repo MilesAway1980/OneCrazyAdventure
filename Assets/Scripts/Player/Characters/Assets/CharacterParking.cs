@@ -28,6 +28,7 @@ namespace Characters
         }
 
         private bool wantPutAway;
+        private bool wantTransit;
         private bool wantShownOnly;
         private Mode applied = Mode.Normal;
 
@@ -44,6 +45,13 @@ namespace Characters
             wantPutAway = park;
         }
 
+        // On its way from one place to another, as in a teleporter that takes time: taken out of use in the same way as being put away,
+        // but it's still in the game, and still the character of whoever controls it.
+        public void SetTransit(bool inTransit)
+        {
+            wantTransit = inTransit;
+        }
+
         // On a machine that is only showing what the host simulates.
         public void SetShownOnly(bool shownOnly)
         {
@@ -52,7 +60,7 @@ namespace Characters
 
         void LateUpdate()
         {
-            var wanted = wantPutAway ? Mode.PutAway : wantShownOnly ? Mode.ShownOnly : Mode.Normal;
+            var wanted = wantPutAway || wantTransit ? Mode.PutAway : wantShownOnly ? Mode.ShownOnly : Mode.Normal;
 
             if (wanted == applied)
             {

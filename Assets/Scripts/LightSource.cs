@@ -15,11 +15,11 @@ public enum PulseShape
 [Serializable]
 public class LightPulse
 {
-    [Tooltip("The low end of the pulse.")]
-    public float min;
-
     [Tooltip("The high end of the pulse. With no Period Seconds, this is the value it stays at.")]
     public float max;
+    
+    [Tooltip("The low end of the pulse.")]
+    public float min;
 
     [Tooltip("Seconds for one whole cycle, from low to high and back. For Flicker, about how long between changes. 0 turns the pulsing off.")]
     public float periodSeconds;
@@ -86,13 +86,13 @@ public class LightLook
 }
 
 // A source of light. It runs the Light2D on the same object, adding the pulsing glow and the on/off control that
-// the sconces, torch and bulb use. Put your own Light2D on the object to choose its color, falloff and so on; the
+// the sconces, torch and bulb use. A SwitchLight, on the same object, lets a lever or a button light it, or turn it up and down. Put your own Light2D on the object to choose its color, falloff and so on; the
 // radius and color the looks leave unset are taken from it, but the intensity always comes from the looks. If there
 // isn't one, a plain white point light is added.
 //
 // A source is either lit or unlit, and each has its own look, so a sconce can glow dimly when it's out and brightly
 // when it's lit using this one component. Only one of these belongs on an object: they share its Light2D.
-public class LightTileSource : MonoBehaviour, Characters.IKeepsRunningWhenShownOnly
+public class LightSource : MonoBehaviour, Characters.IKeepsRunningWhenShownOnly
 {
     // A second pulse on the same light has to wander differently from the first.
     private const float IntensitySeedOffset = 37f;
@@ -163,10 +163,10 @@ public class LightTileSource : MonoBehaviour, Characters.IKeepsRunningWhenShownO
 
     void Awake()
     {
-        if (GetComponents<LightTileSource>().Length > 1)
+        if (GetComponents<LightSource>().Length > 1)
         {
             Debug.LogWarning(
-                $"{name}: has more than one LightTileSource. They share the object's Light2D and will fight over it. " +
+                $"{name}: has more than one LightSource. They share the object's Light2D and will fight over it. " +
                 "Use one, with its lit and unlit looks, or put each on its own object.", this);
         }
 
@@ -178,7 +178,7 @@ public class LightTileSource : MonoBehaviour, Characters.IKeepsRunningWhenShownO
             sourceLight.lightType = Light2D.LightType.Point;
             sourceLight.intensity = 1f;
 
-            Debug.Log($"{name}: added a Light2D for its LightTileSource.", this);
+            Debug.Log($"{name}: added a Light2D for its LightSource.", this);
         }
 
         baseRadius = sourceLight.pointLightOuterRadius;
@@ -219,7 +219,7 @@ public class LightTileSource : MonoBehaviour, Characters.IKeepsRunningWhenShownO
     {
         UpdateBurning();
 
-        var target = lit ? 1f : 0f;
+        var target = levelOverride ?? (lit ? 1f : 0f);
         var seconds = fadeOverride ?? fadeSeconds;
         var step = seconds > 0f ? Time.deltaTime / seconds : 1f;
 
@@ -263,6 +263,36 @@ public class LightTileSource : MonoBehaviour, Characters.IKeepsRunningWhenShownO
 
     // The time to fade for just the change that is under way, if one was asked for. It's let go of once the change is done.
     private float? fadeOverride;
+
+    // How lit it is, if something has said (a SwitchLight): from 0, the unlit look, to 1, the lit look, and anywhere between, instead of
+    // just lit or unlit. It's lit while the level is more than 0. Nothing says until it's set, and it goes back to being lit or unlit
+    // when it's cleared, or when the light goes out by itself at the end of its Time Until Go Out.
+    private float? levelOverride;
+
+    // The level that something has set it to, or nothing if it goes by being lit or unlit.
+    public float? Level
+    {
+        get { return levelOverride; }
+    }
+
+    // Eases to a level between the unlit look (0) and the lit look (1), taking these seconds, or Fade Seconds if none are given. Held there
+    // until it's told otherwise. Lit while it's more than 0.
+    public void SetLevel(float level, float? seconds = null)
+    {
+        levelOverride = Mathf.Clamp01(level);
+        lit = levelOverride.Value > 0f;
+
+        if (seconds.HasValue)
+        {
+            fadeOverride = Mathf.Max(seconds.Value, 0f);
+        }
+    }
+
+    // Goes back to being lit or unlit, as Lit says.
+    public void ClearLevel()
+    {
+        levelOverride = null;
+    }
 
     // How many times its radius and its intensity are multiplied, over what its looks give, and where they are going. A
     // light that something has plugged into, for instance, is made much brighter than it looks when it's lit by itself.
@@ -327,6 +357,7 @@ public class LightTileSource : MonoBehaviour, Characters.IKeepsRunningWhenShownO
             timeLeftUntilSnuff = 0f;
             lit = false;
             wasLit = false;
+            levelOverride = null;
         }
     }
 

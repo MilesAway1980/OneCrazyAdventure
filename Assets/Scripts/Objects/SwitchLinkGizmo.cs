@@ -43,7 +43,7 @@ public static class SwitchLinkGizmo
     }
 
     // Draws an arrow from a place to each of the things it switches, skipping any that are missing.
-    public static void Draw(Vector3 from, IEnumerable<SwitchableObject> targets)
+    public static void Draw(Vector3 from, IEnumerable<SwitchableObject> targets, bool numbered = false)
     {
         if (!Enabled || targets == null)
         {
@@ -52,17 +52,33 @@ public static class SwitchLinkGizmo
 
         var colour = new Color(1f, 0.9f, 0.2f, 1f);
 
+        var number = 0;
+
         foreach (var target in targets)
         {
-            if (target)
+            if (!target)
             {
-                Arrow(from, target.GizmoPoint, colour);
+                continue;
             }
+
+            number++;
+            Arrow(from, target.GizmoPoint, colour);
+
+#if UNITY_EDITOR
+            // The order they're switched in, by each arrow's head, when they're switched one after another.
+            if (numbered)
+            {
+                var end = target.GizmoPoint;
+                end.z = from.z;
+                UnityEditor.Handles.Label(Vector3.Lerp(from, end, 0.8f), number.ToString());
+            }
+#endif
         }
     }
 
-    // One arrow, from a place to another, shortened at both ends so it doesn't cover what it joins.
-    private static void Arrow(Vector3 from, Vector3 to, Color colour)
+    // One arrow, from a place to another, shortened at both ends so it doesn't cover what it joins. Also used by other scene-view gizmos
+    // that point from one thing to another, such as a teleporter's.
+    public static void Arrow(Vector3 from, Vector3 to, Color colour)
     {
         to.z = from.z;
 

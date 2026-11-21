@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 // A wall sconce: its sprite shows whether its light is lit. The light itself, how long it burns and how it looks lit
-// and unlit are all the LightTileSource's.
+// and unlit are all the LightSource's.
 [RequireComponent(typeof(SpriteRenderer))]
 public class Sconce : MonoBehaviour
 {
@@ -10,7 +10,8 @@ public class Sconce : MonoBehaviour
     public Sprite litSprite;
 
     [Tooltip("The light of this sconce. It is lit and snuffed out through the sconce, or by itself when its time is up, and the sprite follows.")]
-    public LightTileSource lightTileSource;
+    [FormerlySerializedAs("lightTileSource")]
+    public LightSource lightSource;
 
     private SpriteRenderer spriteRenderer;
     private bool shownLit;
@@ -19,41 +20,41 @@ public class Sconce : MonoBehaviour
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
 
-        if (!lightTileSource)
+        if (!lightSource)
         {
-            lightTileSource = GetComponent<LightTileSource>();
+            lightSource = GetComponent<LightSource>();
         }
 
-        if (!lightTileSource)
+        if (!lightSource)
         {
-            Debug.LogWarning($"{name}: a Sconce needs a LightTileSource.", this);
+            Debug.LogWarning($"{name}: a Sconce needs a LightSource.", this);
             return;
         }
 
-        ShowLit(lightTileSource.lit);
+        ShowLit(lightSource.lit);
     }
 
     void Update()
     {
-        if (lightTileSource && lightTileSource.lit != shownLit)
+        if (lightSource && lightSource.lit != shownLit)
         {
-            ShowLit(lightTileSource.lit);
+            ShowLit(lightSource.lit);
         }
     }
 
     public void Light()
     {
-        if (lightTileSource)
+        if (lightSource)
         {
-            lightTileSource.Light();
+            lightSource.Light();
         }
     }
 
     public void Snuff()
     {
-        if (lightTileSource)
+        if (lightSource)
         {
-            lightTileSource.Snuff();
+            lightSource.Snuff();
         }
     }
 

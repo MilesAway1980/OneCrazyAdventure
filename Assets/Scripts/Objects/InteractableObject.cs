@@ -15,10 +15,16 @@ public class InteractableObject : MonoBehaviour
         get { return null; }
     }
 
+    // Whether the arrows to the things are numbered, in the order they're switched.
+    protected virtual bool NumberSwitchTargets
+    {
+        get { return false; }
+    }
+
     // An arrow from here to each of the things this switches, in the scene view while this is selected.
     protected void DrawSwitchArrows()
     {
-        SwitchLinkGizmo.Draw(transform.position, SwitchTargets);
+        SwitchLinkGizmo.Draw(transform.position, SwitchTargets, NumberSwitchTargets);
     }
 
     void OnDrawGizmosSelected()

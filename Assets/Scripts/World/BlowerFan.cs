@@ -7,7 +7,11 @@ using UnityEngine;
 // from the fan along the curve set here, instead of being the same everywhere in the area.
 //
 // Something can be caught by the wind more, or less, than most things by having a WindCatcher, such as an open umbrella.
-public class BlowerFan : MonoBehaviour
+//
+// It's a switchable object, so a lever or a button can change how hard it blows: Power When Off and Power When On are multiples of its
+// Strength (1 is as it is, 0 is off, 2 is twice as hard), and switching it takes the power from one to the other, over Change Seconds. A
+// button that passes on how far it's pressed sets the power by how far, between the two. Left at 1 for both, it isn't changed by a switch.
+public class BlowerFan : SwitchableObject
 {
     public enum AreaShape
     {
@@ -53,6 +57,19 @@ public class BlowerFan : MonoBehaviour
     [Tooltip("Whether the ground is in the way: something the fan can't see, as there is a wall between them, isn't blown. Tiles that collide are looked for, and a thing right at the fan, such as the wall it's built into, is let through.")]
     public bool blockedByGround = true;
 
+    [Header("Switching")]
+    [Min(0f)]
+    [Tooltip("How hard it blows while it's switched off, as a multiple of Strength: 1 is as set above, 0 is off, 2 is twice as hard. It starts the game like this. Leave this and Power When On at 1 for a fan that no switch changes.")]
+    public float powerWhenOff = 1f;
+
+    [Min(0f)]
+    [Tooltip("How hard it blows while it's switched on, as a multiple of Strength: 0 turns it off, 1 is as set above, 2 is twice as hard. A lever or a button that is pressed all the way gives this. A button that passes on how far it's pressed gives anywhere between the two.")]
+    public float powerWhenOn = 1f;
+
+    [Min(0f)]
+    [Tooltip("How long, in seconds, it takes to change by a whole Strength, from off to as set above, or from as set above to off. 0 changes at once. A change of less takes less time.")]
+    public float changeSeconds = 1f;
+
     [Header("Picture")]
     public Sprite sprite1;
     public Sprite sprite2;
@@ -73,8 +90,30 @@ public class BlowerFan : MonoBehaviour
 
     private Rigidbody2D ownBody;
 
-    void Start()
+    // How hard it blows now, as a multiple of Strength, and how far on it's wanted, from 0 (off) to 1 (on).
+    private float power = 1f;
+    private float wantedAmount;
+    private float lastActivated = float.NegativeInfinity;
+
+    // How hard it blows now, as a multiple of Strength, for the network to send.
+    public float Power
     {
+        get { return power; }
+    }
+
+    // On a machine that has joined someone else's game: how hard the host says it blows, which sets how fast the picture turns.
+    public void SetPowerFromNetwork(float newPower)
+    {
+        power = Mathf.Max(0f, newPower);
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+
+        // Switched off, until it's switched on.
+        power = powerWhenOff;
+
         spriteRenderer = GetComponent<SpriteRenderer>();
         ownBody = GetComponent<Rigidbody2D>();
 
@@ -93,9 +132,35 @@ public class BlowerFan : MonoBehaviour
         }
     }
 
-    void Update()
+    // Not the base class's Update, which switches the object off again by itself every frame unless something keeps switching it on. This
+    // one only goes by being told.
+    protected override void Update()
     {
-        if (!spriteRenderer || !sprite1 || !sprite2 || Time.time - spriteChangeTime < spriteChangeSpeed)
+        // In someone else's game the host decides how hard it blows, and the power comes from the network.
+        if (!GameSession.IsClientOnly)
+        {
+            if (!staySwitchedOn && switchOffTime > 0f && wantedAmount > 0f && Time.time - lastActivated >= switchOffTime)
+            {
+                wantedAmount = 0f;
+            }
+
+            var goal = Mathf.Lerp(powerWhenOff, powerWhenOn, wantedAmount);
+
+            power = changeSeconds <= 0f ? goal : Mathf.MoveTowards(power, goal, Time.deltaTime / changeSeconds);
+        }
+
+        // The picture turns as fast as it blows: faster when it's harder, and still when it's off.
+        if (!spriteRenderer || !sprite1)
+        {
+            return;
+        }
+
+        if (!sprite2 || power < 0.02f)
+        {
+            return;
+        }
+
+        if (Time.time - spriteChangeTime < spriteChangeSpeed / Mathf.Clamp(power, 0.25f, 4f))
         {
             return;
         }
@@ -104,9 +169,50 @@ public class BlowerFan : MonoBehaviour
         spriteRenderer.sprite = spriteRenderer.sprite == sprite1 ? sprite2 : sprite1;
     }
 
+    public override void Activate()
+    {
+        base.Activate();
+
+        wantedAmount = 1f;
+        lastActivated = Time.time;
+    }
+
+    public override bool AcceptsAmount
+    {
+        get { return true; }
+    }
+
+    // Takes the power that fraction of the way from Power When Off to Power When On: a button that is half pressed blows half way between.
+    // One that's let go goes back, unless it stays switched on, which keeps it as far as it has been.
+    public override void SetAmount(float amount)
+    {
+        amount = Mathf.Clamp01(amount);
+
+        if (amount <= 0f)
+        {
+            Deactivate();
+            return;
+        }
+
+        base.Activate();
+
+        wantedAmount = staySwitchedOn ? Mathf.Max(wantedAmount, amount) : amount;
+        lastActivated = Time.time;
+    }
+
+    public override void Deactivate()
+    {
+        base.Deactivate();
+
+        if (!staySwitchedOn)
+        {
+            wantedAmount = 0f;
+        }
+    }
+
     void FixedUpdate()
     {
-        if (strength <= 0f)
+        if (strength * power <= 0.0001f)
         {
             return;
         }
@@ -191,7 +297,7 @@ public class BlowerFan : MonoBehaviour
             return;
         }
 
-        var strengthHere = strength * Mathf.Max(falloff.Evaluate(1f - Mathf.Clamp01(distance / range)), 0f);
+        var strengthHere = strength * power * Mathf.Max(falloff.Evaluate(1f - Mathf.Clamp01(distance / range)), 0f);
 
         var catcher = body.GetComponentInParent<WindCatcher>();
         if (catcher)

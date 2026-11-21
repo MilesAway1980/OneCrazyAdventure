@@ -14,7 +14,7 @@ namespace Characters
 
         private List<Sconce> sconces;
 
-        private LightTileSource lightTileSource;
+        private LightSource lightSource;
         private HeatSource heatSource;
 
         protected override void Start()
@@ -22,7 +22,7 @@ namespace Characters
             base.Start();
             sconces = new List<Sconce>(FindObjectsByType<Sconce>(FindObjectsInactive.Exclude));
 
-            lightTileSource = GetComponent<LightTileSource>();
+            lightSource = GetComponent<LightSource>();
             heatSource = GetComponent<HeatSource>();
         }
 
@@ -38,9 +38,9 @@ namespace Characters
         // for the way he's facing and whether he's in the air.
         public void ShowLit(bool lit)
         {
-            if (lightTileSource)
+            if (lightSource)
             {
-                lightTileSource.SetLit(lit);
+                lightSource.SetLit(lit);
             }
 
             if (!lit && spriteRenderer)
@@ -83,9 +83,9 @@ namespace Characters
                 }
             }
 
-            if (lightTileSource)
+            if (lightSource)
             {
-                lightTileSource.SetLit(lit);
+                lightSource.SetLit(lit);
             }
 
             if (heatSource)

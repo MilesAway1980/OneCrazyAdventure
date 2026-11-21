@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Characters;
 using UnityEngine;
@@ -23,6 +24,29 @@ using UnityEngine;
 public class ButtonSwitch : MonoBehaviour
 {
     public SwitchableObject[] switchableObject;
+
+    [Header("Timing")]
+    [Min(0f)]
+    [Tooltip("When this switches more than one thing, how many seconds it waits between one and the next, in the order of the list: the first at once, the second after this long, the third after twice as long, and so on. For lights that come on one by one. 0 switches them all at the same moment.")]
+    public float delayBetweenObjects;
+
+    [Tooltip("How the things are switched off, if there's a delay between them: all at once, one after another in the same order, or one after another with the last first. Only matters when Delay Between Objects is more than 0.")]
+    public SwitchOffOrder switchOffOrder = SwitchOffOrder.AllAtOnce;
+
+    // Switches the things one after another, when there's a delay between them.
+    private readonly SwitchSequence sequence = new SwitchSequence();
+    private Func<SwitchableObject, bool> counts;
+
+    // Whether a thing takes part: it's there, it's switched on, and it isn't one that follows how far the pad is pressed.
+    private bool Counts(SwitchableObject obj)
+    {
+        return obj && obj.enabled && !(passOnAmount && obj.AcceptsAmount);
+    }
+
+    private Func<SwitchableObject, bool> CountsFunction
+    {
+        get { return counts ?? (counts = Counts); }
+    }
 
     [Range(0, 100)]
     [Tooltip("How far down the pad has to go, as a percentage of the way, to switch things on. 0 is as soon as it moves at all. " +
@@ -192,6 +216,12 @@ public class ButtonSwitch : MonoBehaviour
         if (GameSession.IsClientOnly)
         {
             return;
+        }
+
+        // The things that are waiting for their turn.
+        if (sequence.Pending)
+        {
+            sequence.Tick(switchableObject, false, CountsFunction);
         }
 
         if (passOnAmount)
@@ -406,7 +436,23 @@ public class ButtonSwitch : MonoBehaviour
 
     private void Activate()
     {
+        var starting = !activated;
         activated = true;
+
+        // One after another, if there's a delay between them.
+        if (delayBetweenObjects > 0f)
+        {
+            if (starting)
+            {
+                sequence.Begin(switchableObject, true, delayBetweenObjects, false, CountsFunction);
+            }
+
+            sequence.Tick(switchableObject, staysActiveWhenOn, CountsFunction);
+            return;
+        }
+
+        sequence.Cancel();
+
         foreach (var obj in switchableObject)
         {
             if (!obj || (passOnAmount && obj.AcceptsAmount))
@@ -424,6 +470,17 @@ public class ButtonSwitch : MonoBehaviour
     private void Deactivate()
     {
         activated = false;
+
+        // One after another, if there's a delay between them and they're to go off that way.
+        if (delayBetweenObjects > 0f && switchOffOrder != SwitchOffOrder.AllAtOnce)
+        {
+            sequence.Begin(switchableObject, false, delayBetweenObjects, switchOffOrder == SwitchOffOrder.ReverseOrder, CountsFunction);
+            sequence.Tick(switchableObject, false, CountsFunction);
+            return;
+        }
+
+        sequence.Cancel();
+
         foreach (var obj in switchableObject)
         {
             if (!obj || (passOnAmount && obj.AcceptsAmount))
@@ -441,7 +498,7 @@ public class ButtonSwitch : MonoBehaviour
     // Selected in the scene view: an arrow to each of the things this switches, where the pad sits, and how far down it goes.
     void OnDrawGizmosSelected()
     {
-        SwitchLinkGizmo.Draw(transform.position, switchableObject);
+        SwitchLinkGizmo.Draw(transform.position, switchableObject, delayBetweenObjects > 0f);
 
         var body = Pad;
 

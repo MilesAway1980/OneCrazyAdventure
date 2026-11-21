@@ -934,18 +934,80 @@ namespace Characters
                 return;
             }
 
+            var before = rigidBody2D.position;
+
             SetPosition(position);
             lastSafePosition = position;
 
             rigidBody2D.linearVelocity = Vector2.zero;
             rigidBody2D.angularVelocity = 0f;
             moveSpeed = 0f;
+            pushSpeed = 0f;
+            pushDelta = 0f;
+
+            MoveCarried(position - before);
 
             // On every other machine too, and straight there, rather than sliding across from where they were.
             var sync = GetComponent<Mirror.NetworkTransformBase>();
             if (sync && sync.isServer)
             {
                 sync.ServerTeleport(transform.position, transform.rotation);
+            }
+        }
+
+        // Whether he is on his way from one place to another, such as through a teleporter that takes time. He can't be seen, can't be touched,
+        // doesn't do anything and can't be steered, but he's still in the game, and still the character of whoever controls him, and
+        // the cameras follow him as he goes.
+        public bool InTransit { get; private set; }
+
+        public void SetInTransit(bool inTransit)
+        {
+            InTransit = inTransit;
+
+            GetParking().SetTransit(inTransit);
+        }
+
+        // Moves him on his way, at the place he is now, without anything else being done: for a teleporter taking him across. What he is
+        // carrying goes with him.
+        public void MoveInTransit(Vector2 position)
+        {
+            var by = position - (Vector2)transform.position;
+
+            transform.position = new Vector3(position.x, position.y, transform.position.z);
+
+            if (rigidBody2D)
+            {
+                rigidBody2D.position = position;
+            }
+
+            MoveCarried(by, false);
+        }
+
+        // What he's carrying goes with him, the same distance, or the joint that holds it would drag it across the world after him. It's
+        // sent to the other machines at once, rather than slid across, unless he's on his way somewhere and it's moved a bit at a time.
+        private void MoveCarried(Vector2 by, bool sendAtOnce = true)
+        {
+            if (!objectCarrying)
+            {
+                return;
+            }
+
+            var held = objectCarrying.GetComponent<Rigidbody2D>();
+
+            if (!held)
+            {
+                return;
+            }
+
+            held.position += by;
+            held.transform.position += new Vector3(by.x, by.y, 0f);
+            held.linearVelocity = Vector2.zero;
+            held.angularVelocity = 0f;
+
+            var sync = held.GetComponent<Mirror.NetworkTransformBase>();
+            if (sendAtOnce && sync && sync.isServer)
+            {
+                sync.ServerTeleport(held.transform.position, held.transform.rotation);
             }
         }
 

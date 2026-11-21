@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
-// The shadow settings shared by the game's lights (LightTileSource, the Flashlight), so that dozens of sconces can
+// The shadow settings shared by the game's lights (LightSource, the Flashlight), so that dozens of sconces can
 // be set up in one place. A light follows these unless it has been told to use settings of its own.
 //
 // To use it: Assets > Create > Lighting > Global Light Settings, name it GlobalLightSettings and put it in a folder

@@ -229,6 +229,15 @@ public static class NetworkCharactersMenu
             count += NetworkWith<LeverNetwork>(lever.gameObject) ? 1 : 0;
         }
 
+        // A fan that a switch can change sends how hard it blows, which turns its picture.
+        foreach (var fan in Object.FindObjectsByType<BlowerFan>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!Mathf.Approximately(fan.powerWhenOn, fan.powerWhenOff))
+            {
+                count += NetworkWith<BlowerFanNetwork>(fan.gameObject) ? 1 : 0;
+            }
+        }
+
         // A liquid that is raised and lowered sends how full it is.
         foreach (var liquid in Object.FindObjectsByType<SwitchLiquid>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
@@ -288,7 +297,7 @@ public static class NetworkCharactersMenu
         }
 
         // Lights that aren't a character's, such as a sconce's: a character's own light goes with the character.
-        foreach (var source in Object.FindObjectsByType<LightTileSource>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        foreach (var source in Object.FindObjectsByType<LightSource>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             if (!source.GetComponentInParent<Character>())
             {
@@ -449,6 +458,14 @@ public static class NetworkCharactersMenu
             objects.Add(liquid.gameObject);
         }
 
+        foreach (var fan in Object.FindObjectsByType<BlowerFan>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (fan.GetComponent<BlowerFanNetwork>())
+            {
+                objects.Add(fan.gameObject);
+            }
+        }
+
         foreach (var pickup in Object.FindObjectsByType<CharacterPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             objects.Add(pickup.gameObject);
@@ -477,7 +494,7 @@ public static class NetworkCharactersMenu
             objects.Add(darkness.gameObject);
         }
 
-        foreach (var source in Object.FindObjectsByType<LightTileSource>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        foreach (var source in Object.FindObjectsByType<LightSource>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             if (!source.GetComponentInParent<Character>())
             {
@@ -495,6 +512,7 @@ public static class NetworkCharactersMenu
             RemoveIfThere<LightSourceNetwork>(go);
             RemoveIfThere<LeverNetwork>(go);
             RemoveIfThere<LiquidLevelNetwork>(go);
+            RemoveIfThere<BlowerFanNetwork>(go);
             RemoveIfThere<PickupNetwork>(go);
             RemoveIfThere<NetworkRigidbodyUnreliable2D>(go);
             RemoveIfThere<NetworkTransformUnreliable>(go);

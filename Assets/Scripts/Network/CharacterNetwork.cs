@@ -18,6 +18,7 @@ public class CharacterNetwork : NetworkBehaviour
     [SyncVar] private bool airborne;
     [SyncVar] private bool performing;
     [SyncVar(hook = nameof(OnInGameChanged))] private bool inGame = true;
+    [SyncVar(hook = nameof(OnInTransitChanged))] private bool inTransit;
 
     private Character character;
 
@@ -43,6 +44,7 @@ public class CharacterNetwork : NetworkBehaviour
             airborne = Character.Airborne;
             performing = Character.IsPerformingAction();
             inGame = Character.InGame;
+            inTransit = Character.InTransit;
         }
         else if (isClient)
         {
@@ -76,6 +78,7 @@ public class CharacterNetwork : NetworkBehaviour
         // Only joined to a game: shown, not simulated, and in or out of the game as the host says.
         Character.SetShownOnly(true);
         Character.SetInGame(inGame);
+        Character.SetInTransit(inTransit);
     }
 
     public override void OnStopClient()
@@ -87,6 +90,15 @@ public class CharacterNetwork : NetworkBehaviour
 
         // Back to being simulated here, if the machine goes back to playing by itself.
         Character.SetShownOnly(false);
+    }
+
+    // On its way through a teleporter that takes time: hidden here as it is there, while it's moved across.
+    private void OnInTransitChanged(bool oldValue, bool newValue)
+    {
+        if (!isServer)
+        {
+            Character.SetInTransit(newValue);
+        }
     }
 
     private void OnInGameChanged(bool oldValue, bool newValue)

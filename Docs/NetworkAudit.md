@@ -27,6 +27,8 @@ global fix described in the last section.
 | `SwitchDoor` | A | position sync, guard |
 | `SwitchMovingPlatform` | A | position sync, guard |
 | `LiquidArea` tide | A | Worked out from `NetworkTime`, so every machine agrees without sending anything |
+| `Teleporter` | A | The host does the sending (`Character.Teleport` already sends the move to every machine). A trip that takes time sends whether the character is in transit (`CharacterNetwork`) so it's hidden everywhere. The pad's used-up and cooling tints aren't sent |
+| `BlowerFan` (switched) | A | The host pushes things. `BlowerFanNetwork` sends how hard it blows, so the picture turns at the right speed on other machines; added only to fans a switch changes |
 | `SwitchLiquid` | A | `LiquidLevelNetwork` sends how full it is; the host does the switching and everything in the liquid |
 | `SwitchDrawbridge` | A | position and rotation sync, guard. The slam sound and event happen on the host only. |
 | `ButtonSwitch` | A (the pad) | position sync of the pad, guard |
@@ -58,7 +60,8 @@ Each is a generic position sync, plus a guard for the logic.
 
 | Script | Notes |
 |---|---|
-| `Sconce` and any `LightTileSource` that's not on a character | Lit or unlit, and the boost. One sender covers them all. |
+| `Sconce` and any `LightSource` that's not on a character | Lit or unlit, how lit it is when a `SwitchLight` sets a level, and the boost. One sender covers them all. |
+| `SwitchLight` | A | The host does the switching; `LightSourceNetwork` sends how lit the light is |
 | `SwitchBrighten`, `DarkTileMap` | The scene's ambient colours change when a switch is on. Send the two colours. The slow pulsing is decoration that can run locally. |
 | `CharacterHub` | Which hubs have been reached, which is the checkpoint, and the flag (`reachedVisual`). |
 | Health: `DamageableEntity` (skimmed) | Hit points and death. A character who dies is returned by the host, so the movement is seen; send hit points only if something shows them. |

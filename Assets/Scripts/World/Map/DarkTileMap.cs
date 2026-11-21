@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 // How dark the scene is: the colour of its Global Light 2D, which can slowly pulse between two colours. Everything
-// lit by other Light2Ds (LightTileSource, or any you add) shows up against this. Only one of these is needed in a
+// lit by other Light2Ds (LightSource, or any you add) shows up against this. Only one of these is needed in a
 // scene.
 public class DarkTileMap : MonoBehaviour
 {

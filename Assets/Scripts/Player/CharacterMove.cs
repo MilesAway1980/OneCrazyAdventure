@@ -368,6 +368,12 @@ public class CharacterMove : MonoBehaviour
     // really on.
     public static void ApplyInput(Character character, PlayerInputFrame input)
     {
+        // On its way through a teleporter, it can't be steered or made to do anything.
+        if (character.InTransit)
+        {
+            return;
+        }
+
         character.DirectionPress(input.move);
 
         // Before the other buttons, so a character that wants one button held while another goes down sees it held when

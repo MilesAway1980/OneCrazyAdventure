@@ -32,7 +32,8 @@ namespace Characters
         [Tooltip("The bulb's light. Its unlit look is the normal glow, and its lit look is the brighter glow while the action is held.")]
         [FormerlySerializedAs("useBrightness")]
         [FormerlySerializedAs("brightTileSource")]
-        public LightTileSource lightTileSource;
+        [FormerlySerializedAs("lightTileSource")]
+        public LightSource lightSource;
 
         [Header("Light Sockets")]
         [Tooltip("Seconds he takes to screw himself into a socket, and the same to screw himself out of it.")]
@@ -78,18 +79,18 @@ namespace Characters
 
         protected override void Start()
         {
-            if (!lightTileSource)
+            if (!lightSource)
             {
-                lightTileSource = GetComponent<LightTileSource>();
+                lightSource = GetComponent<LightSource>();
             }
 
-            if (lightTileSource)
+            if (lightSource)
             {
                 LightLit(false);
             }
             else
             {
-                Debug.LogWarning($"{name}: the Bulb has no LightTileSource, so it has no light to brighten.", this);
+                Debug.LogWarning($"{name}: the Bulb has no LightSource, so it has no light to brighten.", this);
             }
 
             base.Start();
@@ -117,9 +118,9 @@ namespace Characters
 
         private void LightLit(bool isLit)
         {
-            if (lightTileSource)
+            if (lightSource)
             {
-                lightTileSource.SetLit(isLit);
+                lightSource.SetLit(isLit);
             }
 
             lightCall.lit = isLit;
@@ -129,9 +130,9 @@ namespace Characters
 
         private void LightLit(bool isLit, float seconds)
         {
-            if (lightTileSource)
+            if (lightSource)
             {
-                lightTileSource.SetLit(isLit, seconds);
+                lightSource.SetLit(isLit, seconds);
             }
 
             lightCall.lit = isLit;
@@ -141,9 +142,9 @@ namespace Characters
 
         private void LightBoost(float radiusMultiplier, float intensityMultiplier, float seconds)
         {
-            if (lightTileSource)
+            if (lightSource)
             {
-                lightTileSource.SetBoost(radiusMultiplier, intensityMultiplier, seconds);
+                lightSource.SetBoost(radiusMultiplier, intensityMultiplier, seconds);
             }
 
             lightCall.hasBoost = true;
@@ -182,23 +183,23 @@ namespace Characters
         // Tells his light what the host told it.
         public void ShowLight(BulbLightCall call)
         {
-            if (!lightTileSource || call.revision == 0)
+            if (!lightSource || call.revision == 0)
             {
                 return;
             }
 
             if (call.litSeconds >= 0f)
             {
-                lightTileSource.SetLit(call.lit, call.litSeconds);
+                lightSource.SetLit(call.lit, call.litSeconds);
             }
             else
             {
-                lightTileSource.SetLit(call.lit);
+                lightSource.SetLit(call.lit);
             }
 
             if (call.hasBoost)
             {
-                lightTileSource.SetBoost(call.boostRadius, call.boostIntensity, call.boostSeconds);
+                lightSource.SetBoost(call.boostRadius, call.boostIntensity, call.boostSeconds);
             }
         }
 
@@ -363,7 +364,7 @@ namespace Characters
 
             performingAction = lit;
 
-            if (lightTileSource)
+            if (lightSource)
             {
                 LightLit(lit);
             }
@@ -436,7 +437,7 @@ namespace Characters
             canMove = false;
             performingAction = false;
 
-            if (lightTileSource)
+            if (lightSource)
             {
                 LightLit(false);
             }
@@ -449,7 +450,7 @@ namespace Characters
             state = State.Socketed;
             performingAction = true;
 
-            if (lightTileSource)
+            if (lightSource)
             {
                 LightLit(true, socket.boostSeconds);
                 LightBoost(socket.radiusMultiplier, socket.intensityMultiplier, socket.boostSeconds);
@@ -492,7 +493,7 @@ namespace Characters
             // up, over the socket's time.
             performingAction = false;
 
-            if (lightTileSource)
+            if (lightSource)
             {
                 LightLit(false, socket.boostSeconds);
                 LightBoost(1f, 1f, socket.boostSeconds);
@@ -543,7 +544,7 @@ namespace Characters
 
             performingAction = lit;
 
-            if (lightTileSource)
+            if (lightSource)
             {
                 LightLit(lit);
                 LightBoost(1f, 1f, settleSeconds);

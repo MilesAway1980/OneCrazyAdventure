@@ -43,11 +43,17 @@ A picture drawn over the area, to show the water.
 | Setting | What it does |
 |---|---|
 | **Overlay** | The sprite. Nothing is drawn if it's empty. |
-| **Overlay Style** | **Stretch** fits the picture to the area's box. **Tile** repeats it across the whole area at its own size, so the surface is covered in copies of the sprite. It works with any sprite, a whole texture or one cut from a sprite sheet, and doesn't need the texture's Wrap Mode set to Repeat (it has a shader of its own, `Assets/Resources/TiledSprite.shader`). |
+| **Overlay Style** | **Stretch** fits the picture to the area's box. **Tile** repeats it across the whole area at its own size, so the surface is covered in copies of the sprite. It works with any sprite, a whole texture or one cut from a sprite sheet, and doesn't need the texture's Wrap Mode set to Repeat (it has a shader of its own, `Assets/Resources/LiquidSprite.shader`). |
 | **Tile Scale** | Tile only: how big each copy is, compared with the sprite's own size. 1 is as big as the sprite, 2 is twice as big, 0.5 is half. |
 | **Tint** | A colour the picture is tinted. White leaves it as it is. |
 | **Transparency** | How see-through it is, as a percentage: **0 is solid, 100 is invisible**. |
+| **Light Response** | How much the scene's 2D lights matter to the overlay, from 0 to 1. **1 (the default)** lights it as everything else is lit: it goes dark where it's dark (under the Global Light 2D that `DarkTileMap` sets) and is brightened by a light near it. **0** ignores the lights, so the water is always fully bright, as it was before. In between is a mix of the two: 0.5 is water that is dimmed in the dark, but not all the way. |
+| **Sorting Layer Name** | The sorting layer the overlay is drawn on, "Default" unless you say. A light only lights things on its **Target Sorting Layers**, so the overlay has to be on one of them. Type the layer's name exactly. |
 | **Sorting Order** | Which things it's drawn in front of. The default, 5, is in front of ordinary things, so a character in the water looks under it. |
+
+The overlay's shader (`LiquidSprite.shader`) is made from URP's own 2D lit sprite shader, so it follows the 2D renderer's lights and
+light blend styles, and the shadows from Shadow Caster 2Ds fall on it. It has no normal map, so it's lit flat. If the shader is missing, or has
+a compile error, the Console says so once, and the overlay is drawn without light instead of turning pink.
 
 Areas that overlap each draw their own overlay, so where they overlap the picture is less see-through. The overlay is made while
 playing and in the editor; it's never saved in the scene, and doesn't show in the hierarchy.

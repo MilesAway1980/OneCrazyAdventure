@@ -74,6 +74,13 @@ public class LiquidArea : MonoBehaviour
     [Tooltip("How see-through the overlay is, as a percentage: 0 is solid, and 100 is invisible.")]
     public float transparency = 50f;
 
+    [Range(0f, 1f)]
+    [Tooltip("How much the scene's lights matter to the overlay. 1 lights it as they light everything else, so it goes dark where it's dark and bright by a light. 0 ignores the lights, so it's always fully bright. In between is a mix of the two.")]
+    public float lightResponse = 1f;
+
+    [Tooltip("The sorting layer the overlay is drawn on. It's a light's Target Sorting Layers that decide which lights reach it, so this has to be one of them.")]
+    public string sortingLayerName = "Default";
+
     [Tooltip("Which things the overlay is drawn in front of. Higher is in front.")]
     public int sortingOrder = 5;
 
@@ -149,6 +156,14 @@ public class LiquidArea : MonoBehaviour
     private Material material;
     private Material tileMaterial;
     private float drawnTileScale;
+
+    // Whether the overlay is drawn with the shader that the lights light. If that can't be found or doesn't work, it's drawn without light.
+    private bool usesLitShader;
+    private static bool warnedUnlit;
+
+    private static readonly int LightResponseId = Shader.PropertyToID("_LightResponse");
+    private static readonly int TiledId = Shader.PropertyToID("_Tiled");
+    private static readonly int TileRectId = Shader.PropertyToID("_TileRect");
 
     // The liquid this area is of, from its density, viscosity and minimum kick. It's only made again when one of them changes.
     public Fluid EffectiveFluid
@@ -633,7 +648,21 @@ public class LiquidArea : MonoBehaviour
 
         if (!material)
         {
-            var shader = Shader.Find("Sprites/Default");
+            // The shader the lights light, which also repeats the picture for the Tile style. If it can't be used, the ordinary sprite shader
+            // draws the picture, without light.
+            var shader = Resources.Load<Shader>("LiquidSprite");
+            usesLitShader = shader && shader.isSupported;
+
+            if (!usesLitShader)
+            {
+                if (!warnedUnlit)
+                {
+                    warnedUnlit = true;
+                    Debug.LogWarning("The liquid overlay can't use Assets/Resources/LiquidSprite.shader (it's missing, or has a compile error), so it's drawn without light.", this);
+                }
+
+                shader = Shader.Find("Sprites/Default");
+            }
 
             if (!shader)
             {
@@ -651,7 +680,7 @@ public class LiquidArea : MonoBehaviour
 
         // The Tile style repeats the picture with a shader of its own, which doesn't depend on the texture's Wrap Mode. If it can't be found,
         // the ordinary one is used, and the texture has to be set to repeat.
-        if (overlayStyle == OverlayStyle.Tile && !tileMaterial)
+        if (!usesLitShader && overlayStyle == OverlayStyle.Tile && !tileMaterial)
         {
             var tileShader = Resources.Load<Shader>("TiledSprite");
 
@@ -661,8 +690,14 @@ public class LiquidArea : MonoBehaviour
             }
         }
 
-        meshRenderer.sharedMaterial = overlayStyle == OverlayStyle.Tile && tileMaterial ? tileMaterial : material;
+        meshRenderer.sharedMaterial = !usesLitShader && overlayStyle == OverlayStyle.Tile && tileMaterial ? tileMaterial : material;
+        meshRenderer.sortingLayerName = string.IsNullOrEmpty(sortingLayerName) ? "Default" : sortingLayerName;
         meshRenderer.sortingOrder = sortingOrder;
+
+        if (usesLitShader)
+        {
+            material.SetFloat(LightResponseId, Mathf.Clamp01(lightResponse));
+        }
         drawing.GetComponent<MeshFilter>().sharedMesh = mesh;
 
         // Not full, the overlay is cut by the surface, which is level in the world, so it's made again whenever the area could have moved.
@@ -702,13 +737,21 @@ public class LiquidArea : MonoBehaviour
         var tileHeight = Mathf.Max(0.0001f, picture.height / overlay.pixelsPerUnit * scale);
         var window = overlay.textureRect;
 
-        // The tile shader is told where the sprite is in its texture, a little in from the edge so a neighbour's pixels aren't blended in.
-        if (overlayStyle == OverlayStyle.Tile && tileMaterial)
+        // The tile shader is told where the sprite is in its texture, a little in from the edge so a neighbour's pixels aren't blended in. The
+        // shader the lights light does both styles, and is told which this is.
+        var tiler = usesLitShader ? material : tileMaterial;
+
+        if (usesLitShader)
+        {
+            material.SetFloat(TiledId, overlayStyle == OverlayStyle.Tile ? 1f : 0f);
+        }
+
+        if (overlayStyle == OverlayStyle.Tile && tiler)
         {
             var insetX = 0.5f / texture.width;
             var insetY = 0.5f / texture.height;
 
-            tileMaterial.SetVector("_TileRect", new Vector4(
+            tiler.SetVector(TileRectId, new Vector4(
                 window.xMin / texture.width + insetX,
                 window.yMin / texture.height + insetY,
                 window.width / texture.width - insetX * 2f,

@@ -6,9 +6,13 @@ using UnityEngine;
 [Serializable]
 public struct TileDirection
 {
+    [Tooltip("Whether it found a tile in this direction.")]
     public bool hasHit;
+    [Tooltip("The cell of the tile it found.")]
     public Vector2Int position;
+    [Tooltip("How far away, in units, the tile it found is.")]
     public float distance;
+    [Tooltip("The angle, in degrees, that it looked along.")]
     public float angle;
 
     public TileDirection(Vector2Int tilePosition, float tileDistance, float tileAngle)

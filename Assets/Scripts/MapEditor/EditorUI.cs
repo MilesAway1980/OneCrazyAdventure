@@ -46,6 +46,7 @@ public class EditorUI : MonoBehaviour
 
     private Camera cam;
 
+    [Tooltip("How far, in units, from the camera's position this is kept.")]
     public Vector2 camOffset;
     
     void Start()

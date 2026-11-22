@@ -4,18 +4,29 @@ using Characters;
 
 public class SinglePlayerCamera : MonoBehaviour
 {
+    [Tooltip("Where the camera is heading, in the world. Worked out as the game runs: for watching, not for setting.")]
     public Vector2 targetPosition;
+    [Tooltip("How fast, in units a second, the camera moves to a new character. Used until it has caught up with them.")]
     public float transitionSpeed;
+    [Tooltip("How fast, in units a second, the camera keeps up with a character once it has caught up with them.")]
     public float followSpeed;
+    [Tooltip("How far the look stick moves the camera, at the widest zoom.")]
     public float lookDist;
 
+    [Tooltip("The player this camera follows. Found when the game starts.")]
     public Player player;
+    [Tooltip("How far the look stick is pushed at the moment. Worked out as the game runs: for watching, not for setting.")]
     public Vector2 lookPosition;
+    [Tooltip("The widest the camera can zoom out to (the largest camera size).")]
     public float maxZoom;
+    [Tooltip("The camera size when the game starts.")]
     public float startZoom;
+    [Tooltip("The closest the camera can zoom in to (the smallest camera size).")]
     public float minZoom;
+    [Tooltip("How much the zoom buttons change the camera size each time they're pressed.")]
     public float zoomSpeed;
 
+    [Tooltip("Splits the screen into a left and a right view instead of a top and a bottom one, when a character is locked to its own view.")]
     public bool horizontalSplit;
     
     private bool active;

@@ -2,9 +2,12 @@ using UnityEngine;
 
 public class MagnetBox : MonoBehaviour
 {
+    [Tooltip("How strongly it pulls things towards it. Not used at the moment.")]
     public float magnetStrength;
     private int dir = -1;
+    [Tooltip("How far it moves each frame, in units, as it goes back and forth.")]
     public float moveSpeed;
+    [Tooltip("How far, in units, it goes from where it starts before it turns around.")]
     public float moveRange;
 
     private Vector3 startPosition;

@@ -5,18 +5,29 @@ namespace Characters
 {
     public class Dynamite : Character
     {
+        [Tooltip("How fast, each second, his charge builds up while the ability button is held.")]
         public float chargeValueIncreaseSpeed;
+        [Tooltip("The most charge he can build up.")]
         public float maximumChargeValue;
+        [Tooltip("How much charge he has now. For watching, not for setting.")]
         public float chargeValue;
+        [Tooltip("How hard the blast pushes things away and damages tiles. The nearer to him, the more of it they get.")]
         public float explosionForce;
+        [Tooltip("How far, in units, the blast reaches.")]
         public float explosionDistance;
+        [Tooltip("How long, in seconds, after he has exploded until he's put back together.")]
         public float explosionResetTimeSeconds;
 
+        [Tooltip("Whether he has blown up and is waiting to be put back together. For watching, not for setting.")]
         public bool exploded;
+        [Tooltip("When he blew up, in game time. For watching, not for setting.")]
         public float explodingTime;
+        [Tooltip("The picture shown while he's blown up.")]
         public Sprite explodedSprite;
 
+        [Tooltip("The piece that flies out when he blows up. A copy of it is thrown out for each of the pieces.")]
         public GameObject explosionPiece;
+        [Tooltip("How many pieces fly out when he blows up.")]
         public int numExplosionPieces;
 
         [Header("Charge Meter")]

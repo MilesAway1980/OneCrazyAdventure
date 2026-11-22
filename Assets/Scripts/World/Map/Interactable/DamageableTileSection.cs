@@ -11,6 +11,7 @@ public class DamageableTileSection : DamageableTileOptions
 
     //private Dictionary<Vector2, List<(Tilemap, TileBase)>> tiles;
 
+    [Tooltip("Only tiles on tilemaps that have a collider are made damageable.")]
     public bool onlyOnCollidableTilemaps = true;
     
     [Tooltip("Extra padding around the tile to extend the destruction trigger.")]

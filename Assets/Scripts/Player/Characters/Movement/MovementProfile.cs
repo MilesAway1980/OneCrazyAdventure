@@ -23,6 +23,7 @@ public class MovementProfile : ScriptableObject
     public bool applyMass = true;
 
     [Header("How it differs from others of its weight")]
+    [Tooltip("How this character differs from others of its weight: the things that make them quicker, snappier or floatier than their weight alone would.")]
     public MovementTraits traits = new MovementTraits();
 
     [Header("When it does something")]

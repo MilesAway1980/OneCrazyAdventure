@@ -46,6 +46,7 @@ public class DamageableTileOptions : MonoBehaviour
     [Tooltip("The slowest and fastest, in units per second, that a piece of debris is thrown out, though it's always thrown " +
              "upward a little as well.")]
     public float debrisMinSpeed = 2f;
+    [Tooltip("The fastest, in units per second, that a piece of debris is thrown out. See Debris Min Speed.")]
     public float debrisMaxSpeed = 5f;
     [Range(0f, 90f)]
     [Tooltip("How far, in degrees, either way of the direction it was hit, each piece of debris can be thrown, chosen at random. " +
@@ -165,8 +166,12 @@ public class DamageableTileOptions : MonoBehaviour
 
     [Tooltip("Damaged from any side. Otherwise, only from the sides that are ticked.")]
     public bool All;
+    [Tooltip("Damaged from above.")]
     public bool Up;
+    [Tooltip("Damaged from below.")]
     public bool Down;
+    [Tooltip("Damaged from the left.")]
     public bool Left;
+    [Tooltip("Damaged from the right.")]
     public bool Right;
 }

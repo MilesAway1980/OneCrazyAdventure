@@ -2,12 +2,16 @@ using UnityEngine;
 
 public class EnemySideToSide : Enemy
 {
+    [Tooltip("How hard it pushes itself along, as a force while it's going slower than Max Speed.")]
     [SerializeField] private float acceleration;
     //[SerializeField] private float deceleration;
+    [Tooltip("It stops pushing once it's going this fast, in units a second.")]
     [SerializeField] private float maxSpeed;
     private float currentSpeed;
 
+    [Tooltip("It turns around when a wall in the way it's going is closer than this, in units.")]
     public float distanceFromWallToTurnAround;
+    [Tooltip("It turns around when the floor ahead of it is further down than this, in units, or isn't there at all, so it doesn't walk off ledges.")]
     public float distanceToFloorBelowToTurnAround;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created

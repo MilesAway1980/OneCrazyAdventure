@@ -11,28 +11,43 @@ namespace Characters
         Right
     }
 
+    [RequireComponent(typeof(Rigidbody2D), typeof(DamageableEntity))]
     public class Character : MonoBehaviour
     {
+        [Tooltip("The picture shown while he's standing or walking.")]
         public Sprite walkSprite;
+        [Tooltip("The picture shown while he's in the air.")]
         public Sprite jumpSprite;
+        [Tooltip("The picture shown while he's using his ability on the ground.")]
         public Sprite actionSprite;
+        [Tooltip("The picture for using something, such as a lever. Not used at the moment.")]
         public Sprite interactSprite;
+        [Tooltip("The picture shown while he's using his ability in the air.")]
         public Sprite jumpUseSprite;
         
+        [Tooltip("Whether he can climb up onto things he comes to, such as crates.")]
         public bool ableToClimbObjects = true;
+        [Tooltip("Whether he can pick up and carry things, such as crates.")]
         public bool ableToCarryObjects = true;
+        [Tooltip("Whether he can take hold of things, to pull or push them.")]
         public bool ableToGrabObjects = true;
 
+        [Tooltip("The Kinematic body, such as an empty child object, that things he carries are attached to. Needed if he is able to carry things.")]
         public Rigidbody2D carryAttachmentPoint;
 
         private bool holdingJump;
         //Eventually make protected.  public for testing
+        [Tooltip("Whether he can jump at the moment. Worked out as the game runs: for watching, not for setting.")]
         public bool canJump;
+        [Tooltip("Whether he's in a jump at the moment. Worked out as the game runs: for watching, not for setting.")]
         public bool isJumping;
+        [Tooltip("Whether the jump he's in has already been started, so it isn't started again. For watching, not for setting.")]
         public bool alreadyJumping;
+        [Tooltip("Whether he's falling at the moment. Worked out as the game runs: for watching, not for setting.")]
         public bool isFalling;
         private float maxFallSpeed;
         
+        [Tooltip("Whether he's in a liquid at the moment. Worked out as the game runs: for watching, not for setting.")]
         public bool inLiquid;
 
         private float distFromGround;
@@ -96,6 +111,7 @@ namespace Characters
         private const float StillOnGround = 0.3f;
 
         //public float currentSpeed;
+        [Tooltip("The dust kicked up from his feet as he walks. It's found by itself, from a child tagged FootDust, so it can be left empty.")]
         public ParticleSystem footDust;
 
         [Header("Movement")]

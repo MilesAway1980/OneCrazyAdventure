@@ -38,6 +38,7 @@ public class BlowerFan : SwitchableObject
     public AnimationCurve falloff = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 
     [Header("Area")]
+    [Tooltip("The shape of the area it blows over.")]
     public AreaShape shape = AreaShape.Column;
 
     [Min(0.01f)]
@@ -71,8 +72,11 @@ public class BlowerFan : SwitchableObject
     public float changeSeconds = 1f;
 
     [Header("Picture")]
+    [Tooltip("One of the two pictures it flips between, to look like it's turning.")]
     public Sprite sprite1;
+    [Tooltip("The other of the two pictures it flips between. Leave it empty for a fan that doesn't turn.")]
     public Sprite sprite2;
+    [Tooltip("How long, in seconds, between flips of the picture. A harder blowing fan flips faster.")]
     public float spriteChangeSpeed = 0.05f;
 
     // How far from the fan, in units, something blocking it is ignored, so a fan set into a wall can still blow.

@@ -7,6 +7,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class EnemyGroundPath : MonoBehaviour
 {
+    [Tooltip("The places the enemy walks to, in order, and then round again. Drag in objects, placed where it should go.")]
     public List<GameObject> destinations = new List<GameObject>();
 
     [Tooltip("The destination to head to first. Leave empty to start with the first one in the list.")]
@@ -65,6 +66,7 @@ public class EnemyGroundPath : MonoBehaviour
     public bool slipperyInAir = true;
 
     [Space]
+    [Tooltip("The place in the list that it's heading for now, counting from 0. Changes as it goes.")]
     public int currentDestination;
 
     private const float StuckSeconds = 1f;

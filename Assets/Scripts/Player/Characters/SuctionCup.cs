@@ -12,7 +12,9 @@ namespace Characters
     //  - He is a fixed anchor, such as for Piton's rope.
     public class SuctionCup : Character
     {
+        [Tooltip("The picture shown while he's holding on to a wall.")]
         public Sprite wallHoldSprite;
+        [Tooltip("The picture shown while he's holding on to a ceiling.")]
         public Sprite ceilingHoldSprite;
 
         [Range(0f, 90f)]

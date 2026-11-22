@@ -8,6 +8,7 @@ namespace Characters
     public class Magnet : Character
     {
         [SerializeField]
+        [Tooltip("The child object with the Point Effector 2D that pulls things toward him. It's switched on while the ability is held.")]
         private GameObject magneticField;
 
         [Tooltip("How hard the field pulls things toward him. It's the strength of the field's Point Effector 2D, which is set from this.")]

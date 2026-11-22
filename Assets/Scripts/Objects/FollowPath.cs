@@ -6,12 +6,16 @@ using UnityEngine;
 public class FollowPath : MonoBehaviour
 {
     [SerializeField]
+    [Tooltip("The markers it moves between, in order, and then round again. Each is an object with a Follow Path Target on it.")]
     private FollowPathTarget[] pathMarkers;
 
+    [Tooltip("The marker in the path that it's heading for now, counting from 0. Changes as it goes.")]
     public int nextTarget;
     private Vector2 startPosition;
 
+    [Tooltip("How fast it moves between markers, in units a second.")]
     public float moveSpeed;
+    [Tooltip("Meant for moving by velocity instead of by position, which nothing does yet. Ticking it stops the object moving at all.")]
     public bool useVelocity;
     
     void Start()

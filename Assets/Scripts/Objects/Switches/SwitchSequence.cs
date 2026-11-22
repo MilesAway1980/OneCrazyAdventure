@@ -16,7 +16,8 @@ public enum SwitchOffOrder
 // Switches a list of switchable objects on or off one after another, with a delay between each, for a lever or a button that works
 // several things: a row of sconces that light one by one instead of all together. It's used by LeverSwitch and ButtonSwitch.
 //
-// The objects go in the order of the list. The first is switched at once, the second after one delay, the third after two, and so on. Any in
+// The objects go in the order of the list. The first is switched after the initial delay (none, if it's 0), the second one delay after that,
+// the third two delays after, and so on, so the first can come on quickly and the rest more slowly. Any in
 // the list that are missing, switched off, or left out by the switch (a button's things that follow how far it's pressed) don't take a turn.
 // Switching the other way part way through stops the ones that haven't had their turn, and starts again the other way.
 //
@@ -36,8 +37,9 @@ public class SwitchSequence
         get { return pending; }
     }
 
-    // Starts switching the objects on or off, one by one, delay seconds apart. The ones that aren't included are skipped, and take no time.
-    public void Begin(IList<SwitchableObject> objects, bool on, float delay, bool reversed, Func<SwitchableObject, bool> included)
+    // Starts switching the objects on or off, one by one: the first after firstDelay seconds, then each one delay seconds after the one
+    // before. The ones that aren't included are skipped, and take no time.
+    public void Begin(IList<SwitchableObject> objects, bool on, float firstDelay, float delay, bool reversed, Func<SwitchableObject, bool> included)
     {
         var count = objects.Count;
 
@@ -66,7 +68,7 @@ public class SwitchSequence
                 continue;
             }
 
-            dueAfter[i] = slot * delay;
+            dueAfter[i] = firstDelay + slot * delay;
             done[i] = false;
             slot++;
             pending = true;

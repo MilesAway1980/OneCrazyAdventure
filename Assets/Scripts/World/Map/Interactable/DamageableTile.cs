@@ -7,9 +7,11 @@ using UnityEngine.Tilemaps;
 
 public class DamageableTile : DamageableTileOptions
 {
+    [Tooltip("Where this tile is in its tilemap, as a cell. Set by the section that made it.")]
     public Vector2Int position;
 
     // The section this tile is a part of, which is where what shows when it breaks is taken from.
+    [Tooltip("The section this tile is a part of, which is where what shows when it breaks is taken from.")]
     public DamageableTileOptions section;
 
     private List<(Tilemap, TileBase)> tiles;

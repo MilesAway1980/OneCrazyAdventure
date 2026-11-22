@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class CarryableObject : MonoBehaviour
 {
+    [Tooltip("The character carrying this at the moment. Set as the game runs: for watching, not for setting.")]
     public Character carrier;
     private FixedJoint2D fixedJoint;
     //public Collider2D carryCollider;

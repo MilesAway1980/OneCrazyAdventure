@@ -3,15 +3,22 @@ using UnityEngine;
 
 namespace Characters
 {
+    [RequireComponent(typeof(BoxCollider2D), typeof(InteractableLadder))]
     public class Ladder : Character
     {
+        [Tooltip("The picture at the top of the ladder.")]
         public Sprite topSprite;
+        [Tooltip("The picture of each rung between the top and the bottom.")]
         public Sprite middleSprite;
+        [Tooltip("The picture at the bottom of the ladder.")]
         public Sprite bottomSprite;
 
+        [Tooltip("How long, in units, the ladder can stretch.")]
         public float maxLength;
+        [Tooltip("How fast, in units a second, the ladder stretches and shrinks.")]
         public float extendSpeed;
 
+        [Tooltip("How far, in units, the ladder stretches for each rung it adds.")]
         public float addLadderDistance;
 
         [Tooltip("Two presses of the action button this close together, in seconds, count as a double tap.")]

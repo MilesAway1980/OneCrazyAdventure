@@ -14,6 +14,7 @@ namespace Characters
         public int maxLinks = 6;
         [Tooltip("The body that is left once the head is thrown. Walking about he uses the one sprite with both together.")]
         public Sprite feet;
+        [Tooltip("The head that is thrown, as a picture, on the end of the rope.")]
         public Sprite head;
 
         [Tooltip("Where the head comes off and the rope is tied on. His centre if it's empty.")]
@@ -55,12 +56,16 @@ namespace Characters
 
         [Tooltip("The weight of a link, and how much it resists moving, so that the rope is a firm bridge once the head is stuck.")]
         public float linkMass = 40f;
+        [Tooltip("How much a link of the rope resists moving through the air, once the head is stuck.")]
         public float linkLinearDamping = 15f;
+        [Tooltip("How much gravity pulls on a link, once the head is stuck. Low makes a firm bridge.")]
         public float linkGravityScale = 0.1f;
 
         [Tooltip("The same for the rope while the head is thrown and hasn't stuck yet. It's light and loose, so it hangs and falls over things.")]
         public float looseLinkMass = 0.5f;
+        [Tooltip("How much a link of the rope resists moving through the air, while the head is thrown and hasn't stuck yet.")]
         public float looseLinkLinearDamping = 0.5f;
+        [Tooltip("How much gravity pulls on a link, while the head is thrown and hasn't stuck yet.")]
         public float looseLinkGravityScale = 1f;
 
         [Header("Carried rope")]
@@ -75,8 +80,11 @@ namespace Characters
 
         [Tooltip("The weight of each link of the rope he carries, and how much they resist moving and turning. The more it is, the less they clump up and swing about.")]
         public float carriedLinkMass = 50f;
+        [Tooltip("How much a link of the rope he carries resists moving. The higher it is, the less it swings.")]
         public float carriedLinkLinearDamping = 200f;
+        [Tooltip("How much a link of the rope he carries resists turning.")]
         public float carriedLinkAngularDamping = 1f;
+        [Tooltip("How much gravity pulls on a link of the rope he carries.")]
         public float carriedLinkGravityScale = 5f;
 
         private enum HeadState

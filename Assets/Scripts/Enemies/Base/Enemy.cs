@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[RequireComponent(typeof(EnemyMovement), typeof(Rigidbody2D))]
 public class Enemy : MonoBehaviour
 {
     protected SpriteRenderer spriteRenderer;

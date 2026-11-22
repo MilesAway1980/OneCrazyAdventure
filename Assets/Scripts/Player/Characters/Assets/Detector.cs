@@ -9,9 +9,12 @@ public enum DetectorType
 
 public class Detector : MonoBehaviour
 {
+    [Tooltip("Which kind of detector this is: Wall, Floor or Corners.")]
     public DetectorType type;
+    [Tooltip("The direction it looks along, as an angle in degrees: 0 is up and it grows clockwise, so 90 is right.")]
     public float angle = -1;
     
+    [Tooltip("What it found the last time it looked: whether it hit a tile, which one, how far away, and at what angle. For watching, not for setting.")]
     public TileDirection hit;
     private Vector2 direction;
 

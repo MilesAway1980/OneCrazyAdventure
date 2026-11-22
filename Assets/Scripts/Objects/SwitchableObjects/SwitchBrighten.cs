@@ -2,9 +2,12 @@ using UnityEngine;
 
 public class SwitchBrighten : SwitchableObject
 {
+    [Tooltip("The dark tilemap that is brightened while this is switched on.")]
     public DarkTileMap darkTileMap;
 
+    [Tooltip("The darkest colour of the dark tilemap while it's brightened.")]
     public Color brightenColorDarkest;
+    [Tooltip("The lightest colour of the dark tilemap while it's brightened.")]
     public Color brightenColorLightest;
 
     // Whether this switch is the one currently holding the scene brighter.

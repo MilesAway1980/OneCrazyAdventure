@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using Characters;
 
+[RequireComponent(typeof(Character))]
 public class CharacterFreeze: MonoBehaviour
 {
      [Range(0, 1)]
+     [Tooltip("The most frozen he can get, from 0 (not at all) to 1 (completely). Set by the ice zone he's standing in.")]
      public float maxFreeze;
 
      private float freezeSeconds;
@@ -13,6 +15,7 @@ public class CharacterFreeze: MonoBehaviour
      private Character character;
      private bool inFreezeZone;
      
+     [Tooltip("How frozen he is now, from 0 to 1: the more, the slower he runs and the lower he jumps. For watching, not for setting.")]
      public float currentFreeze;
 
      void Start()

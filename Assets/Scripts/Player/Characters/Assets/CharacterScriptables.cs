@@ -4,6 +4,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "CharacterScriptables", menuName = "Characters/CharacterScriptables")]
 public class CharacterScriptables : ScriptableObject
 {
+    [Tooltip("The most characters that can be in a party at once.")]
     public int maxCharactersAtOnce = 4;
 
     public bool

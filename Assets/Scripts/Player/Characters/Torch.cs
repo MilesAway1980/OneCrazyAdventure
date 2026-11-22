@@ -6,7 +6,9 @@ namespace Characters
     // Burns, lights sconces he stands by, and warms others, until he's put out under liquid.
     public class Torch : Character
     {
+        [Tooltip("The picture shown while he's standing or walking and has been put out.")]
         public Sprite unlitStand;
+        [Tooltip("The picture shown while he's in the air and has been put out.")]
         public Sprite unlitJump;
 
         [Tooltip("How near he has to be to the middle of a sconce to light it, in units. It's a circle around him, so it's the same all ways.")]

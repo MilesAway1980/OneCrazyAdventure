@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace Characters
 {
+    [RequireComponent(typeof(PolygonCollider2D), typeof(CircleCollider2D), typeof(RollDamage))]
     public class BowlingBall : Character
     {
         private float rotationAngle;

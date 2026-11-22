@@ -23,18 +23,28 @@ using UnityEngine;
 // prefab up that way.
 public class ButtonSwitch : MonoBehaviour
 {
+    [Tooltip("The things this button switches. With a delay set below, they are switched in the order of this list.")]
     public SwitchableObject[] switchableObject;
 
     [Header("Timing")]
     [Min(0f)]
-    [Tooltip("When this switches more than one thing, how many seconds it waits between one and the next, in the order of the list: the first at once, the second after this long, the third after twice as long, and so on. For lights that come on one by one. 0 switches them all at the same moment.")]
+    [Tooltip("How many seconds it waits before the first thing is switched. 0 switches the first at once, and the rest follow, Delay Between Objects apart. The same wait comes before the first when they go off one after another.")]
+    public float initialDelay;
+
+    [Min(0f)]
+    [Tooltip("When this switches more than one thing, how many seconds it waits between one and the next, in the order of the list, starting from the first: the second this long after the first, the third twice as long, and so on. For lights that come on one by one. 0 switches them all at the same moment.")]
     public float delayBetweenObjects;
 
-    [Tooltip("How the things are switched off, if there's a delay between them: all at once, one after another in the same order, or one after another with the last first. Only matters when Delay Between Objects is more than 0.")]
+    [Tooltip("How the things are switched off, if there's a delay between them: all at once, one after another in the same order, or one after another with the last first. Only matters when there's an Initial Delay or a Delay Between Objects.")]
     public SwitchOffOrder switchOffOrder = SwitchOffOrder.AllAtOnce;
 
-    // Switches the things one after another, when there's a delay between them.
+    // Switches the things one after another, when there's a delay before them or between them.
     private readonly SwitchSequence sequence = new SwitchSequence();
+
+    private bool Sequenced
+    {
+        get { return initialDelay > 0f || delayBetweenObjects > 0f; }
+    }
     private Func<SwitchableObject, bool> counts;
 
     // Whether a thing takes part: it's there, it's switched on, and it isn't one that follows how far the pad is pressed.
@@ -439,12 +449,12 @@ public class ButtonSwitch : MonoBehaviour
         var starting = !activated;
         activated = true;
 
-        // One after another, if there's a delay between them.
-        if (delayBetweenObjects > 0f)
+        // One after another, if there's a delay before them or between them.
+        if (Sequenced)
         {
             if (starting)
             {
-                sequence.Begin(switchableObject, true, delayBetweenObjects, false, CountsFunction);
+                sequence.Begin(switchableObject, true, initialDelay, delayBetweenObjects, false, CountsFunction);
             }
 
             sequence.Tick(switchableObject, staysActiveWhenOn, CountsFunction);
@@ -471,10 +481,10 @@ public class ButtonSwitch : MonoBehaviour
     {
         activated = false;
 
-        // One after another, if there's a delay between them and they're to go off that way.
-        if (delayBetweenObjects > 0f && switchOffOrder != SwitchOffOrder.AllAtOnce)
+        // One after another, if there's a delay and they're to go off that way.
+        if (Sequenced && switchOffOrder != SwitchOffOrder.AllAtOnce)
         {
-            sequence.Begin(switchableObject, false, delayBetweenObjects, switchOffOrder == SwitchOffOrder.ReverseOrder, CountsFunction);
+            sequence.Begin(switchableObject, false, initialDelay, delayBetweenObjects, switchOffOrder == SwitchOffOrder.ReverseOrder, CountsFunction);
             sequence.Tick(switchableObject, false, CountsFunction);
             return;
         }
@@ -498,7 +508,7 @@ public class ButtonSwitch : MonoBehaviour
     // Selected in the scene view: an arrow to each of the things this switches, where the pad sits, and how far down it goes.
     void OnDrawGizmosSelected()
     {
-        SwitchLinkGizmo.Draw(transform.position, switchableObject, delayBetweenObjects > 0f);
+        SwitchLinkGizmo.Draw(transform.position, switchableObject, Sequenced);
 
         var body = Pad;
 

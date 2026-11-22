@@ -4,20 +4,29 @@ using UnityEngine;
 
 public class SwitchRopeBridgeBuilder : SwitchableObject
 {
+    [Tooltip("The object at one end of the bridge. It's given a static body, if it hasn't one, for the first link to hang from.")]
     public GameObject startPoint;
+    [Tooltip("The object at the other end of the bridge. It's given a static body, if it hasn't one, for the last link to hang from.")]
     public GameObject endPoint;
+    [Tooltip("The link that the bridge is built from, over and over, from the start point to the end point. Hidden when the game starts.")]
     public GameObject linkTemplate;
 
+    [Tooltip("Takes the size of a link from the Collider 2D on the link template, instead of from Link Size.")]
     public bool getLinkSizeFromCollider;
+    [Tooltip("How big one link is, in units. Only used if Get Link Size From Collider is off. The bridge is as many of these as fit between the ends, so a width of 0 is an error.")]
     public Vector2 linkSize;
 
+    [Tooltip("How heavy each link is.")]
     public float linkMass;
+    [Tooltip("How much each link resists moving through the air.")]
     public float linkLinearDampening;
 
+    [Tooltip("How long, in seconds, to wait between building one link and the next.")]
     public float timeBetweenLinks;
 
     private GameObject linkHolder;
 
+    [Tooltip("How far apart the two ends are, across and up. Worked out when the game starts: for watching, not for setting.")]
     public Vector2 distanceBetweenEnds;
     private bool bridgeStarted;
 

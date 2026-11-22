@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Characters;
 
+[RequireComponent(typeof(PlayerInput), typeof(Player))]
 public class CharacterMove : MonoBehaviour
 {
     private InputAction moveAction;

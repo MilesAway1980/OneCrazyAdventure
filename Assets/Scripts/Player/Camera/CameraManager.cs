@@ -4,15 +4,20 @@ using UnityEngine;
 // Looks after the cameras. By default the GroupCamera does the work: it shares views between players whose characters are close
 // together, and gives everyone else their own. The older cameras (one for each number of players) are still here, and
 // are used instead if Use Group Camera is turned off, so the two can be compared.
+[RequireComponent(typeof(SinglePlayerCamera), typeof(TwoPlayerCamera))]
+[RequireComponent(typeof(ThreePlayerCamera), typeof(FourPlayerCamera))]
 public class CameraManager : MonoBehaviour
 {
+    [Tooltip("How often, in seconds, the older cameras look again to see how many players there are.")]
     public float characterReacquireTime;
     private float lastReacquireTime;
+    [Tooltip("How fast the views change size and place as players come together and split apart, as a fraction of the screen each frame.")]
     public float cameraViewSwitchSpeed;
 
     [Tooltip("Use the new camera, which shares a view between any players whose characters are close together. Turn off to use the older camera for however many players there are.")]
     public bool useGroupCamera = true;
 
+    [Tooltip("How many players there are, as the game runs: for watching, not for setting.")]
     public int numPlayers;
 
     private SinglePlayerCamera singlePlayerCamera;
@@ -23,6 +28,7 @@ public class CameraManager : MonoBehaviour
 
     private static CameraManager instance;
 
+    [Tooltip("The four cameras, one for each possible screen. Every one has to be set.")]
     public Camera[] cameras;
 
     public static Rect rectFullScreen;

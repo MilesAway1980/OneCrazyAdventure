@@ -33,6 +33,7 @@ global fix described in the last section.
 | `SwitchDrawbridge` | A | position and rotation sync, guard. The slam sound and event happen on the host only. |
 | `ButtonSwitch` | A (the pad) | position sync of the pad, guard |
 | `LeverSwitch` | B | `LeverNetwork`, guard |
+| `WalkSwitch` | A | Host only: it goes by the characters that enter or leave its trigger area, which only the host's physics reports. Nothing on it is sent; what it switches is |
 | `CharacterPickup` | B | `PickupNetwork`; the roster of found characters rides on `ConnectionPlayer` |
 | `LightSocket` | C | host only; the Bulb sitting in it is already shown |
 | `HiddenTileSection` | D | runs on every machine from the flashlight beams, which are sent |

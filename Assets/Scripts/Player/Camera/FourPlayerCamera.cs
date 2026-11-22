@@ -5,25 +5,39 @@ using Characters;
 
 public class FourPlayerCamera : MonoBehaviour
 {
+    [Tooltip("How fast, in units a second, the camera moves to a new character. Used until it has caught up with them.")]
     public float transitionSpeed;
+    [Tooltip("How fast, in units a second, the camera keeps up with a character once it has caught up with them.")]
     public float followSpeed;
+    [Tooltip("How far the look stick moves the camera, at the widest zoom.")]
     public float lookDist;
+    [Tooltip("How far apart, in units, the characters can get before the screen splits into one view for each of them.")]
     public float splitDistance;
     
+    [Tooltip("The players this camera follows. Filled in when the game starts: nothing to set here.")]
     public Player[] players;
 
+    [Tooltip("Where the camera is heading, in the world. Worked out as the game runs: for watching, not for setting.")]
     public Vector2[] targetPosition;
+    [Tooltip("How far the look stick is pushed at the moment. Worked out as the game runs: for watching, not for setting.")]
     public Vector2[] lookPosition;
+    [Tooltip("Whether each view is locked to its character. Changes as the game runs: for watching, not for setting.")]
     public bool[] locked;
     
+    [Tooltip("The characters being followed, one for each player. Filled in as the game runs: nothing to set here.")]
     public Character[] characters;
 
+    [Tooltip("How far apart the characters are, for each pair of them. Worked out as the game runs: for watching, not for setting.")]
     public float[] distance;
     
+    [Tooltip("The widest the camera can zoom out to (the largest camera size).")]
     public float maxZoom;
+    [Tooltip("The camera size when the game starts.")]
     public float startZoom;
+    [Tooltip("The closest the camera can zoom in to (the smallest camera size).")]
     public float minZoom;
     
+    [Tooltip("How much the zoom buttons change the camera size each time they're pressed.")]
     public float zoomSpeed;
     
     private bool lastSplit;

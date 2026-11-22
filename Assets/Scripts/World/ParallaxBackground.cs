@@ -3,7 +3,9 @@ using UnityEngine;
 
 public class ParallaxBackground : MonoBehaviour
 {
+    [Tooltip("How much the background is held back from the camera, across and up. 1 holds it still in the world, like the ground, so it moves across the screen as fast as the ground does. 0 fixes it to the screen. In between, it drifts across the screen more slowly than the ground.")]
     public Vector2 parallaxEffect = Vector2.one;
+    [Tooltip("Not used at the moment.")]
     public float buffer = 1.01f;
     //private Vector3 cameraStartPosition;
     private Camera cam;

@@ -4,10 +4,13 @@ using UnityEngine.InputSystem.Processors;
 public class DamageableEntity : MonoBehaviour
 {
     [SerializeField]
+    [Tooltip("The most hit points it can have. 0 means it can't be hurt without dying.")]
     private float maxHitPoints;
     [SerializeField]
+    [Tooltip("How many hit points it has now. Starts at Max Hit Points if Start At Max is ticked.")]
     private float currentHitPoints;
     [SerializeField]
+    [Tooltip("Starts with full hit points, instead of the Current Hit Points set here.")]
     public bool startAtMax = true;
 
     private bool justDied;

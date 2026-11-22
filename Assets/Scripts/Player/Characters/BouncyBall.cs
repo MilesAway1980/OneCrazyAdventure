@@ -2,13 +2,19 @@ using UnityEngine;
 
 namespace Characters
 {
+    [RequireComponent(typeof(CapsuleCollider2D))]
     public class BouncyBall : Character
     {
         PhysicsMaterial2D bouncyBallMaterial;
+        [Tooltip("How many times bigger he gets when he's fully inflated.")]
         public float inflateSize;
+        [Tooltip("The bouncy picture, with its own collider, that's shown while he's inflated.")]
         public GameObject bouncyShell;
+        [Tooltip("The picture shown while he's charging.")]
         public Sprite chargeSprite;
+        [Tooltip("How fast, each second, his charge builds up while the ability button is held.")]
         public float chargeValueIncreaseSpeed;
+        [Tooltip("The most charge he can build up. At this he's fully inflated.")]
         public float maximumChargeValue;
 
         [Tooltip("How tall his collider is, in units, while he's squashed down charging a jump.")]

@@ -1,10 +1,12 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody2D))]
 public class SwitchForce : SwitchableObject
 {
     [Tooltip("0 is up and the angle grows clockwise: 90 is right, 180 is down, 270 is left")]
     [AngleDial]
     public float forceDirection;
+    [Tooltip("How hard it pushes while it's switched on.")]
     public float force;
     [Tooltip("If the force is not an impulse, it will be a pushing force")]
     public ForceMode2D forceMode;

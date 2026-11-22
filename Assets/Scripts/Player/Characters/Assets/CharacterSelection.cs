@@ -3,7 +3,9 @@ using Characters;
 
 public class CharacterSelection : MonoBehaviour
 {
+    [Tooltip("Whether this character is chosen for the party.")]
     public bool selected;
+    [Tooltip("The character this chooses.")]
     public Character character;
 
     private static CharacterSelecter mainSelecter;

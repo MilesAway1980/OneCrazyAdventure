@@ -98,9 +98,11 @@ public class LightSource : MonoBehaviour, Characters.IKeepsRunningWhenShownOnly
     private const float IntensitySeedOffset = 37f;
 
     [Header("Lit")]
+    [Tooltip("How the light looks while it's lit: its radius, intensity, pulsing and colour. The brightest it goes.")]
     public LightLook litLook = new LightLook();
 
     [Header("Unlit")]
+    [Tooltip("How the light looks while it's not lit: the lowest it goes. A light with nothing set here is dark when unlit.")]
     public LightLook unlitLook = new LightLook();
 
     [Header("Changing")]

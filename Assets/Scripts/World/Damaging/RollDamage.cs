@@ -2,6 +2,7 @@ using UnityEngine;
 
 // Lets something destroy tiles that are damaged by rolling into them, while it is enabled. Its speed is the fastest it has
 // been going over the last moment, as by the time it touches a tile it has already been slowed by the hit.
+[RequireComponent(typeof(Rigidbody2D))]
 public class RollDamage : MonoBehaviour
 {
     [Tooltip("How far back, in seconds, its fastest speed counts. It needs to be long enough to reach back to before the hit.")]

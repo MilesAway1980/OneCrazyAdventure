@@ -7,7 +7,9 @@ using Characters;
 // character they are controlling is not kept here: CharacterControl, on the host, has that, and this asks for it.
 public class Player : MonoBehaviour
 {
+    [Tooltip("The script that moves this player's character.")]
     public CharacterMove characterMove;
+    [Tooltip("Which player this is, counting from 1.")]
     public int playerNum;
 
     // Never changes while the player is in the game, unlike playerNum, which is renumbered when someone leaves. This is
@@ -16,6 +18,7 @@ public class Player : MonoBehaviour
 
     // The player's seat in a game they have joined, which is what the host knows them by. It's given by the host once it has made room,
     // and is -1 until then, and whenever the player isn't joined to someone else's game.
+    [Tooltip("The player's seat in a game they have joined to, given by the host. -1 until then. Not for setting.")]
     public int seatId = -1;
 
     private static int nextId = 1;

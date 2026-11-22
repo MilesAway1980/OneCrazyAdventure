@@ -15,6 +15,7 @@ namespace Characters
         [Tooltip("Seconds he shudders, in his action sprite and the Blocked Color, when he can't turn solid because something is in the way. 0 turns it off.")]
         public float blockedFlashSeconds = 0.3f;
 
+        [Tooltip("The colour he flashes while he can't turn solid because something is in the way.")]
         public Color blockedColor = Color.red;
 
         [Tooltip("How far, in world units, his sprite is thrown about while he shudders.")]

@@ -3,7 +3,9 @@ using UnityEngine;
 
 public class HeatSource : MonoBehaviour
 {
+    [Tooltip("How strongly it warms characters, which is how fast it thaws them out.")]
     [SerializeField] private float heatLevel;
+    [Tooltip("How far, in units, its warmth reaches.")]
     [SerializeField] private float heatRange;
 
     [Tooltip("How intense the heat is for setting fire to tiles. A tile that burns needs this much, or more, to catch. This is " +

@@ -11,6 +11,7 @@ public class InteractableLadder : InteractableObject
     //Ladder ladder;
 
     //False if the ladder currently cannot be climbed
+    [Tooltip("Whether the ladder can be climbed at the moment. False while it can't be.")]
     public bool climbable;
     private List<Character> climbingCharacters;
     

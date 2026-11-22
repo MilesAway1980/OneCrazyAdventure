@@ -6,7 +6,9 @@ using UnityEngine.Serialization;
 [RequireComponent(typeof(SpriteRenderer))]
 public class Sconce : MonoBehaviour
 {
+    [Tooltip("The picture shown while the sconce isn't lit.")]
     public Sprite unlitSprite;
+    [Tooltip("The picture shown while the sconce is lit.")]
     public Sprite litSprite;
 
     [Tooltip("The light of this sconce. It is lit and snuffed out through the sconce, or by itself when its time is up, and the sprite follows.")]

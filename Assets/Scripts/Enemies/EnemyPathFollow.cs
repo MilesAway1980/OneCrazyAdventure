@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class EnemyPathFollow : MonoBehaviour
 {
+    [Tooltip("The places the enemy goes to, in order, and then round again. Drag in objects, placed where it should go.")]
     public List<GameObject> destinations = new List<GameObject>();
 
     [Tooltip("The destination to head to first. Leave empty to start with the first one in the list.")]
@@ -58,6 +59,7 @@ public class EnemyPathFollow : MonoBehaviour
     public float avoidLookahead = 2f;
 
     [Space]
+    [Tooltip("The place in the list that it's heading for now, counting from 0. Changes as it goes.")]
     public int currentDestination;
 
     // Plan to brake a bit gentler than the enemy actually can, so the gaps between physics steps never leave it

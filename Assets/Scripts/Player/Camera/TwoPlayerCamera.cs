@@ -6,27 +6,43 @@ using Characters;
 
 public class TwoPlayerCamera : MonoBehaviour
 {
+    [Tooltip("How fast, in units a second, the camera moves to a new character. Used until it has caught up with them.")]
     public float transitionSpeed;
+    [Tooltip("How fast, in units a second, the camera keeps up with a character once it has caught up with them.")]
     public float followSpeed;
+    [Tooltip("How far the look stick moves the camera, at the widest zoom.")]
     public float lookDist;
+    [Tooltip("How far apart, in units, the characters can get before the screen splits into one view for each of them.")]
     public float splitDistance;
 
+    [Tooltip("The players this camera follows. Filled in when the game starts: nothing to set here.")]
     public Player[] players;
 
+    [Tooltip("Where the camera is heading, in the world. Worked out as the game runs: for watching, not for setting.")]
     public Vector2[] targetPosition;
+    [Tooltip("How far the look stick is pushed at the moment. Worked out as the game runs: for watching, not for setting.")]
     public Vector2[] lookPosition;
 
+    [Tooltip("The characters being followed, one for each player. Filled in as the game runs: nothing to set here.")]
     public Character[] characters;
 
+    [Tooltip("The widest the camera zooms out to when the screen is split into a left and a right view.")]
     public float horizontalMaxZoom;
+    [Tooltip("The camera size at the start when the screen is split into a left and a right view.")]
     public float horizontalStartZoom;
+    [Tooltip("The closest the camera zooms in to when the screen is split into a left and a right view.")]
     public float horizontalMinZoom;
 
+    [Tooltip("The widest the camera zooms out to when the screen is split into a top and a bottom view, or isn't split.")]
     public float verticalMaxZoom;
+    [Tooltip("The camera size at the start when the screen is split into a top and a bottom view, or isn't split.")]
     public float verticalStartZoom;
+    [Tooltip("The closest the camera zooms in to when the screen is split into a top and a bottom view, or isn't split.")]
     public float verticalMinZoom;
 
+    [Tooltip("How much the zoom buttons change the camera size each time they're pressed.")]
     public float zoomSpeed;
+    [Tooltip("Splits the screen into a left and a right view instead of a top and a bottom one.")]
     public bool horizontalSplit;
 
     private bool active;

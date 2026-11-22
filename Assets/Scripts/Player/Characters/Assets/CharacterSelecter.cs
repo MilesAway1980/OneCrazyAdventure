@@ -9,6 +9,7 @@ public class CharacterSelecter: MonoBehaviour
     private List<Character> selections;
 
     [SerializeField]
+    [Tooltip("The asset with the party settings: how many characters can be in the party at once, and which are found from the start.")]
     private CharacterScriptables characterScriptables;
 
     // The characters that have been found, whether or not they are in the party. The ones ticked in the CharacterScript

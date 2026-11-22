@@ -89,6 +89,7 @@ namespace Characters
         [Tooltip("The colour his head flashes when the light can't be switched on, because the battery is flat or he is in liquid.")]
         public Color refusedColor = Color.red;
 
+        [Tooltip("How long, in seconds, his head flashes the Refused Color when the light can't be switched on.")]
         public float refusedSeconds = 0.3f;
 
         [Header("Hidden Tiles")]
@@ -127,6 +128,7 @@ namespace Characters
         [Tooltip("These settings only apply when the script adds the light itself, because there isn't one under the head. Changing them while playing takes effect straight away, and they stay when you stop. A light you place under the head yourself keeps its own settings.")]
         public Color lightColor = Color.white;
 
+        [Tooltip("How bright the light the script adds is.")]
         public float lightIntensity = 1f;
 
         [Tooltip("The angle, in degrees, of the beam at full brightness.")]

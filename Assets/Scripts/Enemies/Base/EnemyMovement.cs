@@ -12,12 +12,18 @@ public enum EnemyDirection
 
 public class EnemyMovement : MonoBehaviour
 {
+    [Tooltip("How quickly the enemy speeds up. Not read by anything yet: the enemies that move have their own.")]
     [SerializeField] private float movementAcceleration;
+    [Tooltip("The fastest the enemy goes. Not read by anything yet: the enemies that move have their own.")]
     [SerializeField] private float maxSpeed;
 
+    [Tooltip("Whether the enemy turns around at a ledge instead of walking off it. Not read by anything yet: Enemy Side To Side turns around by its own settings.")]
     public bool turnAroundAtLedge;
+    [Tooltip("Whether the enemy flies instead of walking. Not read by anything yet.")]
     public bool canFly;
+    [Tooltip("Whether the enemy can climb walls. Not read by anything yet.")]
     public bool canClimbWalls;
+    [Tooltip("Whether the enemy can go along ceilings. Not read by anything yet.")]
     public bool canClimbCeilings;
 
     private float angle = 90;

@@ -3,10 +3,14 @@ using UnityEngine.Tilemaps;
 
 public class RotatingCenterPlatform : MonoBehaviour
 {
+    [Tooltip("The object that the platform spins around. It needs a Rigidbody 2D.")]
     public GameObject center;
 
+    [Tooltip("Lets physics turn the center, such as things pushing on it, instead of its rotation being held, so that it only turns at Rotation Speed.")]
     public bool freeSpinning;
+    [Tooltip("How fast it spins, in degrees a second.")]
     public float rotationSpeed;
+    [Tooltip("How much it resists being turned. Not used at the moment.")]
     public float rotationResistance;
     
     private Tilemap[] platforms;

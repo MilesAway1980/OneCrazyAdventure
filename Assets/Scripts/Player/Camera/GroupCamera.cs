@@ -39,8 +39,11 @@ public class GroupCamera : MonoBehaviour
     [Serializable]
     public struct ZoomRange
     {
+        [Tooltip("The closest the camera zooms in to (the smallest camera size).")]
         public float min;
+        [Tooltip("The camera size a view starts at.")]
         public float start;
+        [Tooltip("The widest the camera zooms out to (the largest camera size).")]
         public float max;
 
         public ZoomRange(float min, float start, float max)

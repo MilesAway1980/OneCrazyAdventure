@@ -5,8 +5,10 @@ using UnityEngine;
 // missing scripts; Tools > Movement > Remove Old Movement Settings takes them off.
 public class MovementSettings : MonoBehaviour
 {
+    [Tooltip("A name for this set of movement settings.")]
     public string identifier;
 
+    [Tooltip("How hard the player pushes off the ground when they jump.")]
     public float jumpForce;
     [Tooltip("The fastest the player can walk.")]
     [Min(0f)]
@@ -23,10 +25,15 @@ public class MovementSettings : MonoBehaviour
     public float heldJumpDecay;
     [Tooltip("How quickly the player's upward speed will decrease when the jump button is released (should be higher than \"Held Jump Decay\".")]
     public float releasedJumpDecay;
+    [Tooltip("The fastest the player can fall.")]
     public float maxFallSpeed;
+    [Tooltip("How strongly gravity pulls the player down.")]
     public float gravity;
+    [Tooltip("How much the player's movement is slowed by drag.")]
     public float linearDampening;
+    [Tooltip("How much the player's turning is slowed by drag.")]
     public float angularDampening;
+    [Tooltip("How fast the player climbs.")]
     public float climbSpeed;
     
     public void CloneSettings(MovementSettings newSettings)

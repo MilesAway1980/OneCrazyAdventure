@@ -14,13 +14,17 @@ using UnityEngine;
 public class GameText : ScriptableObject
 {
     [Header("Hub menu: main page")]
+    [Tooltip("The hub menu button that opens the page for swapping characters.")]
     public string swapCharacters = "Swap Characters";
+    [Tooltip("The hub menu button that brings the whole party to the player who pressed it.")]
     public string bringEveryoneHere = "Bring Everyone Here";
+    [Tooltip("The hub menu button that closes the menu.")]
     public string closeMenu = "Close";
 
     [Tooltip("The hub menu button when the tutorial's hints are being shown, and when they are not. Pressing it switches them.")]
     public string hintsOn = "Hints: On";
 
+    [Tooltip("The hub menu button while the tutorial's hints are not being shown (see Hints On, above).")]
     public string hintsOff = "Hints: Off";
 
     [Tooltip("Along the bottom of the first page.")]
@@ -204,6 +208,7 @@ public class HintText
     public string topic;
 
     [TextArea]
+    [Tooltip("The words the hint shows. Controls can be put in curly brackets, and are replaced by the player's own buttons: {move}, {jump}, {action}, {interact}, {next} and {previous}.")]
     public string text;
 
     public HintText()

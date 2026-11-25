@@ -267,6 +267,18 @@ and the Umbrella) is still whether its **middle** is in a liquid.
   there against gravity). The detectors find walls on the **Ground** layer ahead of time; a wall that's a **kinematic body** on
   another layer, such as a drawbridge standing up, a platform's side or a door, is found when the character touches it
   (`FindSupport`). Tile walls aren't judged by touch, as the joins between tiles make contacts that aren't walls.
+- **Brushing something.** Speed he picks up while touching something at his side (a wall, the corner of a tile) isn't a shove, and isn't kept.
+  Walking drops it by itself, because it sets his speed from the parts that are his. Standing still, in the air or on the ground, the
+  speed that came from the brush is taken off. (Turn on **Log Speed Gains** on the character to see each time it happens.)
+- **Corner forgiveness.** Clipping the corner of a ceiling with the edge of his head on the way up is where a character used to get caught
+  or thrown sideways: a corner contact turns upward speed into sideways speed, by half of the speed at a 45 degree face (it's
+  `speed x sin(2 x angle) / 2`, so every shape has some), and a flat top gives none of that but loses all the upward speed. So,
+  each physics step before the move (`Character.ForgiveCeilingCorner`), if he's rising and would be in something solid a step on, and
+  would miss it by being moved sideways by at most **Corner Forgiveness** (world units, 0.15 by default, about a quarter of Paperclip's
+  width), he's moved over by the smallest distance that clears it, the way he's steering or going first. He goes up at the speed he
+  had, with nothing sideways added. More than that is a real ceiling and he bumps it as before. 0 turns it off. One-way platforms don't
+  count, and neither do triggers. It's asked by putting him at each place and checking what he overlaps, so the collider's real shape, not
+  its bounds, is what's judged. It only runs on the host.
 - A piton without its head, or any character that can only walk some of the way, overrides `MaxWalkSpeed`.
 - **Freezing** slows speed and jump through `Character.SetMovementScale`, whatever else the character is doing or in.
 - `GetMovementSetting(mode, fluid)` fills in the character's current numbers every frame, so changes to a profile or the tuning

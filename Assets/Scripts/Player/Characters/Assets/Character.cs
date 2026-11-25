@@ -91,6 +91,7 @@ namespace Characters
         // sideways, and speed that comes from it isn't his to keep.
         private float brushedUntil;
         private float externalLastStep;
+        private bool droppedLastStep;
         private const float BrushSeconds = 0.1f;
 
         [Tooltip("For finding a random speed boost: writes to the Console each time he picks up speed that isn't his walking or a push, saying whether it came from brushing something (and was dropped) or from nowhere that could be seen (and was kept).")]
@@ -489,6 +490,132 @@ namespace Characters
                 rigidBody2D.linearVelocity =
                     new Vector2(rigidBody2D.linearVelocity.x, -currentMovementSettings.maxFallSpeed);
             }
+
+            // Last, with the speed he'll be going at for this step settled.
+            ForgiveCeilingCorner();
+        }
+
+        // ----- Corner forgiveness -----
+        //
+        // Jumping up so that just the edge of his head would clip the corner of a ceiling, he'd be caught or thrown off it: the physics turns
+        // some of his upward speed into sideways speed, and the more he's cut off the less he goes up, so the shape of his head only changes
+        // which of the two he gets. So, before the step, if what's above him would be hit, and he'd miss it by moving over a little, he's moved
+        // over, and goes up at the speed he had. Anything more than that is a real ceiling and he bumps it.
+
+        [Min(0f)]
+        [Tooltip("How far, in world units, he's moved sideways to slip past the corner of a ceiling that his head would just clip going up, instead of being caught on it or thrown off it. About a quarter of his width is a good start. 0 turns it off, and anything he'd clip by more than this is a real bump.")]
+        public float cornerForgiveness = 0.15f;
+
+        // How many distances up to Corner Forgiveness are tried, nearest first.
+        private const int CornerSteps = 6;
+
+        // How far into something he has to be to count as being in it, so that resting against it doesn't (the ground he stands on is
+        // always a little in him). The same as the other places that ask.
+        private const float CornerSkin = 0.02f;
+
+        // A little more than the step takes him is looked at, as gravity changes how far he goes as the step is made.
+        private const float CornerLookAhead = 0.01f;
+
+        // Rising slower than this in a step, there's nothing to forgive.
+        private const float CornerMinRise = 0.003f;
+
+        private void ForgiveCeilingCorner()
+        {
+            // In someone else's game the host moves him.
+            if (cornerForgiveness <= 0f || GameSession.IsClientOnly)
+            {
+                return;
+            }
+
+            var rise = rigidBody2D.linearVelocity.y * Time.fixedDeltaTime;
+
+            if (rise < CornerMinRise)
+            {
+                return;
+            }
+
+            var start = rigidBody2D.position;
+
+            var up = new Vector2(0f, rise + CornerLookAhead);
+            var moved = false;
+
+            // Nothing is forgiven if he's already in something, or if nothing is above him.
+            if (!InSolid(start) && InSolid(start + up))
+            {
+                // Over the way he's steering, or going, first, if both ways are clear.
+                var preferred = moveSpeed != 0f ? Mathf.Sign(moveSpeed) : (rigidBody2D.linearVelocity.x < 0f ? -1f : 1f);
+                var step = cornerForgiveness / CornerSteps;
+
+                for (var i = 1; i <= CornerSteps && !moved; i++)
+                {
+                    for (var side = 0; side < 2 && !moved; side++)
+                    {
+                        var by = new Vector2((side == 0 ? preferred : -preferred) * step * i, 0f);
+
+                        // Clear where he'd be, and clear where he'd go from there.
+                        if (!InSolid(start + by) && !InSolid(start + by + up))
+                        {
+                            SetPosition(start + by);
+
+                            // What he's carrying goes with him, a little at a time like he does, not sent across at once.
+                            MoveCarried(by, false);
+                            moved = true;
+                        }
+                    }
+                }
+            }
+
+            if (!moved)
+            {
+                rigidBody2D.position = start;
+            }
+        }
+
+        // Whether he would be in something solid if he were at a place, other than the ground he's standing on and the like: he's put there
+        // to ask, and the caller puts him back. One-way platforms don't count, as he goes up through them.
+        private bool InSolid(Vector2 place)
+        {
+            rigidBody2D.position = place;
+
+            var filter = new ContactFilter2D { useTriggers = false };
+            filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
+
+            var count = GetSolidColliders();
+
+            for (var i = 0; i < count; i++)
+            {
+                var collider = solidColliders[i];
+                var overlapping = collider.Overlap(filter, groundOverlaps);
+
+                for (var j = 0; j < overlapping; j++)
+                {
+                    var other = groundOverlaps[j];
+
+                    if (other.attachedRigidbody == rigidBody2D)
+                    {
+                        continue;
+                    }
+
+                    if (other.usedByEffector)
+                    {
+                        var effector = other.GetComponent<PlatformEffector2D>();
+
+                        if (effector && effector.useOneWay)
+                        {
+                            continue;
+                        }
+                    }
+
+                    var distance = collider.Distance(other);
+
+                    if (distance.isOverlapped && distance.distance < -CornerSkin)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         // The fastest he can walk. A character that can only walk some of the way, or faster, says so here.
@@ -654,16 +781,23 @@ namespace Characters
 
             // Speed picked up while brushing against something at his side isn't kept: it's the physics throwing him off a corner or
             // a join in the ground, not a shove, and kept in the air it would turn into a random burst of speed on landing.
+            //
+            // "Dropped" is how much of what he's going at sideways is that, which has to be taken off whichever way his speed is set below:
+            // walking sets it from the parts that are his (so it goes by itself), but standing still it would otherwise just keep what he
+            // has, bump and all.
+            var dropped = 0f;
+
             if (external != 0f)
             {
                 if (Time.time < brushedUntil)
                 {
-                    if (logSpeedGains && externalLastStep == 0f)
+                    if (logSpeedGains && !droppedLastStep)
                     {
                         Debug.Log($"{name}: picked up {external:0.00} of sideways speed while brushing something, and dropped it " +
                                   $"(seen {seen:0.00}, walking {reference:0.00}, up/down {rigidBody2D.linearVelocity.y:0.00}).", this);
                     }
 
+                    dropped = external;
                     external = 0f;
                 }
                 else if (logSpeedGains && externalLastStep == 0f)
@@ -683,6 +817,7 @@ namespace Characters
 
             external = Mathf.MoveTowards(external, 0f, brake);
             externalLastStep = external;
+            droppedLastStep = dropped != 0f;
 
             // What pushed him since last step, and the same friction on the ground. A push that is no stronger than the friction
             // doesn't move him at all. It's kept in the air, and so is momentum, so it has to be beaten before he can turn round.
@@ -700,11 +835,12 @@ namespace Characters
                 else if (onGround)
                 {
                     // Not walking at all: whatever speed is left slows to nothing, as it would with friction.
-                    rigidBody2D.linearVelocityX = Mathf.MoveTowards(seen - pushSeen, 0f, brake) + pushSpeed;
+                    rigidBody2D.linearVelocityX = Mathf.MoveTowards(seen - pushSeen - dropped, 0f, brake) + pushSpeed;
                 }
                 else
                 {
-                    rigidBody2D.linearVelocityX = seen + (pushSpeed - pushSeen);
+                    // In the air he keeps what he has, less any bump from brushing a corner on the way, which isn't his to keep.
+                    rigidBody2D.linearVelocityX = seen - dropped + (pushSpeed - pushSeen);
                 }
 
                 walkApplied = 0f;

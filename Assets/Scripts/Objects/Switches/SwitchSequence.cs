@@ -28,6 +28,12 @@ public class SwitchSequence
     private bool pending;
     private bool turningOn;
     private float started;
+
+    // The amount each is switched to, from 0 to 1, or below 0 to switch them on and off as usual. And who is switching them, and how it
+    // combines with the other switches that work the same things.
+    private float amount = -1f;
+    private UnityEngine.Object source;
+    private SignalMode mode;
     private float[] dueAfter = new float[0];
     private bool[] done = new bool[0];
 
@@ -38,10 +44,16 @@ public class SwitchSequence
     }
 
     // Starts switching the objects on or off, one by one: the first after firstDelay seconds, then each one delay seconds after the one
-    // before. The ones that aren't included are skipped, and take no time.
-    public void Begin(IList<SwitchableObject> objects, bool on, float firstDelay, float delay, bool reversed, Func<SwitchableObject, bool> included)
+    // before. The ones that aren't included are skipped, and take no time. With an amount, from 0 to 1, the ones that can be switched by
+    // an amount are given that, and the rest are switched on and off as usual.
+    public void Begin(IList<SwitchableObject> objects, bool on, float firstDelay, float delay, bool reversed, Func<SwitchableObject, bool> included,
+        float switchAmount = -1f, UnityEngine.Object switchSource = null, SignalMode switchMode = SignalMode.MinMax)
     {
         var count = objects.Count;
+
+        amount = switchAmount;
+        source = switchSource;
+        mode = switchMode;
 
         if (dueAfter.Length != count)
         {
@@ -83,7 +95,7 @@ public class SwitchSequence
     }
 
     // Gives each object its turn if it has come. Call it every frame while it's Pending. With keepApplying, the ones that have had their
-    // turn are told again, every frame, as a switch that stays active does while it's on.
+    // turn are told again, every frame, as a switch that stays active does while it's on, or one that sends a lowest signal while it's off.
     public void Tick(IList<SwitchableObject> objects, bool keepApplying, Func<SwitchableObject, bool> included)
     {
         if (!running || objects.Count != done.Length)
@@ -105,7 +117,7 @@ public class SwitchSequence
 
             if (done[i])
             {
-                if (keepApplying && turningOn)
+                if (keepApplying)
                 {
                     Apply(thing);
                 }
@@ -129,13 +141,6 @@ public class SwitchSequence
 
     private void Apply(SwitchableObject thing)
     {
-        if (turningOn)
-        {
-            thing.Activate();
-        }
-        else
-        {
-            thing.Deactivate();
-        }
+        thing.Signal(source, mode, turningOn, amount);
     }
 }

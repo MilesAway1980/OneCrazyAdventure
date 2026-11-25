@@ -26,6 +26,18 @@ public class ButtonSwitch : MonoBehaviour
     [Tooltip("The things this button switches. With a delay set below, they are switched in the order of this list.")]
     public SwitchableObject[] switchableObject;
 
+    [Header("Signal")]
+    [Tooltip("How this button's signal is put with the signals of the other switches that work the same things. Min/Max: it sends its own signal, from the Minimum Signal when it's off to the Maximum Signal when it's on, and a thing goes by the switch that spoke last. Add: while it's on, it adds the Maximum Signal to what the things get, along with every other switch that adds, so four that are each 25 give 25, 50, 75, 100. Subtract: takes the Maximum Signal off while it's on.")]
+    public SignalMode signalMode = SignalMode.MinMax;
+
+    [Range(0, 100)]
+    [Tooltip("Min/Max only. How much of its full effect the things get while the button is off, as a percentage. 0 is the ordinary off. Above 0, the things that can be set to a part of their range (a door, a liquid level, a moving platform, a light, a fan) are held at that part while it's off, instead of at nothing. Add and Subtract add or take off nothing while off.")]
+    public int minimumSignal = 0;
+
+    [Range(0, 100)]
+    [Tooltip("How much of its full effect the things get while it's on, as a percentage. 100 is the ordinary on. Below 100, the things that can be set to a part of their range go that far and no further. With Allow Partial Presses, it's how much they get with the pad all the way down, and less for less. In Add and Subtract this is how much it adds or takes off. Anything that can only be on or off is switched as usual (on once all the Adds reach 100), whatever these are set to.")]
+    public int maximumSignal = 100;
+
     [Header("Timing")]
     [Min(0f)]
     [Tooltip("How many seconds it waits before the first thing is switched. 0 switches the first at once, and the rest follow, Delay Between Objects apart. The same wait comes before the first when they go off one after another.")]
@@ -239,6 +251,13 @@ public class ButtonSwitch : MonoBehaviour
             PassOnAmount();
         }
 
+        // Not pressed, with a lowest signal to send: the things that don't follow the pad are held at it, all the time. Not while they're
+        // being switched off one after another.
+        if (!activated && SwitchSignal.HoldsMinimum(signalMode, minimumSignal) && !sequence.Pending)
+        {
+            SwitchSignal.HoldMinimum(switchableObject, minimumSignal, CountsFunction, this);
+        }
+
         if (pressedEnough)
         {
             if (!activated || staysActiveWhenOn)
@@ -419,7 +438,10 @@ public class ButtonSwitch : MonoBehaviour
     {
         var any = depth > 0.0001f;
 
-        if (!any && !passingAmount)
+        // With a lowest signal to send, they're held at it while the pad is up, and not only let go of.
+        var holding = SwitchSignal.HoldsMinimum(signalMode, minimumSignal);
+
+        if (!any && !passingAmount && !holding)
         {
             return;
         }
@@ -433,15 +455,22 @@ public class ButtonSwitch : MonoBehaviour
 
             if (any)
             {
-                obj.SetAmount(depth);
+                obj.Signal(this, signalMode, true, SwitchSignal.Pressed(signalMode, depth, minimumSignal, maximumSignal));
             }
             else
             {
-                obj.Deactivate();
+                obj.Signal(this, signalMode, false, AmountFor(false));
             }
         }
 
         passingAmount = any;
+    }
+
+    // The amount, from 0 to 1, to give the things that can take one while it's on or off, or below 0 for no amount: switching them on or
+    // off as usual.
+    private float AmountFor(bool on)
+    {
+        return SwitchSignal.Amount(signalMode, on, minimumSignal, maximumSignal);
     }
 
     private void Activate()
@@ -454,7 +483,7 @@ public class ButtonSwitch : MonoBehaviour
         {
             if (starting)
             {
-                sequence.Begin(switchableObject, true, initialDelay, delayBetweenObjects, false, CountsFunction);
+                sequence.Begin(switchableObject, true, initialDelay, delayBetweenObjects, false, CountsFunction, AmountFor(true), this, signalMode);
             }
 
             sequence.Tick(switchableObject, staysActiveWhenOn, CountsFunction);
@@ -472,7 +501,7 @@ public class ButtonSwitch : MonoBehaviour
 
             if (obj.enabled)
             {
-                obj.Activate();
+                obj.Signal(this, signalMode, true, AmountFor(true));
             }
         }
     }
@@ -484,7 +513,7 @@ public class ButtonSwitch : MonoBehaviour
         // One after another, if there's a delay and they're to go off that way.
         if (Sequenced && switchOffOrder != SwitchOffOrder.AllAtOnce)
         {
-            sequence.Begin(switchableObject, false, initialDelay, delayBetweenObjects, switchOffOrder == SwitchOffOrder.ReverseOrder, CountsFunction);
+            sequence.Begin(switchableObject, false, initialDelay, delayBetweenObjects, switchOffOrder == SwitchOffOrder.ReverseOrder, CountsFunction, AmountFor(false), this, signalMode);
             sequence.Tick(switchableObject, false, CountsFunction);
             return;
         }
@@ -500,7 +529,7 @@ public class ButtonSwitch : MonoBehaviour
 
             if (obj.enabled)
             {
-                obj.Deactivate();
+                obj.Signal(this, signalMode, false, AmountFor(false));
             }
         }
     }

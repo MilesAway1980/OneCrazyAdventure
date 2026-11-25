@@ -50,6 +50,18 @@ public class WalkSwitch : MonoBehaviour
     [Tooltip("The things this switches. With a delay set below, they are switched in the order of this list.")]
     public SwitchableObject[] switchableObjects;
 
+    [Header("Signal")]
+    [Tooltip("How this switch's signal is put with the signals of the other switches that work the same things. Min/Max: it sends its own signal, from the Minimum Signal when it's off to the Maximum Signal when it's on, and a thing goes by the switch that spoke last. Add: while it's on, it adds the Maximum Signal to what the things get, along with every other switch that adds, so four that are each 25 give 25, 50, 75, 100. Subtract: takes the Maximum Signal off while it's on.")]
+    public SignalMode signalMode = SignalMode.MinMax;
+
+    [Range(0, 100)]
+    [Tooltip("Min/Max only. How much of its full effect the things get while the switch is off, as a percentage. 0 is the ordinary off. Above 0, the things that can be set to a part of their range (a door, a liquid level, a moving platform, a light, a fan) are held at that part while it's off, instead of at nothing. Add and Subtract add or take off nothing while off.")]
+    public int minimumSignal = 0;
+
+    [Range(0, 100)]
+    [Tooltip("How much of its full effect the things get while it's on, as a percentage. 100 is the ordinary on. Below 100, the things that can be set to a part of their range go that far and no further. In Add and Subtract this is how much it adds or takes off. Anything that can only be on or off is switched as usual (on once all the Adds reach 100), whatever these are set to.")]
+    public int maximumSignal = 100;
+
     [Header("Timing")]
     [Min(0f)]
     [Tooltip("How many seconds it waits before the first thing is switched. 0 switches the first at once, and the rest follow, Delay Between Objects apart. The same wait comes before the first when they go off one after another.")]
@@ -273,6 +285,19 @@ public class WalkSwitch : MonoBehaviour
         {
             Deactivate();
         }
+
+        // Off, with a lowest signal to send: the things are held at it, all the time. Not while they're being switched off one after another.
+        if (!activated && SwitchSignal.HoldsMinimum(signalMode, minimumSignal) && !sequence.Pending)
+        {
+            SwitchSignal.HoldMinimum(switchableObjects, minimumSignal, usable, this);
+        }
+    }
+
+    // The amount, from 0 to 1, to give the things that can take one while it's on or off, or below 0 for no amount: switching them on or
+    // off as usual.
+    private float AmountFor(bool on)
+    {
+        return SwitchSignal.Amount(signalMode, on, minimumSignal, maximumSignal);
     }
 
     private void Activate()
@@ -285,7 +310,7 @@ public class WalkSwitch : MonoBehaviour
         {
             if (starting)
             {
-                sequence.Begin(switchableObjects, true, initialDelay, delayBetweenObjects, false, usable);
+                sequence.Begin(switchableObjects, true, initialDelay, delayBetweenObjects, false, usable, AmountFor(true), this, signalMode);
             }
 
             sequence.Tick(switchableObjects, staysActiveWhenOn, usable);
@@ -298,7 +323,7 @@ public class WalkSwitch : MonoBehaviour
         {
             if (thing && thing.enabled)
             {
-                thing.Activate();
+                thing.Signal(this, signalMode, true, AmountFor(true));
             }
         }
     }
@@ -310,7 +335,7 @@ public class WalkSwitch : MonoBehaviour
         // One after another, if there's a delay and they're to go off that way.
         if (Sequenced && switchOffOrder != SwitchOffOrder.AllAtOnce)
         {
-            sequence.Begin(switchableObjects, false, initialDelay, delayBetweenObjects, switchOffOrder == SwitchOffOrder.ReverseOrder, usable);
+            sequence.Begin(switchableObjects, false, initialDelay, delayBetweenObjects, switchOffOrder == SwitchOffOrder.ReverseOrder, usable, AmountFor(false), this, signalMode);
             sequence.Tick(switchableObjects, false, usable);
             return;
         }
@@ -321,7 +346,7 @@ public class WalkSwitch : MonoBehaviour
         {
             if (thing && thing.enabled)
             {
-                thing.Deactivate();
+                thing.Signal(this, signalMode, false, AmountFor(false));
             }
         }
     }

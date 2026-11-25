@@ -57,6 +57,9 @@ public class GroupCamera : MonoBehaviour
     [Header("Following")]
     [Tooltip("How fast, in units a second, the camera moves to a new character or to a new group of characters.")]
     public float transitionSpeed = 60f;
+    [Min(0f)]
+    [Tooltip("The longest, in seconds, a move to a new character or group takes. If the move would take longer than this at Transition Speed, because they're a long way apart, the camera goes faster to fit, easing up to speed and slowing down again so it isn't a sudden jolt. 0 has no limit.")]
+    public float maxTransitionSeconds = 2f;
     [Tooltip("How fast the camera keeps up once it's there.")]
     public float followSpeed = 1000f;
     [Tooltip("How far the look stick moves the camera, at the widest zoom.")]
@@ -139,6 +142,13 @@ public class GroupCamera : MonoBehaviour
         public float preferredZoom;
         public bool following;
         public int followedSignature;
+
+        // The move to a new set of characters that is under way: where it began, how long it has taken, and whether it's too far to
+        // go at Transition Speed in the time allowed, so it's timed instead. Worked out afresh at the start of each move.
+        public bool transitionPlanned;
+        public Vector2 transitionFrom;
+        public float transitionElapsed;
+        public bool transitionTimed;
 
         // A view that has only just been given a camera starts where the view it came from was, and so grows out of it.
         public View parent;
@@ -1073,6 +1083,7 @@ public class GroupCamera : MonoBehaviour
             camera.orthographicSize = pair.Value.size;
             camera.rect = pair.Value.rect;
             pair.Key.following = false;
+            pair.Key.transitionPlanned = false;
         }
     }
 
@@ -1132,14 +1143,16 @@ public class GroupCamera : MonoBehaviour
         {
             view.followedSignature = view.signature;
             view.following = false;
+            view.transitionPlanned = false;
         }
 
         var position = (Vector2)cameraTransform.position;
 
         if (position != targetPosition)
         {
-            var speed = view.following ? followSpeed : transitionSpeed;
-            position = Vector2.MoveTowards(position, targetPosition, speed * Time.deltaTime);
+            position = view.following
+                ? Vector2.MoveTowards(position, targetPosition, followSpeed * Time.deltaTime)
+                : MoveToNewTarget(view, position, targetPosition);
             cameraTransform.position = new Vector3(position.x, position.y, cameraTransform.position.z);
         }
         else
@@ -1151,6 +1164,42 @@ public class GroupCamera : MonoBehaviour
         camera.rect = MoveRect(camera.rect, view.slot);
         camera.transform.eulerAngles = Vector3.zero;
         camera.enabled = true;
+    }
+
+    // One step of a move to a new set of characters. A short one goes at Transition Speed. One that would take longer than Max Transition
+    // Seconds at that speed is done in exactly that time instead, easing in and out (smoothstep) so the extra speed builds up and dies
+    // away rather than being a jolt: 1000 units in 2 seconds is a peak of about 750 units a second, from a standing start. It
+    // slides from where it began towards where the characters are now, so it still arrives on them if they've moved on in the meantime.
+    private Vector2 MoveToNewTarget(View view, Vector2 position, Vector2 target)
+    {
+        if (!view.transitionPlanned)
+        {
+            view.transitionPlanned = true;
+            view.transitionFrom = position;
+            view.transitionElapsed = 0f;
+            view.transitionTimed = maxTransitionSeconds > 0f &&
+                                   Vector2.Distance(position, target) > Mathf.Max(0f, transitionSpeed) * maxTransitionSeconds;
+        }
+
+        view.transitionElapsed += Time.deltaTime;
+
+        if (!view.transitionTimed)
+        {
+            return Vector2.MoveTowards(position, target, transitionSpeed * Time.deltaTime);
+        }
+
+        var t = Mathf.Clamp01(view.transitionElapsed / maxTransitionSeconds);
+
+        // Time's up: it's there, exactly, and goes on to keep up with them from here.
+        if (t >= 1f)
+        {
+            view.following = true;
+            return target;
+        }
+
+        var eased = t * t * (3f - 2f * t);
+
+        return Vector2.Lerp(view.transitionFrom, target, eased);
     }
 
     // Cameras with no view are switched off. If there are three screens, the fourth quarter has a camera left turned

@@ -70,7 +70,7 @@ Each is a generic position sync, plus a guard for the logic.
 
 ## Logic only (C)
 
-`KillZone` (host teleports, which is already shown), `HeatSource`, `IceZone`'s effect, `RollDamage`, `CanTriggerFloorCollapse`, the
+`KillZone` (host teleports, which is already shown), `ReturnsToStart` (the host puts the object back and calls `ServerTeleport` on its network transform, so it jumps rather than slides), `HeatSource`, `IceZone`'s effect, `RollDamage`, `CanTriggerFloorCollapse`, the
 `BlowerFan` forces (its fan picture animation is local decoration, D), `Map` and its lookups, `LiquidMap`, `Detector`s on
 characters, `WindCatcher`.
 

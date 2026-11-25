@@ -5,8 +5,9 @@ using UnityEngine;
 // below the bottom of the map, or anywhere else a character shouldn't be able to stay, such as a pit that is meant to be
 // fallen into.
 //
-// Give it a trigger collider, on a layer that collides with the characters. Only characters are sent back. Anything else
-// that falls in is left alone.
+// Give it a trigger collider, on a layer that collides with the characters. Characters are sent back to the checkpoint. Anything
+// else that falls in is left alone, unless it has Returns To Start (a carryable crate has it automatically), in which case it
+// goes back to where it began. That needs the zone's layer to collide with the object's layer too.
 public class KillZone : MonoBehaviour
 {
     [Min(0f)]
@@ -58,8 +59,21 @@ public class KillZone : MonoBehaviour
         var character = other.GetComponentInParent<Character>();
         var selecter = CharacterSelecter.Instance;
 
+        // Not a character: something that comes back to where it began, such as a crate, if it's one of those.
+        if (!character)
+        {
+            var thing = other.attachedRigidbody ? other.attachedRigidbody.GetComponent<ReturnsToStart>() : other.GetComponentInParent<ReturnsToStart>();
+
+            if (thing)
+            {
+                thing.ReturnToStart();
+            }
+
+            return;
+        }
+
         // Anyone in the game, and no one who is still being put away or hasn't started.
-        if (!character || !character.isActiveAndEnabled || !selecter || !selecter.IsInParty(character))
+        if (!character.isActiveAndEnabled || !selecter || !selecter.IsInParty(character))
         {
             return;
         }

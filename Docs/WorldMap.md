@@ -123,10 +123,16 @@ Decided rules:
 - **Respawn:** a character with hit points who dies is brought back at the current hub.
 - **`KillZone`**: a trigger area that sends any party member who touches it back to the checkpoint, for the bottom of the
   map and for pits. It can take some hit points off on the way, and it works for characters with no hit points as well.
+  Anything with **`ReturnsToStart`** that touches it is put back where it began instead (see below).
+- **`ReturnsToStart`**: remembers where an object was when the game started (its place and angle) and, when a Kill Zone
+  touches it, puts it back there at rest, on every machine. A carryable crate has it automatically, so a crate knocked off
+  a ledge isn't lost. To make anything else with a Rigidbody2D come back, such as a pushable block, add the component by
+  hand. A crate that is being carried is never sent back (if the carrier falls in, they are sent to the hub and it goes with
+  them). The Kill Zone's layer has to collide with the object's layer, as it does with the characters'. If something else is
+  standing on the start spot when it comes back, they overlap; nothing clears the way.
 
 ### Still to do
 - **Who may open the hub menu.** Any player at a hub can open it, and whoever changes the party reassigns everyone: a
   player whose character is swapped out is given the first free one. If this causes trouble in play, a rule such as
   "Player 1 only" can be added.
 - **Saving what has been found** between sessions. The roster is kept for the session only.
-- **Objects that fall out of the world** (boxes, carryables) aren't sent anywhere by the kill zone.

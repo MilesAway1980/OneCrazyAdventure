@@ -35,6 +35,9 @@ public class CarryableObject : MonoBehaviour
         // And floats or sinks in a liquid: as wood, unless it's been given something else to be made of.
         FloatsInFluid.EnsureOn(gameObject);
 
+        // And if it falls into a Kill Zone, it comes back to where it started, so it can't be lost.
+        ReturnsToStart.EnsureOn(gameObject);
+
         /*var allColliders = GetComponentsInChildren<Collider2D>();
         foreach (var col in allColliders)
         {

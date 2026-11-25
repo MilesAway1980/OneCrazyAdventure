@@ -22,8 +22,8 @@ are circled. Check it before playing.
 | Setting | What it does |
 |---|---|
 | **Speed** | How fast it goes, in units per second. |
-| **Path End** | At the last point it **Stops**, **Turns Around** (back along the path to the start, and so on), or **Loops** (on from the last point to the first). |
-| **When Switched Off** | When the switch is turned off it either **Stops** where it is (and carries on from there when switched on again) or **Returns To Start**, turning round and going back along the way it came. |
+| **Path End** | At the last point it **Stops**, **Turns Around** (back to the first point, and so on, between the first point and the last), or **Loops** (on from the last point to the first). Where it started isn't part of the back and forth or the loop: it goes there from the start once, and only switching it off takes it back. |
+| **When Switched Off** | When the switch is turned off it either **Stops** where it is (and carries on from there when switched on again) or **Returns To Start**: back to the first point, then straight to where it started. |
 | **Corner Radius** | 0 goes right to each point before turning. Above 0 the corners are curves, rounder the higher it is, up to what the path has room for: a corner can use at most half of each piece of path it shares with another rounded corner. A turn of almost 180 degrees, or hardly any turn at all, isn't rounded. |
 | **Movement Method** | How speed changes along the way (below). |
 | **Ease Seconds** | For the methods that ease: how long it takes to get up to speed from rest, and to slow to rest. |
@@ -35,7 +35,7 @@ are circled. Check it before playing.
 | Method | Speed |
 |---|---|
 | **Constant** | The same speed all the way, starting and stopping all at once. |
-| **Smooth Ends** | Speeds up from rest at the start and slows to rest at the end. In a loop, which has no ends, it's steady. |
+| **Smooth Ends** | Speeds up from rest at the start and slows to rest at the end. Going back and forth it also slows to rest at the first point, where it turns round. In a loop, which has no ends, it's steady. |
 | **Ease Between Points** | Slows to a near stop at every point and speeds up again. |
 
 ## Switches
@@ -55,11 +55,16 @@ are circled. Check it before playing.
   platform to have a Kinematic Rigidbody2D, and carries sideways movement only (see Riding in [Movement.md](Movement.md)).
 - **So do crates.** A carryable crate, or anything with a `PushableSolid`, is carried by the platform it stands on, and can still be
   pushed along it. For anything else the physics moves, add a `PlatformRider` component.
-- **In a loop** the platform begins on the rounded path, which is just inside its start point when Corner Radius is above 0, so it
-  moves slightly when the game starts.
+- **The start isn't a point.** Switched on, it goes from where it started to the first point, then goes between the points as Path End
+  says, and never goes back to the start unless it's switched off with **Returns To Start**. In the scene view, a loop shows its
+  closing line from the last point to the first, and the line from the start to the first point is only used once.
+- **Rounded corners** count the middle of the curve as the point. The first point has the start on one side of it, so with Corner
+  Radius above 0 it's a curve too, and a back and forth turns round, waits and slows at the middle of that curve rather than at the
+  exact spot. The last point has nothing after it, so it's always reached exactly.
+- **A loop of one point** has nowhere to go round, so the platform goes there and stays, as Stop does.
 - **At the end of a path that Stops**, the platform stays at the end until it's been taken back: switching it on again does nothing
   until a switch-off has returned it (**When Switched Off: Returns To Start**) or a button has taken it back.
-- **Returns To Start in a loop** goes backward round the loop to where it began.
+- **Returns To Start in a loop** goes round the loop the nearer way to the first point, then straight back to where it began.
 - The points are read when the game starts, so moving them while playing changes nothing.
 - **Over a network**, the host moves the platform and its position is sent. Run **Tools > Network > Make World Networked** after
   adding one.

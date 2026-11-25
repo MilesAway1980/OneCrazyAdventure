@@ -7,18 +7,19 @@ using UnityEngine;
 // How it's set up:
 //  - Put the platform where the path starts, with a Rigidbody2D set to Kinematic, so whatever stands on it is carried. (Without
 //    one it moves by its transform, and carries nothing.)
-//  - Path Points are empty objects, in the order it visits them, which it starts from where it is. They shouldn't be children of
-//    the platform, or they would move with it. Where they are when the game starts is the path.
-//  - Speed is how fast it goes. At the end of the path it stops, turns around and goes back the way it came, or goes round in a
-//    loop, going back to the start (Path End).
+//  - Path Points are empty objects, in the order it visits them. It goes from where it starts to the first one, and from then on the
+//    points are all there is to the path: where it started isn't one of them. They shouldn't be children of the platform, or they
+//    would move with it. Where they are when the game starts is the path.
+//  - Speed is how fast it goes. At the last point it stops, turns around and goes back and forth between the first point and the last,
+//    or goes round the points in a loop (Path End). Only switching it off takes it back to where it started.
 //  - Corner Radius rounds the corners. At 0 it goes right to each point before turning; the higher it is, the rounder the turn, up to
-//    what the path has room for. In a loop, where it begins on the rounded path is just inside its start point.
+//    what the path has room for. Where a corner is rounded, it's the middle of the curve that counts as being at the point.
 //  - Movement Method is how its speed changes along the way: steady, easing in and out at the ends of the path, or easing at every
 //    point. Pause At Points makes it wait at each one.
 //
 // What switching does:
 //  - On a lever or a button that is pressed all the way, switching on sets it off along the path, and switching off either stops it
-//    where it is, or turns it round and takes it back to the start (When Switched Off).
+//    where it is, or takes it back to where it started (When Switched Off).
 //  - A button set to Allow Partial Presses moves it by how far down the button is pressed: half way down takes it half way along the path,
 //    to the last point (as far as the path goes, not in a straight line). It follows the button back up as well. This always goes to
 //    the end of the path and back, whatever Path End and When Switched Off say.
@@ -30,9 +31,11 @@ public class SwitchMovingPlatform : SwitchableObject
     {
         // Stops at the last point, and stays there until it's taken back.
         Stop,
-        // Goes back along the path to the start, and turns around again there, for as long as it's switched on.
+        // Goes back along the path to the first point, and turns around again there, for as long as it's switched on. It doesn't go
+        // back to where it started.
         TurnAround,
-        // Goes on from the last point to the first, round and round, for as long as it's switched on.
+        // Goes on from the last point to the first, round and round, for as long as it's switched on. It doesn't go back to where it
+        // started.
         Loop
     }
 
@@ -40,7 +43,7 @@ public class SwitchMovingPlatform : SwitchableObject
     {
         // Stops where it is, and carries on from there when it's switched on again.
         Stop,
-        // Turns round and goes back to the start along the way it came.
+        // Goes back to where it started, by the first point and then straight to the start, however far round it was.
         ReturnToStart
     }
 
@@ -58,7 +61,7 @@ public class SwitchMovingPlatform : SwitchableObject
     [Tooltip("The platform. If it's empty, this object moves.")]
     public Transform platform;
 
-    [Tooltip("Where it goes, in order, starting from where it is. Not children of the platform.")]
+    [Tooltip("Where it goes, in order. It goes from where it starts to the first, and after that only between these: where it started isn't one of them. Not children of the platform.")]
     public Transform[] pathPoints = new Transform[0];
 
     [Header("How it moves")]
@@ -66,10 +69,10 @@ public class SwitchMovingPlatform : SwitchableObject
     [Tooltip("How fast it goes, in units per second.")]
     public float speed = 3f;
 
-    [Tooltip("What it does when it gets to the last point.")]
+    [Tooltip("What it does when it gets to the last point: stop there, go back and forth between the first point and the last, or go round the points in a loop.")]
     public PathEndAction pathEnd = PathEndAction.Stop;
 
-    [Tooltip("What it does when the switch is turned off.")]
+    [Tooltip("What it does when the switch is turned off: stop where it is, or go back to where it started.")]
     public SwitchOffAction whenSwitchedOff = SwitchOffAction.ReturnToStart;
 
     [Min(0f)]
@@ -100,9 +103,14 @@ public class SwitchMovingPlatform : SwitchableObject
     }
 
     private Rigidbody2D body;
+    // The way from where it starts, through the points, to the last. And, to go round in a loop, the points alone, joined end to start: it
+    // gets on to this from the open one at the first point.
     private Route open;
     private Route loop;
     private Route route;
+
+    // How far along the open route the first point is, so how long the way from the start to it is.
+    private float leadIn;
 
     private Intent intent = Intent.Stopped;
     private float distance;
@@ -118,6 +126,15 @@ public class SwitchMovingPlatform : SwitchableObject
     // How close to a point counts as being at it, in units.
     private const float AtPoint = 0.01f;
 
+    private static readonly float[] NoStops = new float[0];
+
+    // Whether it goes round the points in a loop. A loop needs two points at least: with only one, there's nowhere to go round, so it
+    // goes there and stays, as Stop does.
+    private bool Cycles
+    {
+        get { return pathEnd == PathEndAction.Loop && loop != null && loop.points.Length >= 2; }
+    }
+
     protected override void Start()
     {
         base.Start();
@@ -130,7 +147,7 @@ public class SwitchMovingPlatform : SwitchableObject
         body = KinematicBody();
         startPosition = body.position;
 
-        var vertices = Vertices(startPosition);
+        var vertices = Vertices(startPosition, true);
 
         if (vertices.Count < 2)
         {
@@ -138,9 +155,12 @@ public class SwitchMovingPlatform : SwitchableObject
         }
 
         open = Route.Build(vertices, false, cornerRadius);
-        loop = Route.Build(vertices, true, cornerRadius);
-        route = pathEnd == PathEndAction.Loop ? loop : open;
-        distance = route.Project(startPosition);
+        loop = Route.Build(Vertices(startPosition, false), true, cornerRadius);
+        leadIn = open.leadIn;
+
+        // It always begins at the start, from where it goes to the first point.
+        route = open;
+        distance = 0f;
 
         // Moved a step at a time by the physics, so it's drawn smoothly between them.
         if (body)
@@ -173,10 +193,15 @@ public class SwitchMovingPlatform : SwitchableObject
         return found;
     }
 
-    // The start, then each of the points, as they are now.
-    private List<Vector2> Vertices(Vector2 start)
+    // Each of the points as they are now, and before them, if it's asked for, the start.
+    private List<Vector2> Vertices(Vector2 start, bool withStart)
     {
-        var vertices = new List<Vector2> { start };
+        var vertices = new List<Vector2>();
+
+        if (withStart)
+        {
+            vertices.Add(start);
+        }
 
         foreach (var point in pathPoints)
         {
@@ -246,7 +271,17 @@ public class SwitchMovingPlatform : SwitchableObject
 
         amountMode = false;
         intent = Intent.Running;
-        UseRoute(pathEnd == PathEndAction.Loop ? loop : open);
+
+        // To go round, it's on the loop, once it has got to the first point. Before that, on the way to it, it stays on the open route,
+        // which the loop doesn't include.
+        if (Cycles && !(route == open && distance < leadIn - AtPoint))
+        {
+            UseRoute(loop);
+        }
+        else if (!Cycles)
+        {
+            UseRoute(open);
+        }
     }
 
     public override bool AcceptsAmount
@@ -340,7 +375,7 @@ public class SwitchMovingPlatform : SwitchableObject
         {
             case Intent.Running:
                 // Going along an open path and stopping at the end: always forward, and the end is where it's heading for.
-                if (pathEnd == PathEndAction.Stop && !closed)
+                if ((pathEnd == PathEndAction.Stop || (pathEnd == PathEndAction.Loop && !Cycles)) && !closed)
                 {
                     direction = 1f;
                     hasGoal = true;
@@ -352,7 +387,10 @@ public class SwitchMovingPlatform : SwitchableObject
 
             case Intent.Returning:
                 hasGoal = true;
-                goal = 0f;
+
+                // Round a loop it makes for the first point, the nearer way, which is where the loop meets the way to the start. From
+                // there it goes back to the start.
+                goal = closed ? (distance <= total * 0.5f ? 0f : total) : 0f;
                 sign = goal < distance ? -1f : 1f;
                 break;
 
@@ -398,8 +436,38 @@ public class SwitchMovingPlatform : SwitchableObject
             return;
         }
 
+        // On the way from the start to the first point of a loop, and there: from here on it goes round the points, and the start is left
+        // behind. With a pause to make, it stops at the first point as it does at every other.
+        if (intent == Intent.Running && Cycles && route == open && next >= leadIn)
+        {
+            route = loop;
+
+            if (pauseAtPoints > 0f)
+            {
+                distance = 0f;
+                velocity = 0f;
+                Wait();
+            }
+            else
+            {
+                distance = Mathf.Repeat(next - leadIn, loop.total);
+            }
+
+            return;
+        }
+
         if (!closed)
         {
+            // Back and forth between the first point and the last. The way from the start to the first point is only gone along once.
+            if (intent == Intent.Running && pathEnd == PathEndAction.TurnAround && sign < 0f && distance >= leadIn - AtPoint && next <= leadIn)
+            {
+                distance = leadIn;
+                velocity = 0f;
+                direction = 1f;
+                Wait();
+                return;
+            }
+
             // The ends of the path, going back and forth.
             if (next >= total)
             {
@@ -454,6 +522,15 @@ public class SwitchMovingPlatform : SwitchableObject
                 break;
 
             case Intent.Returning:
+                // Round a loop, at the first point: on to the way back to the start, which isn't part of the loop. It goes on from there
+                // at the same place, and arrives when it gets to the start.
+                if (route == loop)
+                {
+                    route = open;
+                    distance = leadIn;
+                    break;
+                }
+
                 intent = Intent.Stopped;
                 direction = 1f;
                 break;
@@ -480,6 +557,23 @@ public class SwitchMovingPlatform : SwitchableObject
     {
         var best = float.PositiveInfinity;
         var stops = movementMethod == Method.EaseBetweenPoints ? route.stops : route.ends;
+
+        // On its way to a loop it doesn't slow at the ends of the way, as it doesn't stop at either.
+        if (intent == Intent.Running && Cycles && route == open && movementMethod != Method.EaseBetweenPoints)
+        {
+            stops = NoStops;
+        }
+
+        // Going back and forth, it turns around at the first point, not at the start, so that's where it slows.
+        if (intent == Intent.Running && pathEnd == PathEndAction.TurnAround && !route.closed && sign < 0f && movementMethod != Method.Constant)
+        {
+            var toFirst = (leadIn - distance) * sign;
+
+            if (toFirst > AtPoint)
+            {
+                best = Mathf.Min(best, toFirst);
+            }
+        }
 
         foreach (var stop in stops)
         {
@@ -570,6 +664,10 @@ public class SwitchMovingPlatform : SwitchableObject
         public float[] ends;
 
         public bool closed;
+
+        // For a route made from the start and then the points: how far along the first point is (the middle of its turn, if it's rounded),
+        // which is how long the way from the start to it is.
+        public float leadIn;
 
         public Vector2 PointAt(float at)
         {
@@ -771,6 +869,10 @@ public class SwitchMovingPlatform : SwitchableObject
             }
 
             route.ends = route.closed ? new float[0] : new[] { 0f, route.total };
+
+            // The first point is the second place on the route, after the start, unless the start is on it, and then they are one.
+            var startIsFirst = given.Count > 1 && (given[1] - given[0]).sqrMagnitude <= 0.000001f;
+            route.leadIn = route.closed || startIsFirst ? 0f : route.stops[1];
             return route;
         }
     }
@@ -785,13 +887,26 @@ public class SwitchMovingPlatform : SwitchableObject
     {
         var target = platform ? platform : transform;
         var start = Application.isPlaying ? startPosition : (Vector2)target.position;
-        var shown = Route.Build(Vertices(start), pathEnd == PathEndAction.Loop, cornerRadius);
+
+        // The way from the start through the points...
+        var shown = Route.Build(Vertices(start, true), false, cornerRadius);
 
         Gizmos.color = Color.cyan;
 
         for (var i = 1; i < shown.points.Length; i++)
         {
             Gizmos.DrawLine(shown.points[i - 1], shown.points[i]);
+        }
+
+        // ...and, for a loop, the points joined end to start, which is the part it goes round.
+        if (pathEnd == PathEndAction.Loop)
+        {
+            var round = Route.Build(Vertices(start, false), true, cornerRadius);
+
+            for (var i = 1; i < round.points.Length; i++)
+            {
+                Gizmos.DrawLine(round.points[i - 1], round.points[i]);
+            }
         }
 
         Gizmos.color = Color.yellow;

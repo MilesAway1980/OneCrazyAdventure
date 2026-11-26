@@ -298,6 +298,7 @@ namespace Characters
 
         public override void InteractHold(bool held)
         {
+            base.InteractHold(held);
             interactHeld = held;
         }
 

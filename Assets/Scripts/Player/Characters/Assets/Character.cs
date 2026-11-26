@@ -152,6 +152,9 @@ namespace Characters
         private float speedScale = 1f;
         private float jumpScale = 1f;
         protected SpriteRenderer spriteRenderer;
+
+        // His animations, if he has any: see CharacterAnimator.
+        private CharacterAnimator characterAnimator;
         protected Rigidbody2D rigidBody2D;
         protected bool performingAction;
         protected bool inUse;
@@ -239,6 +242,7 @@ namespace Characters
         protected virtual void Start()
         {
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            characterAnimator = GetComponent<CharacterAnimator>();
             rigidBody2D = GetComponent<Rigidbody2D>();
 
             CanTriggerFloorCollapse.EnsureOn(gameObject);
@@ -1335,7 +1339,99 @@ namespace Characters
         {
             isJumping = distFromGround >= 0.2f;
 
-            ShowSprite(facing == CharacterFacing.Left, isJumping, IsPerformingAction());
+            var performing = IsPerformingAction();
+
+            ChooseAnimation(isJumping, performing);
+            ShowSprite(facing == CharacterFacing.Left, isJumping, performing, AnimationClip, AnimationSpeed);
+        }
+
+        // ----- Animation -----
+        //
+        // For each character the game simulates, it works out what he is doing (Idle, Walk, Rise, Fall, Action, AirAction, or something
+        // one of his own scripts says, such as Roll) and which of his clips shows that. The number of the clip, and how fast he is walking,
+        // are what's sent to the other machines. See Docs/Animation.md.
+
+        // Walking slower than this is standing still.
+        private const float WalkAnimationMinSpeed = 0.1f;
+
+        // The clip to show, as its number in his Animation Set, or None if he has none for what he's doing.
+        public int AnimationClip { get; private set; } = CharacterAnimationSet.None;
+
+        // How fast he's walking, as a fraction of the fastest he does, for a clip that follows his speed.
+        public float AnimationSpeed { get; private set; } = 1f;
+
+        // What he is doing, by name. A character's own script is given the ordinary one and gives back the one it wants: a bowling ball
+        // that is rolling says Roll, and dynamite that has gone off says Explode.
+        protected virtual string AnimationState(string commonState)
+        {
+            return commonState;
+        }
+
+        // How he looks while he does it, when that's different, such as Snuffed. Empty for the ordinary. While he's carrying something it's
+        // Carrying, unless a character says otherwise.
+        protected virtual string AnimationVariant()
+        {
+            return objectCarrying ? CharacterAnimationSet.Carrying : string.Empty;
+        }
+
+        // When his Interact clip stops showing. Pulling a lever, picking something up and putting it down start it.
+        private float interactAnimationUntil;
+
+        // Whether he's working something that has to be held, such as a lever. His Interact clip shows for as long as he is.
+        private bool operating;
+
+        public void SetOperating(bool value)
+        {
+            operating = value;
+        }
+
+        // Starts his Interact clip, if he has one, for as long as it takes to play through.
+        private void StartInteractAnimation()
+        {
+            if (!characterAnimator)
+            {
+                return;
+            }
+
+            var clip = characterAnimator.Find(CharacterAnimationSet.Interact, AnimationVariant());
+            interactAnimationUntil = clip == CharacterAnimationSet.None ? 0f : Time.time + characterAnimator.ClipSeconds(clip);
+        }
+
+        private void ChooseAnimation(bool airborne, bool performing)
+        {
+            if (!characterAnimator)
+            {
+                AnimationClip = CharacterAnimationSet.None;
+                return;
+            }
+
+            string common;
+
+            if (performing)
+            {
+                common = airborne ? CharacterAnimationSet.AirAction : CharacterAnimationSet.Action;
+            }
+            else if (airborne)
+            {
+                common = rigidBody2D.linearVelocity.y > 0f ? CharacterAnimationSet.Rise : CharacterAnimationSet.Fall;
+            }
+            else if (operating || Time.time < interactAnimationUntil)
+            {
+                common = CharacterAnimationSet.Interact;
+            }
+            else if (Mathf.Abs(moveSpeed) > WalkAnimationMinSpeed)
+            {
+                common = CharacterAnimationSet.Walk;
+            }
+            else
+            {
+                common = CharacterAnimationSet.Idle;
+            }
+
+            AnimationClip = characterAnimator.Find(AnimationState(common), AnimationVariant());
+
+            var fastest = MaxWalkSpeed;
+            AnimationSpeed = fastest > 0.01f ? Mathf.Clamp(Mathf.Abs(moveSpeed) / fastest, 0.3f, 1.5f) : 1f;
         }
 
         // The three things that decide which picture a character is shown with: which way they face, whether they're in the air,
@@ -1350,9 +1446,10 @@ namespace Characters
             get { return isJumping; }
         }
 
-        // Shows the character's picture for those three things. A character the game is simulating works them out for itself every
-        // frame. One that is only being shown, on a machine that joined someone else's game, is given them.
-        public void ShowSprite(bool facingLeft, bool airborne, bool performing)
+        // Shows the character's picture for those three things, or his clip if he has one for what he's doing (and how fast he's walking,
+        // for a clip that follows it). A character the game is simulating works them out for itself every frame. One that is only being
+        // shown, on a machine that joined someone else's game, is given them.
+        public void ShowSprite(bool facingLeft, bool airborne, bool performing, int clip, float walkSpeed)
         {
             if (!spriteRenderer)
             {
@@ -1368,6 +1465,12 @@ namespace Characters
 
             // So that what is shown for a character that is only being shown, which goes by whether he's in the air, can tell.
             isJumping = airborne;
+
+            // His own clip, if he has one for this. It draws him, and the pictures below are for when it doesn't.
+            if (characterAnimator && characterAnimator.Show(clip, walkSpeed))
+            {
+                return;
+            }
 
             if (airborne)
             {
@@ -1549,7 +1652,12 @@ namespace Characters
         // such as in combination with another button. Interact() below is called once as it goes down.
         public virtual void InteractHold(bool held)
         {
+            InteractHeld = held;
         }
+
+        // Whether the Interact button is being held. A lever that has to be held to work it goes by this. (A character that has its own
+        // InteractHold calls this one too.)
+        public bool InteractHeld { get; private set; }
 
         public virtual void Interact()
         {
@@ -1589,6 +1697,7 @@ namespace Characters
 
                 objectCarrying.Drop();
                 objectCarrying = null;
+                StartInteractAnimation();
                 return;
             }
 
@@ -1598,6 +1707,7 @@ namespace Characters
                 if (carry)
                 {
                     objectCarrying = carry;
+                    StartInteractAnimation();
                     //Can only carry one object.  If they pick something up, they can't interact
                     return;
                 }
@@ -1608,6 +1718,7 @@ namespace Characters
                 var interacting = io.Interact(this);
                 if (interacting)
                 {
+                    StartInteractAnimation();
                     //Can only interact with one object
                     return;
                 }

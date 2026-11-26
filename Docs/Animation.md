@@ -58,6 +58,15 @@ protected override string AnimationState(string commonState)
 Then the set gets a clip whose State is `Roll`. If a character says a state that has no clip, he's shown with his ordinary pictures. Bowling Ball
 rolling up into a ball, Dynamite exploding and the like are all done this way, and never touch anyone else's animations.
 
+The Bowling Ball is the example (`BowlingBall.cs`). Rolling is his Action, so **Action** is the clip that curls him up into the ball, and it doesn't loop: its
+**Then Play** is `RollLoop`, a state only that clip goes on to, which is the ball itself (the code turns it as he rolls). **AirAction** is the ball, as
+there's nothing to curl up from in the air. And when he lets go he unrolls: his script gives back `Unroll` for a moment (while he would otherwise be Idle or
+Walk), and its clip is the curl the other way round. Tools > Animation > Create Bowling Ball Animation Set makes the set.
+
+He also has the **Carrying** clips, for if he's ever allowed to carry something (Able To Carry Objects is a switch on the character, and the clips don't turn it
+on). Every character's set can have them: clips for Idle, Walk, Rise and Fall with the variant Carrying. Zipper has them, and each set made from here on
+should too, so any character can be given something to carry without more art.
+
 ## Variants
 
 **Carrying** is a variant the game sets by itself, while he's carrying something. A clip for Idle, Walk, Rise or Fall with the variant **Carrying**

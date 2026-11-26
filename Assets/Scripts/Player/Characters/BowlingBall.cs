@@ -14,6 +14,27 @@ namespace Characters
         // Whether everything he needs was found. Until then there is nothing to switch.
         private bool ready;
 
+        // ----- Animation -----
+        //
+        // Rolling is his Action. Curling up into the ball is the clip for Action, which goes on into RollLoop (the ball, which the code above
+        // turns as he rolls) by itself. When he lets go of the button he unrolls for a moment, which is his own state, before he's Idle or
+        // Walk again. See Docs/Animation.md.
+        public const string RollLoopState = "RollLoop";
+        public const string UnrollState = "Unroll";
+
+        private const float UnrollSeconds = 0.15f;
+        private float unrollUntil;
+
+        protected override string AnimationState(string commonState)
+        {
+            if (Time.time < unrollUntil && (commonState == CharacterAnimationSet.Idle || commonState == CharacterAnimationSet.Walk))
+            {
+                return UnrollState;
+            }
+
+            return commonState;
+        }
+
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         protected override void Start()
         {
@@ -114,6 +135,12 @@ namespace Characters
             if (rolling == performingAction)
             {
                 return;
+            }
+
+            // Letting go of it: he unrolls.
+            if (!rolling)
+            {
+                unrollUntil = Time.time + UnrollSeconds;
             }
 
             performingAction = rolling;

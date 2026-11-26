@@ -488,18 +488,9 @@ public class ButtonSwitch : MonoBehaviour
             return 0f;
         }
 
+        // A character carrying something isn't weighed for what he's carrying here: it isn't touching the pad, but his own mass already has
+        // its weight added to it, less what his Carry Strength takes off, while he holds it.
         var total = body.mass;
-
-        // A crate carried by a character isn't touching the pad, but it's being held up by it all the same.
-        if (body.TryGetComponent<Character>(out var character) && character.CarriedObject)
-        {
-            var carried = character.CarriedObject.GetComponent<Rigidbody2D>();
-
-            if (carried)
-            {
-                total += WeighBody(carried, up, depthInStack + 1);
-            }
-        }
 
         if (depthInStack > StackDepth)
         {

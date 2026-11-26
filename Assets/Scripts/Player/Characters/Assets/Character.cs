@@ -35,6 +35,18 @@ namespace Characters
         [Tooltip("The Kinematic body, such as an empty child object, that things he carries are attached to. Needed if he is able to carry things.")]
         public Rigidbody2D carryAttachmentPoint;
 
+        [Min(0f)]
+        [Tooltip("The heaviest thing he can pick up, as its mass. Something heavier doesn't move when he tries: he reaches for it, with his Interact " +
+                 "animation, and that's all. 0 is no limit. It's the thing's own mass, before his Carry Strength takes any off it.")]
+        public float maxCarryWeight;
+
+        [Range(0f, 100f)]
+        [Tooltip("How much of the weight of what he carries he doesn't feel, as a percentage. 0: he feels all of it, so carrying a crate as heavy as he is " +
+                 "makes him twice as heavy. 50: half of its weight counts, so a crate of mass 200 counts as 100, and one of 70 as 35. 100: carrying " +
+                 "doesn't weigh on him at all. What he feels is added to his own mass while he holds it, which counts on buttons and crumbling floors, and " +
+                 "his walking speed and his jumping go down to his own mass over his mass with it.")]
+        public float carryStrength;
+
         private bool holdingJump;
         //Eventually make protected.  public for testing
         [Tooltip("Whether he can jump at the moment. Worked out as the game runs: for watching, not for setting.")]
@@ -287,6 +299,10 @@ namespace Characters
                 rigidBody2D.mass = movementProfile.mass;
             }
 
+            // His own mass, which the weight of what he carries is added to and taken off.
+            ownMass = rigidBody2D.mass;
+            massWithLoad = ownMass;
+
             currentMovementSettings = GetMovementSetting("base", null);
 
             if (characters == null)
@@ -347,6 +363,8 @@ namespace Characters
             {
                 return;
             }
+
+            UpdateLoad();
 
             if (returningToSafety)
             {
@@ -1532,6 +1550,7 @@ namespace Characters
                         else if (sampledFluid != null && movementProfile)
                         {
                             movementProfile.Resolve(GetMovementMode(), sampledFluid, MovementTuning.Current, kickMovement);
+                            ApplyLoad(kickMovement);
 
                             if (kickMovement.jumpHeight > currentMovementSettings.jumpHeight)
                             {
@@ -1697,9 +1716,12 @@ namespace Characters
 
                 objectCarrying.Drop();
                 objectCarrying = null;
+                UpdateLoad();
                 StartInteractAnimation();
                 return;
             }
+
+            var tooHeavy = false;
 
             foreach (var co in carryableObjects)
             {
@@ -1707,10 +1729,20 @@ namespace Characters
                 if (carry)
                 {
                     objectCarrying = carry;
+                    UpdateLoad();
                     StartInteractAnimation();
                     //Can only carry one object.  If they pick something up, they can't interact
                     return;
                 }
+
+                tooHeavy |= co.TooHeavyFor(this);
+            }
+
+            // Something within reach that's more than he can lift, and nothing lighter to pick up instead: he reaches for it, and it stays where it is.
+            if (tooHeavy)
+            {
+                StartInteractAnimation();
+                return;
             }
 
             foreach (var io in interactableObjects)
@@ -1737,6 +1769,7 @@ namespace Characters
         {
             currentMovementSettingName = mode;
             movementProfile.Resolve(mode, fluid, MovementTuning.Current, resolvedMovement);
+            ApplyLoad(resolvedMovement);
             return resolvedMovement;
         }
 
@@ -1866,10 +1899,74 @@ namespace Characters
             return carryAttachmentPoint;
         }
 
-        // What they are carrying now, or nothing. A button counts it as part of their weight.
+        // What they are carrying now, or nothing.
         public CarryableObject CarriedObject
         {
             get { return objectCarrying; }
+        }
+
+        // ----- The weight of what he carries -----
+        //
+        // While he holds something, its mass is added to his own, less what his Carry Strength takes off it: a Carry Strength of 50 and a crate of
+        // 200 add 100. It's his actual mass, so it counts everywhere his mass does: on a button, on a floor that crumbles, when he's pushed. And
+        // his walking speed and his jumping go down by his own mass over his mass with the load (30 of 70, so a speed of 1.5 is 0.6428).
+
+        // His mass without what he carries, and the mass he was given with it, to tell when something else sets his mass (a Brick going solid).
+        private float ownMass;
+        private float massWithLoad;
+
+        // His own mass over his mass with what he carries: 1 with nothing, and less the more he feels.
+        private float loadFactor = 1f;
+
+        // How much of what he is carrying counts, after his Carry Strength.
+        public float CarriedMassFelt
+        {
+            get
+            {
+                return objectCarrying ? objectCarrying.Mass * (1f - Mathf.Clamp01(carryStrength / 100f)) : 0f;
+            }
+        }
+
+        private void UpdateLoad()
+        {
+            // Not for a body whose mass is worked out from its shape, which can't be set.
+            if (!rigidBody2D || rigidBody2D.useAutoMass)
+            {
+                return;
+            }
+
+            // Something else has set his mass since: that's his own mass now.
+            if (!Mathf.Approximately(rigidBody2D.mass, massWithLoad))
+            {
+                ownMass = rigidBody2D.mass;
+            }
+
+            massWithLoad = ownMass + CarriedMassFelt;
+            loadFactor = ownMass / Mathf.Max(0.0001f, massWithLoad);
+
+            if (!Mathf.Approximately(rigidBody2D.mass, massWithLoad))
+            {
+                rigidBody2D.mass = massWithLoad;
+            }
+        }
+
+        // Slows his walking and lowers his jumping by the weight he's carrying. His jump height is cut by the same fraction as his speed, so
+        // the speed he leaves the ground at is cut by its square root.
+        private void ApplyLoad(ResolvedMovement movement)
+        {
+            if (loadFactor >= 0.9999f)
+            {
+                return;
+            }
+
+            var launch = Mathf.Sqrt(loadFactor);
+
+            movement.maxMoveSpeed *= loadFactor;
+            movement.moveSpeedIncrease *= loadFactor;
+            movement.moveSpeedDecay *= loadFactor;
+            movement.jumpHeight *= loadFactor;
+            movement.jumpForce *= launch;
+            movement.apexTime *= launch;
         }
 
         private void FallDamage(float fallSpeed)

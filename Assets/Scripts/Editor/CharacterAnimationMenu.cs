@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 //
 //  - Add Animation To Characters puts a Character Animator on every character in the open scene, and gives each the Animation Set that is
 //    named like the character, from the folder below. The characters are objects in each scene, not prefabs, so it's done once per scene.
-//  - Create Bowling Ball Animation Set makes the Bowling Ball's set the same way: see the method.
+//  - Create Bowling Ball Animation Set and Create Paperclip Animation Set make theirs the same way: see the methods.
 //  - Create Zipper Animation Set makes Zipper's set from his pictures: standing, walking, going up and down, the same carrying something, and
 //    interacting. It can be run again, and only changes those clips, so any others added to his set are left alone.
 public static class CharacterAnimationMenu
@@ -238,6 +238,47 @@ public static class CharacterAnimationMenu
                   $"Fall ({falling.Length}), Action (curling up, {curling.Length}), RollLoop, AirAction, Unroll, Interact ({interacting.Length}) and " +
                   $"Carrying ({carrying.Length + carryingInAir.Length}). " +
                   "Run Tools > Animation > Add Animation To Characters to give it to him.", set);
+    }
+
+    [MenuItem("Tools/Animation/Create Paperclip Animation Set")]
+    private static void CreatePaperclipSet()
+    {
+        var standing = LoadSprites(PlayerSprites + "Paperclip.png");
+        var walking = LoadSprites(PlayerSprites + "Paperclip_walk.png");
+        var inAir = LoadSprites(PlayerSprites + "Paperclip_air.png");
+        var interacting = LoadSprites(PlayerSprites + "Paperclip_interact.png");
+        var carrying = LoadSprites(PlayerSprites + "Paperclip_carry.png");
+
+        if (standing.Length < 1 || walking.Length < 1 || inAir.Length < 3 || interacting.Length < 2 || carrying.Length < 7)
+        {
+            EditorUtility.DisplayDialog("Create Paperclip Animation Set",
+                $"Couldn't find all of his pictures in {PlayerSprites}: Paperclip, and the cut-up sheets Paperclip_walk (4), _air (3), _interact (2) " +
+                "and _carry (7).", "OK");
+            return;
+        }
+
+        var set = GetOrCreateSet("Paperclip");
+
+        // No ability, so no Action or AirAction. Going up is the first picture of the air sheet, and coming down the other two, which swap.
+        set.SetClip(CharacterAnimationSet.Idle, null, new[] { standing[0] }, 1f, true, false);
+        set.SetClip(CharacterAnimationSet.Walk, null, walking, 12f, true, true);
+        set.SetClip(CharacterAnimationSet.Rise, null, new[] { inAir[0] }, 1f, true, false);
+        set.SetClip(CharacterAnimationSet.Fall, null, inAir.Skip(1).ToArray(), 8f, true, false);
+        set.SetClip(CharacterAnimationSet.Interact, null, interacting, 10f, false, false);
+
+        // Carrying: the first picture is standing, then four walking, then going up and coming down.
+        set.SetClip(CharacterAnimationSet.Idle, CharacterAnimationSet.Carrying, new[] { carrying[0] }, 1f, true, false);
+        set.SetClip(CharacterAnimationSet.Walk, CharacterAnimationSet.Carrying, carrying.Skip(1).Take(4).ToArray(), 6f, true, true);
+        set.SetClip(CharacterAnimationSet.Rise, CharacterAnimationSet.Carrying, new[] { carrying[5] }, 1f, true, false);
+        set.SetClip(CharacterAnimationSet.Fall, CharacterAnimationSet.Carrying, new[] { carrying[6] }, 1f, true, false);
+
+        EditorUtility.SetDirty(set);
+        AssetDatabase.SaveAssets();
+        Selection.activeObject = set;
+        EditorGUIUtility.PingObject(set);
+
+        Debug.Log($"Paperclip's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle, Walk ({walking.Length} pictures), Rise, Fall, Interact, and " +
+                  "Carrying (Idle, Walk, Rise, Fall). Run Tools > Animation > Add Animation To Characters to give it to him.", set);
     }
 
     // The sprites a sheet has been cut into, in order of their names.

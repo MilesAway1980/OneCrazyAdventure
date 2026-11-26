@@ -17,6 +17,10 @@ public class CameraManager : MonoBehaviour
     [Tooltip("Use the new camera, which shares a view between any players whose characters are close together. Turn off to use the older camera for however many players there are.")]
     public bool useGroupCamera = true;
 
+    [Range(1f, 4f)]
+    [Tooltip("How the look stick's push is turned into how far the view looks. 1 is straight across: half way out looks half the distance. Higher is more gradual: with 2, half way out looks a quarter of the distance, so it's easy to look just a little way, and the far edge is only reached at the end of the stick. It works the same for every camera.")]
+    public float lookCurve = 2f;
+
     [Tooltip("How many players there are, as the game runs: for watching, not for setting.")]
     public int numPlayers;
 
@@ -166,12 +170,29 @@ public class CameraManager : MonoBehaviour
         }
     }
 
+    // How hard the stick is pushed, from 0 (centered) to 1 (all the way out), turned into how far to look, from 0 to 1, along the way
+    // it's pushed. The distance grows slower than the push, by Look Curve, so a small push looks only a little way, and the full distance
+    // is only reached at the very end of the stick.
+    private static Vector2 ShapeLook(Vector2 stick)
+    {
+        var push = stick.magnitude;
+
+        if (push <= 0f || !instance || instance.lookCurve <= 1f)
+        {
+            return stick;
+        }
+
+        return stick / push * Mathf.Pow(Mathf.Min(push, 1f), instance.lookCurve);
+    }
+
     public static void Look(Player player, Vector2 lookValue)
     {
         if (!instance)
         {
             return;
         }
+
+        lookValue = ShapeLook(lookValue);
 
         if (GroupActive())
         {

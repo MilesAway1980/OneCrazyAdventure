@@ -57,7 +57,7 @@ public class TutorialYardBuilder : EditorWindow
     [SerializeField] private bool moveStarters = true;
     [SerializeField] private bool setStartersOnly;
 
-    private static readonly string[] StarterNames = { "Brad", "Die", "Paperclip", "Pencil" };
+    private static readonly string[] StarterNames = { "Zipper", "Die", "Paperclip", "Pencil" };
 
     private static Sprite blockSprite;
     private Vector2 scroll;
@@ -134,10 +134,10 @@ public class TutorialYardBuilder : EditorWindow
         spawnHeight = EditorGUILayout.FloatField(
             new GUIContent("Spawn Height", "How high above the floor a character is put at a hub, in units."), spawnHeight);
         moveStarters = EditorGUILayout.ToggleLeft(
-            new GUIContent("Move the four starters to the start hub", "Moves Brad, Die, Paperclip and Pencil, if they are in the scene, to the spawn points of the start hub."),
+            new GUIContent("Move the four starters to the start hub", "Moves Zipper, Die, Paperclip and Pencil, if they are in the scene, to the spawn points of the start hub."),
             moveStarters);
         setStartersOnly = EditorGUILayout.ToggleLeft(
-            new GUIContent("Set the CharacterScript to the four starters only", "Ticks Brad, Die, Paperclip and Pencil on the CharacterScript asset and unticks everyone else. It changes the asset, so leave it off to keep your own test setup."),
+            new GUIContent("Set the CharacterScript to the four starters only", "Ticks Zipper, Die, Paperclip and Pencil on the CharacterScript asset and unticks everyone else. It changes the asset, so leave it off to keep your own test setup."),
             setStartersOnly);
 
         EditorGUILayout.Space();

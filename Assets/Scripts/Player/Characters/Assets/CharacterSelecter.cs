@@ -72,9 +72,6 @@ public class CharacterSelecter: MonoBehaviour
                 case "bowling ball":
                     add = characterScriptables.bowlingBall;
                     break;
-                case "brad":
-                    add = characterScriptables.brad;
-                    break;
                 case "brick":
                     add = characterScriptables.brick;
                     break;
@@ -120,6 +117,10 @@ public class CharacterSelecter: MonoBehaviour
                 case "umbrella":
                     add = characterScriptables.umbrella;
                     break;
+                case "zipper":
+                    add = characterScriptables.zipper;
+                    break;
+
             }
 
             selection.selected = add;

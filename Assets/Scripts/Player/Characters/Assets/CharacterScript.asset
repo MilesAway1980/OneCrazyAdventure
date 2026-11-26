@@ -16,7 +16,6 @@ MonoBehaviour:
   balloon: 0
   bouncyBall: 0
   bowlingBall: 0
-  brad: 0
   brick: 0
   bulb: 0
   die: 0
@@ -32,3 +31,4 @@ MonoBehaviour:
   suctionCup: 0
   torch: 0
   umbrella: 0
+  zipper: 1

@@ -89,6 +89,32 @@ public static class MovementSetupMenu
                   "Save the scene to keep them. Tools > Movement > Overview shows them side by side.");
     }
 
+    // A profile is shown by the name stored inside it (the Overview does), which is set when it's made or renamed in Unity. Renamed outside
+    // Unity, the file has the new name and the profile still has the old one. This puts them right, as Unity would have.
+    [MenuItem("Tools/Movement/Fix Profile Names")]
+    public static void FixProfileNames()
+    {
+        var fixedNames = 0;
+
+        foreach (var guid in AssetDatabase.FindAssets("t:MovementProfile", new[] { Root + "/Profiles" }))
+        {
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            var profile = AssetDatabase.LoadAssetAtPath<MovementProfile>(path);
+            var fileName = Path.GetFileNameWithoutExtension(path);
+
+            if (profile && profile.name != fileName)
+            {
+                Debug.Log($"Movement: the profile {path} was called \"{profile.name}\" inside. It is now \"{fileName}\".", profile);
+                profile.name = fileName;
+                EditorUtility.SetDirty(profile);
+                fixedNames++;
+            }
+        }
+
+        AssetDatabase.SaveAssets();
+        Debug.Log($"Movement: {fixedNames} profile names put right.");
+    }
+
     [MenuItem("Tools/Movement/Remove Old Movement Settings")]
     public static void RemoveOldMovementSettings()
     {

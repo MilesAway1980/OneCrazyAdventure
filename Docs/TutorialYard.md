@@ -1,7 +1,7 @@
 # Tutorial Yard (Area 1)
 
 The first area. It teaches everything the player needs before the world opens up, using only the four starter characters
-(Brad, Die, Paperclip and Pencil), who have no powers. It ends at the second hub and the way out to The Commons. See
+(Zipper, Die, Paperclip and Pencil), who have no powers. It ends at the second hub and the way out to The Commons. See
 [WorldMap.md](WorldMap.md) for where it sits.
 
 What it has to teach, in this order:
@@ -97,7 +97,7 @@ every gap and step to about two thirds of what they can do.
 - Gates A, B, C, D1 and D2 (plain brown blocks), with the buttons and lever that work them
 - a crate on the ledge (from your Crate Prefab if you give one, or a plain one)
 - the Tutorial Prompts, and kill zones (one in the pit, one far below)
-- optionally, it moves Brad, Die, Paperclip and Pencil to the start hub and sets the CharacterScript to just those four
+- optionally, it moves Zipper, Die, Paperclip and Pencil to the start hub and sets the CharacterScript to just those four
 
 It can be undone, removed with its button, or built again. Everything it makes is ordinary: move it, resize it, swap the
 plain blocks for art.

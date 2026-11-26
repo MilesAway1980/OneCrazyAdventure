@@ -11,7 +11,6 @@ public class CharacterScriptables : ScriptableObject
         balloon,
         bouncyBall,
         bowlingBall,
-        brad,
         brick,
         bulb,
         die,
@@ -26,7 +25,8 @@ public class CharacterScriptables : ScriptableObject
         piton,
         suctionCup,
         torch,
-        umbrella;
+        umbrella,
+        zipper;
 
     //public List<bool> generic;        //TODO make this so everyone can be this character
 

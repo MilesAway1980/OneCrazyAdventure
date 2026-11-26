@@ -8,7 +8,7 @@ fixed layout: areas, finds and gates can all move.
 
 ## 1. How progression works
 
-- **Four starter characters** (Brad, Die, Paperclip and Pencil) have no powers. They walk, jump, carry and pull levers.
+- **Four starter characters** (Zipper, Die, Paperclip and Pencil) have no powers. They walk, jump, carry and pull levers.
   They are the baseline, and they teach the controls.
 - **Up to four characters are in the party at once.** The rest wait in the roster. Every character found has to earn a
   slot in the party, so each should open something the others don't.

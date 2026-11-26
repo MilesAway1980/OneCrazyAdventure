@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3fe8837080723b542a3d9298c124fcfd, type: 3}
-  m_Name: Brad
+  m_Name: Zipper
   m_EditorClassIdentifier: Assembly-CSharp::MovementProfile
   material: {fileID: 11400000, guid: 5b18c76c05f8a7e468abd8d44128f2ae, type: 2}
   mass: 40
@@ -19,7 +19,7 @@ MonoBehaviour:
     runSpeed: 2
     acceleration: 2
     jump: 1.5
-    floatiness: 3
+    floatiness: 1
   modes: []
   overrides:
     topSpeed: -1

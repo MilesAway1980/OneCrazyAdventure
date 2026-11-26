@@ -75,7 +75,7 @@ These are properties of the game, and puzzles can be built on them:
 | Magnet | Pulls things toward him | Built. Planned: pulls himself onto magnetic things. |
 | Bulb | Glows brighter; screws into light sockets | Built (sockets untested) |
 | Flashlight | Aimable beam, reveals hidden tiles | Built |
-| Brad, Die, Paperclip, Pencil | Tutorial characters | No coded abilities, by design. Brad carries and is fast, Die is heavy, Paperclip jumps high, Pencil floats. Brad being the only carrier needs the setup in section 4 |
+| Zipper, Die, Paperclip, Pencil | Tutorial characters | No coded abilities, by design. Zipper carries and is fast, Die is heavy, Paperclip jumps high, Pencil floats. Zipper being the only carrier needs the setup in section 4 |
 
 ---
 
@@ -203,7 +203,7 @@ These are properties of the game, and puzzles can be built on them:
 - **Helps others:** reveals things for them.
 
 ### Tutorial characters
-Brad, Die, Paperclip and Pencil teach the game's controls and how to work together. They aren't used later, and have **no coded
+Zipper, Die, Paperclip and Pencil teach the game's controls and how to work together. They aren't used later, and have **no coded
 abilities** (no action button): each one is only good at something because of what he's made of, using what the game already
 does. Each is meant to teach a different kind of puzzle, so no two of them are good at the same thing.
 
@@ -212,13 +212,13 @@ does. Each is meant to teach a different kind of puzzle, so no two of them are g
 | **Paperclip** | Height. Jumps high (about 3 tiles). | Ledges nobody else can reach. | Jump trait |
 | **Pencil** | Water. Floats while the others sink. | Getting across a pool. | Density (his material) |
 | **Die** | Weight. Heavy, so fans don't blow him about and he sets off buttons the others can't. | Weight buttons, blower fans. | Mass, material |
-| **Brad** | Carrying, and speed. The **only one who can carry things** (crates), and the fastest. | Crates that have to be taken somewhere, often against a timer: a door or bridge that only stays open for a few seconds. | Able To Carry Objects, run speed, Switch Off Time on the door |
+| **Zipper** | Carrying, and speed. The **only one who can carry things** (crates), and the fastest. | Crates that have to be taken somewhere, often against a timer: a door or bridge that only stays open for a few seconds. | Able To Carry Objects, run speed, Switch Off Time on the door |
 
-- **Brad is a porter.** Carrying is a switch on the character (**Able To Carry Objects**), so for him to be the only one, it's on for him and
+- **Zipper is a porter.** Carrying is a switch on the character (**Able To Carry Objects**), so for him to be the only one, it's on for him and
   off for the other three. He needs a **Carry Attachment Point** (a Kinematic body, such as an empty child object, that what he carries
   is held by) or the game warns. His speed is what makes the timed puzzles his: a crate on one side of a door that stays open for a
   few seconds, a button far from the door. Keep his jump ordinary (a normal Floatiness) so he isn't a second jumper next to Paperclip.
-- **Why not two jumpers.** Paperclip (height) and Brad (distance) used to both be jumpers, which taught the same thing twice. Brad's
+- **Why not two jumpers.** Paperclip (height) and Zipper (distance) used to both be jumpers, which taught the same thing twice. Zipper's
   difference is carrying and time, and Paperclip keeps the jumping.
 - **Timed puzzles** use the **Switch Off Time** on the thing being switched (a door, a bridge, a moving platform), or a button that isn't
   held: it closes again that many seconds after it was last told.

@@ -12,8 +12,9 @@ public class LeverSwitch : InteractableObject
     public bool leftToRight;
     [Tooltip("The game object the lever pivots on when activated")]
     public GameObject pivotObject;
-    [Tooltip("How quickly the lever moves from off to on.")]
-    public float moveSpeed;
+    [Min(0.05f)]
+    [Tooltip("How many seconds the lever takes to swing from off to on by itself, after a press. Not used with Hold To Operate, which has its own times.")]
+    public float secondsToMove = 2f;
     [Tooltip("Switch can only be used once, and stays used.")]
     public bool oneTime;
     [Tooltip("When the switch is on, it will constantly reapply the switch action.")]
@@ -21,6 +22,25 @@ public class LeverSwitch : InteractableObject
 
     [Tooltip("The things this lever switches. With a delay set below, they are switched in the order of this list.")]
     public SwitchableObject[] switchableObjects;
+
+    [Header("Hold To Operate")]
+    [Tooltip("The character has to keep the Interact button held for the lever to move. It goes as far as they hold it, taking Seconds To Hold to " +
+             "go all the way to the other state, and goes back to where it was if they let go before then. Things that can be set to a part of their " +
+             "range (a door, a liquid level, a light) follow it, so a lever held half way has a door half open. Without this, one press sets it going " +
+             "all the way by itself, taking Seconds To Move.")]
+    public bool holdToOperate;
+
+    [Min(0.1f)]
+    [Tooltip("Hold To Operate only. How many seconds the Interact button has to be held to take the lever all the way to the other state.")]
+    public float secondsToHold = 3f;
+
+    [Min(0.1f)]
+    [Tooltip("Hold To Operate only. How many seconds it takes to go all the way back to where it was, when it's let go part of the way.")]
+    public float secondsToReturn = 1.5f;
+
+    [Tooltip("Hold To Operate only. For finding out why a character lets go: writes to the Console when one takes hold of the lever and when they " +
+             "let go, with the reason.")]
+    public bool logHolding;
 
     [Header("Signal")]
     [Tooltip("How this lever's signal is put with the signals of the other switches that work the same things. Min/Max: it sends its own signal, from the Minimum Signal when it's off to the Maximum Signal when it's on, and a thing goes by the switch that spoke last. Add: while it's on, it adds the Maximum Signal to what the things get, along with every other switch that adds, so four that are each 25 give 25, 50, 75, 100. Subtract: takes the Maximum Signal off while it's on.")]
@@ -64,7 +84,18 @@ public class LeverSwitch : InteractableObject
     {
         get { return initialDelay > 0f || delayBetweenObjects > 0f; }
     }
-    private static readonly Func<SwitchableObject, bool> usable = thing => thing.enabled;
+
+    // Whether a thing is switched by the lever being thrown. With Hold To Operate, those that can take an amount follow how far the lever is
+    // instead (see PassOnPosition), and aren't switched on and off at the ends as well.
+    private Func<SwitchableObject, bool> usable;
+
+    private bool Counts(SwitchableObject thing)
+    {
+        return thing && thing.enabled && !(holdToOperate && thing.AcceptsAmount);
+    }
+
+    // Holding the lowest signal is for the things that can take an amount, which are the very ones Counts leaves out with Hold To Operate.
+    private static readonly Func<SwitchableObject, bool> EnabledThing = thing => thing && thing.enabled;
 
     private float angle;
     private bool interactedWith;
@@ -73,7 +104,26 @@ public class LeverSwitch : InteractableObject
     private float rightAngle;
 
     private BoxCollider2D triggerCollider;
-    
+
+    // How many degrees a second the lever swings by itself, to take Seconds To Move to go all the way.
+    private float SwingPerSecond
+    {
+        get { return degreesOfMovement / Mathf.Max(0.05f, secondsToMove); }
+    }
+
+    // Hold To Operate. How far the lever is from its off pose to its on pose, from 0 to 1, whatever state it was last left in. Who is
+    // holding it, if anyone. And whether amounts are being given to the things that take one, so that they're let go of afterwards.
+    private const float PositionMargin = 0.0001f;
+    private float position;
+    private float networkPosition;
+    private Character holder;
+
+    // An ordinary lever: who pressed it, and is working it until it gets where it's going.
+    private Character swinger;
+    private bool passingAmount;
+    private float offAngle;
+    private float onAngle;
+
 
     void Start()
     {
@@ -84,6 +134,10 @@ public class LeverSwitch : InteractableObject
                     ? leftAngle
                     : rightAngle;
         
+        offAngle = leftToRight ? leftAngle : rightAngle;
+        onAngle = leftToRight ? rightAngle : leftAngle;
+        usable = Counts;
+
         triggerCollider = GetComponent<BoxCollider2D>();
     }
 
@@ -96,11 +150,15 @@ public class LeverSwitch : InteractableObject
             sequence.Tick(switchableObjects, false, usable);
         }
 
-        if (interactedWith)
+        if (holdToOperate)
+        {
+            UpdateHeld();
+        }
+        else if (interactedWith)
         {
             if (leftToRight)
             {
-                angle -= moveSpeed * Time.deltaTime;
+                angle -= SwingPerSecond * Time.deltaTime;
                 if (angle < rightAngle)
                 {
                     angle = rightAngle;
@@ -112,7 +170,7 @@ public class LeverSwitch : InteractableObject
             }
             else
             {
-                angle += moveSpeed * Time.deltaTime;
+                angle += SwingPerSecond * Time.deltaTime;
                 if (angle > leftAngle)
                 {
                     angle = leftAngle;
@@ -127,7 +185,7 @@ public class LeverSwitch : InteractableObject
         {
             if (leftToRight)
             {
-                angle += moveSpeed * Time.deltaTime;
+                angle += SwingPerSecond * Time.deltaTime;
                 if (angle > leftAngle)
                 {
                     angle = leftAngle;
@@ -139,7 +197,7 @@ public class LeverSwitch : InteractableObject
             }
             else
             {
-                angle -= moveSpeed * Time.deltaTime;
+                angle -= SwingPerSecond * Time.deltaTime;
                 if (angle < rightAngle)
                 {
                     angle = rightAngle;
@@ -151,11 +209,17 @@ public class LeverSwitch : InteractableObject
             }
         }
         
+        if (swinger && Mathf.Approximately(angle, interactedWith ? onAngle : offAngle))
+        {
+            ReleaseSwinger();
+        }
+
         // Off, with a lowest signal to send: the things are held at it, all the time, and not just when the lever is thrown. That's also how
         // they start. Not while they're being switched off one after another, which would put them all there at once.
-        if (!activated && SwitchSignal.HoldsMinimum(signalMode, minimumSignal) && !sequence.Pending && !GameSession.IsClientOnly)
+        if (!activated && SwitchSignal.HoldsMinimum(signalMode, minimumSignal) && !sequence.Pending && !GameSession.IsClientOnly &&
+            !(holdToOperate && position > PositionMargin))
         {
-            SwitchSignal.HoldMinimum(switchableObjects, minimumSignal, usable, this);
+            SwitchSignal.HoldMinimum(switchableObjects, minimumSignal, EnabledThing, this);
         }
 
         pivotObject.transform.eulerAngles = new Vector3(0, 0, angle);
@@ -186,6 +250,25 @@ public class LeverSwitch : InteractableObject
         
         print($"Interacting with: {this.gameObject} ");
 
+        if (holdToOperate)
+        {
+            // Taken hold of, and moved for as long as it's held. One character at a time, and not one that has been used for good.
+            if ((holder && holder != interacter) || (oneTime && interactedWith))
+            {
+                return false;
+            }
+
+            holder = interacter;
+            holder.SetOperating(true);
+
+            if (logHolding)
+            {
+                Debug.Log($"{name}: {holder.name} took hold of the lever, at {position:0.00} of the way.", this);
+            }
+
+            return true;
+        }
+
         if (oneTime)
         {
             interactedWith = true;
@@ -194,6 +277,11 @@ public class LeverSwitch : InteractableObject
         {
             interactedWith = !interactedWith;
         }
+
+        // He's working it until it has swung all the way.
+        ReleaseSwinger();
+        swinger = interacter;
+        swinger.SetOperating(true);
 
         return true;
     }
@@ -204,11 +292,170 @@ public class LeverSwitch : InteractableObject
         get { return interactedWith; }
     }
 
+    // How far the lever is from off to on, from 0 to 1, for a lever that has to be held. (Another machine needs it to show where the lever is.)
+    public float Position
+    {
+        get { return position; }
+    }
+
+    // For a machine that has joined someone else's game: where the host says the lever is. Only for a lever that has to be held.
+    public void SetPositionFromNetwork(float newPosition)
+    {
+        networkPosition = Mathf.Clamp01(newPosition);
+    }
+
     // For a machine that has joined someone else's game: the lever is shown thrown or not as the host says, and it moves to
     // match. What it switches is the host's to do.
     public void SetThrownFromNetwork(bool thrown)
     {
         interactedWith = thrown;
+    }
+
+    // Hold To Operate: moves the lever while it's held, and back to where it was when it isn't. Held, it goes to the other state, and when it
+    // gets all the way there that's its state, and it has to be let go of and taken hold of again to go back.
+    private void UpdateHeld()
+    {
+        // In someone else's game the host moves the lever. This only shows where it says it is, and its position only comes a few times a second.
+        if (GameSession.IsClientOnly)
+        {
+            position = Mathf.Lerp(position, networkPosition, 1f - Mathf.Exp(-15f * Time.deltaTime));
+            angle = Mathf.Lerp(offAngle, onAngle, position);
+            return;
+        }
+
+        if (holder)
+        {
+            var problem = HoldProblem(holder);
+
+            if (problem != null)
+            {
+                if (logHolding)
+                {
+                    Debug.Log($"{name}: {holder.name} let go of the lever at {position:0.00} of the way, because {problem}.", this);
+                }
+
+                ReleaseHolder();
+            }
+        }
+
+        var rest = interactedWith ? 1f : 0f;
+        var held = holder != null;
+        var goal = held ? 1f - rest : rest;
+        var seconds = held ? secondsToHold : secondsToReturn;
+
+        position = Mathf.MoveTowards(position, goal, Time.deltaTime / Mathf.Max(0.05f, seconds));
+        angle = Mathf.Lerp(offAngle, onAngle, position);
+
+        if (held && position == goal)
+        {
+            interactedWith = !interactedWith;
+
+            if (logHolding)
+            {
+                Debug.Log($"{name}: the lever got all the way to {(interactedWith ? "on" : "off")}.", this);
+            }
+
+            ReleaseHolder();
+
+            if (interactedWith)
+            {
+                Activate();
+            }
+            else
+            {
+                Deactivate();
+            }
+        }
+        else if (interactedWith && position >= 1f && staysActiveWhenOn)
+        {
+            Activate();
+        }
+
+        PassOnPosition();
+    }
+
+    // Whoever was working the lever isn't any more.
+    private void ReleaseHolder()
+    {
+        if (holder)
+        {
+            holder.SetOperating(false);
+        }
+
+        holder = null;
+        ReleaseSwinger();
+    }
+
+    private void ReleaseSwinger()
+    {
+        if (swinger)
+        {
+            swinger.SetOperating(false);
+        }
+
+        swinger = null;
+    }
+
+    void OnDisable()
+    {
+        ReleaseHolder();
+    }
+
+    // Why a character isn't working the lever any more, or null if they still are: they have to be holding the button, in range, and in
+    // the game.
+    private string HoldProblem(Character character)
+    {
+        if (!character.isActiveAndEnabled)
+        {
+            return "they're switched off";
+        }
+
+        if (!character.InteractHeld)
+        {
+            return "the Interact button isn't held";
+        }
+
+        if (!character.InGame || character.InTransit)
+        {
+            return "they're put away or in a teleporter";
+        }
+
+        if (!triggerCollider || !triggerCollider.bounds.Contains(character.transform.position))
+        {
+            return "they're out of the lever's trigger area";
+        }
+
+        return null;
+    }
+
+    // Gives the things that can be moved by an amount how far the lever is, and lets them go when it's back where it started.
+    private void PassOnPosition()
+    {
+        var any = position > PositionMargin;
+
+        if (!any && !passingAmount)
+        {
+            return;
+        }
+
+        foreach (var thing in switchableObjects)
+        {
+            if (!thing || !thing.enabled || !thing.AcceptsAmount)
+            {
+                continue;
+            }
+
+            if (any)
+            {
+                thing.Signal(this, signalMode, true, SwitchSignal.Pressed(signalMode, position, minimumSignal, maximumSignal));
+            }
+            else
+            {
+                thing.Signal(this, signalMode, false, AmountFor(false));
+            }
+        }
+
+        passingAmount = any;
     }
 
     void Activate()
@@ -242,7 +489,7 @@ public class LeverSwitch : InteractableObject
                 continue;
             }
 
-            if (switchableObject.enabled)
+            if (Counts(switchableObject))
             {
                 switchableObject.Signal(this, signalMode, true, AmountFor(true));
             }
@@ -275,7 +522,7 @@ public class LeverSwitch : InteractableObject
                 continue;
             }
 
-            if (switchableObject.enabled)
+            if (Counts(switchableObject))
             {
                 switchableObject.Signal(this, signalMode, false, AmountFor(false));
             }

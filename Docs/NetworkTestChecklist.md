@@ -39,6 +39,7 @@ the main editor and "Joined" means the second. Tick each box when what's said ha
 ## 6. Doors, buttons and levers
 - [ ] Stand on a button: the pad goes down and the door opens on both editors. Step off: the door closes on both.
 - [ ] Pull a lever (host's player, then the joined player): it swings on both and what it opens opens on both.
+- [ ] A lever with **Hold To Operate** (host's player, then the joined player): hold Interact and it swings steadily on both, a door it works opens as far as it's held, and letting go early closes it again on both.
 - [ ] A door that stays open stays open on both.
 
 ## 7. Crates and other movers

@@ -31,6 +31,34 @@ What each Mode does, for Enter and for Exit:
 - It runs on the host, as other switches do. There's nothing to network on the switch: the things it switches are the ones sent to other machines.
 - Selected in the scene view, it draws arrows from the middle of the area to its things, like the others.
 
+## Levers you have to hold
+
+Ordinarily a press of Interact sets a lever swinging all the way to the other state by itself, taking its **Seconds To Move**. With
+**Hold To Operate** on the lever, the character has to **keep the Interact button held** for it to move. The Inspector shows only the settings
+that apply:
+
+| Setting | What it does |
+|---|---|
+| **Hold To Operate** | Off (the default) is the ordinary lever. On: the lever moves only while it's held. |
+| **Seconds To Move** | Ordinary lever only. How many seconds it takes to swing from off to on by itself after a press (and back). |
+| **Seconds To Hold** | Hold To Operate only. How many seconds it has to be held to take the lever all the way to the other state. |
+| **Seconds To Return** | Hold To Operate only. How many seconds it takes to go all the way back to where it was, when it's let go part of the way. |
+
+- **Held, it goes to the other state; let go, it goes back to the one it was in.** A lever with Seconds To Hold 10 is on once it's been held for 10 seconds
+  in a row. Let go at 6 and it falls back to off. Once it has got all the way there, that's its state, and it has to be let go of and taken hold of
+  again to go back. (**One Time** works as before: once it's on, it can't be used again.)
+- **It follows how far it is.** The things that can be set to a part of their range (a door, a liquid level, a moving platform, a light, a fan) are
+  given how far the lever has got, the same way a button gives them how far down its pad is, and in the same **Signal Mode** and
+  Minimum and Maximum Signal. Held 5 seconds of 10, a door is half open. Let go, and it closes again as the lever falls back.
+- **Things that can only be on or off** (a gate) switch when the lever gets all the way there, and switch back when it's pulled all the way back.
+  The delays between things (below) and **Stays Active When On** work on those, as before.
+- **Moving away** (out of the lever's trigger area), being put away, or letting go all count as letting go.
+- **One character at a time** works the lever. Another has to wait until it's let go of.
+- **The character's Interact animation shows the whole time** he's working it, and goes back to normal when he lets go. (See [Animation.md](Animation.md).)
+  An ordinary lever does the same from the press until it has swung all the way.
+- If a character keeps letting go when they shouldn't, tick **Log Holding**: it writes to the Console when they take hold and when they let go, and why.
+- On another machine in a networked game the lever shows where the host's is, as it moves.
+
 ## Timing: one after another
 
 By default a switch switches everything in its list at the same moment. Set **Delay Between Objects** to switch them **one by one**, in the

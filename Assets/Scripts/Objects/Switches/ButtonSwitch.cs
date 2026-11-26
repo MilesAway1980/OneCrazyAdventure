@@ -89,10 +89,13 @@ public class ButtonSwitch : MonoBehaviour
     [Tooltip("What goes down. A child of this with a Rigidbody2D, which is made kinematic. Found by the name Pad if it's empty.")]
     public Rigidbody2D pad;
 
-    [Range(0.01f, 2f)]
-    [Tooltip("How far, in world units, the pad goes down when it's pressed all the way. It can't be more than 2: the pad is only " +
-             "one unit thick. However it's set, the pad never moves faster than a gentle speed, so a long way just takes longer.")]
-    public float pressDistance = 0.5f;
+    [Range(0f, 100f)]
+    [Tooltip("How far the pad goes down when it's pressed all the way, as a percentage of the way from where it sits to the top of the base " +
+             "(the other solid parts of this button, which the pad goes down into). 100 takes it flush with the base, a hair above, so that " +
+             "what's standing on it is still on the pad. 50 is half way. 0 doesn't move it at all: it only has to be stood on to count as " +
+             "pressed all the way. With no base, the pad's whole height is the way. However far, the pad never moves faster than a gentle " +
+             "speed, so a long way just takes longer.")]
+    public float pressPercent = 100f;
 
     [Header("How it feels")]
     [Min(0f)]
@@ -127,6 +130,13 @@ public class ButtonSwitch : MonoBehaviour
     private const float MostSpeed = 2f;
     private const float Acceleration = 10f;
 
+    // How far above the top of the base the pad stops when it's pressed all the way down, in units, so that it's still what's
+    // being stood on, and not the base.
+    private const float FlushGap = 0.02f;
+
+    // Going down less than this, in units, nothing can be thrown by it, so it's only timed and isn't held to a speed and acceleration.
+    private const float SmallTravel = 0.05f;
+
     // How long, in seconds, the weight on the pad is remembered for after it has gone down. Whatever is standing on a pad that is
     // going down can lose touch with it for a moment, and without this the pad would take that for them having left and bounce.
     private const float WeightMemory = 0.12f;
@@ -140,6 +150,7 @@ public class ButtonSwitch : MonoBehaviour
     private const int ContactsPerBody = 24;
 
     private Vector3 restLocal;
+    private float fullTravel;
     private float depth;
     private float speed;
     private float heldDepth;
@@ -192,8 +203,9 @@ public class ButtonSwitch : MonoBehaviour
                              "script now. Run Tools > Buttons > Upgrade Button Prefab, or remove the joint.", this);
         }
 
-        // Where the pad sits when nothing is on it, so it can come back to exactly there.
+        // Where the pad sits when nothing is on it, so it can come back to exactly there, and how far it can go down from there.
         restLocal = transform.InverseTransformPoint(pad.transform.position);
+        fullTravel = FullTravel(pad);
 
         filter = new ContactFilter2D { useTriggers = false };
         pad.sleepMode = RigidbodySleepMode2D.NeverSleep;
@@ -217,7 +229,7 @@ public class ButtonSwitch : MonoBehaviour
         MoveDepthTowards(DepthWanted(WeightOnPad()));
 
         var rest = (Vector2)transform.TransformPoint(restLocal);
-        pad.MovePosition(rest - (Vector2)transform.up * (pressDistance * depth));
+        pad.MovePosition(rest - (Vector2)transform.up * (Travel * depth));
 
         // The tiny allowance is for the float sums, so that 100 percent is reachable.
         pressedEnough = depth > 0.0001f && depth >= percentPressedToActivate / 100f - 0.0001f;
@@ -271,11 +283,107 @@ public class ButtonSwitch : MonoBehaviour
         }
     }
 
+    // How far, in units, the pad goes down when it's pressed all the way.
+    private float Travel
+    {
+        get { return fullTravel * pressPercent / 100f; }
+    }
+
+    // The top of a box along a direction, and the bottom.
+    private static float TopAlong(Bounds bounds, Vector2 direction)
+    {
+        return Vector2.Dot(bounds.center, direction) + Mathf.Abs(direction.x) * bounds.extents.x + Mathf.Abs(direction.y) * bounds.extents.y;
+    }
+
+    private static float BottomAlong(Bounds bounds, Vector2 direction)
+    {
+        return Vector2.Dot(bounds.center, direction) - Mathf.Abs(direction.x) * bounds.extents.x - Mathf.Abs(direction.y) * bounds.extents.y;
+    }
+
+    // How far the pad can go down from where it is, in units: to a hair above the top of the base, which is whatever else solid on this
+    // button is under the top of the pad and overlaps it. With no base it's the pad's whole height. Worked out at rest. (Boxes
+    // that are turned are measured by the space they take up, which is close enough for a pad that's meant to be flat.)
+    private float FullTravel(Rigidbody2D body)
+    {
+        var up = (Vector2)transform.up;
+        var padColliders = new Collider2D[16];
+        var count = body.GetAttachedColliders(padColliders);
+
+        var padTop = float.NegativeInfinity;
+        var padBottom = float.PositiveInfinity;
+        var padBounds = new Bounds();
+        var found = false;
+
+        for (var i = 0; i < count; i++)
+        {
+            if (padColliders[i].isTrigger || !padColliders[i].enabled)
+            {
+                continue;
+            }
+
+            var bounds = padColliders[i].bounds;
+            padTop = Mathf.Max(padTop, TopAlong(bounds, up));
+            padBottom = Mathf.Min(padBottom, BottomAlong(bounds, up));
+
+            if (found)
+            {
+                padBounds.Encapsulate(bounds);
+            }
+            else
+            {
+                padBounds = bounds;
+                found = true;
+            }
+        }
+
+        if (!found)
+        {
+            return 0f;
+        }
+
+        var baseTop = float.NegativeInfinity;
+
+        foreach (var other in GetComponentsInChildren<Collider2D>())
+        {
+            if (other.isTrigger || !other.enabled || other.attachedRigidbody == body ||
+                (other.attachedRigidbody && other.attachedRigidbody.bodyType == RigidbodyType2D.Dynamic))
+            {
+                continue;
+            }
+
+            var bounds = other.bounds;
+            var top = TopAlong(bounds, up);
+
+            // Under the top of the pad, and under the pad, not just beside it.
+            var overlaps = Mathf.Abs(bounds.center.x - padBounds.center.x) <= bounds.extents.x + padBounds.extents.x &&
+                           Mathf.Abs(bounds.center.y - padBounds.center.y) <= bounds.extents.y + padBounds.extents.y;
+
+            if (overlaps && top < padTop)
+            {
+                baseTop = Mathf.Max(baseTop, top);
+            }
+        }
+
+        return float.IsNegativeInfinity(baseTop) ? padTop - padBottom : Mathf.Max(0f, padTop - baseTop - FlushGap);
+    }
+
     // Takes the pad towards the depth it's wanted at, no faster than the time it's set to take, and never faster than is safe.
     private void MoveDepthTowards(float wanted)
     {
+        var travel = Travel;
+
+        // Hardly any way to go, or none: nothing can be thrown by it, so it's only the time that it takes that matters.
+        if (travel < SmallTravel)
+        {
+            var time = Mathf.Max(wanted > depth ? resistance : returnTime, FastestPress);
+
+            depth = Mathf.MoveTowards(depth, wanted, Time.fixedDeltaTime / time);
+            speed = 0f;
+            return;
+        }
+
         // How far there is to go, in units, which is down if it's more than nothing.
-        var left = (wanted - depth) * pressDistance;
+        var left = (wanted - depth) * travel;
 
         if (Mathf.Abs(left) < 0.0005f)
         {
@@ -285,7 +393,7 @@ public class ButtonSwitch : MonoBehaviour
         }
 
         var seconds = left > 0f ? Mathf.Max(resistance, FastestPress) : Mathf.Max(returnTime, FastestPress);
-        var cruise = Mathf.Min(pressDistance / seconds, MostSpeed);
+        var cruise = Mathf.Min(travel / seconds, MostSpeed);
 
         // Slow down in time to stop where it's meant to.
         var stoppable = Mathf.Sqrt(2f * Acceleration * Mathf.Abs(left));
@@ -303,7 +411,7 @@ public class ButtonSwitch : MonoBehaviour
             return;
         }
 
-        depth = Mathf.Clamp01(depth + step / pressDistance);
+        depth = Mathf.Clamp01(depth + step / travel);
 
         if (depth <= 0f || depth >= 1f)
         {
@@ -549,7 +657,8 @@ public class ButtonSwitch : MonoBehaviour
         var top = Application.isPlaying
             ? (Vector2)transform.TransformPoint(restLocal)
             : (Vector2)body.transform.position;
-        var bottom = top - (Vector2)transform.up * pressDistance;
+        var travel = Application.isPlaying ? Travel : FullTravel(body) * pressPercent / 100f;
+        var bottom = top - (Vector2)transform.up * travel;
 
         Gizmos.color = Color.yellow;
         Gizmos.DrawLine(top, bottom);
@@ -557,7 +666,7 @@ public class ButtonSwitch : MonoBehaviour
 
         // Where it switches on.
         Gizmos.color = Color.green;
-        var activates = top - (Vector2)transform.up * (pressDistance * percentPressedToActivate / 100f);
+        var activates = top - (Vector2)transform.up * (travel * percentPressedToActivate / 100f);
         Gizmos.DrawLine(activates + Vector2.left * 0.3f, activates + Vector2.right * 0.3f);
     }
 }

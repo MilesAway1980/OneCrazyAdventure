@@ -112,6 +112,24 @@ amounts (10, 20, 30, 40) and any combination adds up to its own level.
   rest at that part. It only applies in Min/Max: Add and Subtract send nothing while off.
 - Maximum below Minimum is allowed in Min/Max, and turns it round: the thing goes to the larger number while the switch is off.
 
+## How far a button's pad goes down
+
+A button (`ButtonSwitch`) has a **pad** that goes down when weight is put on it, into a **base** around it. **Press Percent** is how far the pad
+goes down when it's pressed all the way, as a percentage of the way from where it sits to the top of the base:
+
+| Press Percent | What the pad does |
+|---|---|
+| **100** (the default) | Goes down until its top is flush with the top of the base, a hair (0.02 units) above it. |
+| **50** | Goes down half of that way. |
+| **0** | Doesn't move. It only has to be stood on to count as pressed all the way, taking its Resistance time, and the Return Time to come back. |
+
+- The base is found when the game starts: any other solid collider on the button that overlaps the pad and has its top under the pad's top.
+  If there's none, the pad's own height is the way, so a taller pad goes further.
+- The pad stops a hair **above** the base on purpose. If it went lower, whoever was standing on it would be standing on the base, and the pad
+  would drop out from under them, find nothing on it, come up, and go down again: the button would bounce, and the things it works with it.
+- The pad never moves faster than a gentle speed, so a long way takes longer. A very short way (under 0.05 units) is only timed.
+- Selected in the scene view, a yellow line shows how far the pad goes, and a green one where it switches on.
+
 ## What switches can work
 
 Anything that's a **switchable object**: doors, drawbridges, moving platforms, liquid levels ([Liquids.md](Liquids.md)), fans ([Fan.md](Fan.md)),

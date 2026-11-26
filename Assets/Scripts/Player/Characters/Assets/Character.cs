@@ -491,8 +491,8 @@ namespace Characters
                     new Vector2(rigidBody2D.linearVelocity.x, -currentMovementSettings.maxFallSpeed);
             }
 
-            // Last, with the speed he'll be going at for this step settled.
-            ForgiveCeilingCorner();
+            // Last, with the speed he'll be going at for this step settled. What he's riding going up isn't him going up.
+            ForgiveCeilingCorner(ride.y);
         }
 
         // ----- Corner forgiveness -----
@@ -516,10 +516,14 @@ namespace Characters
         // A little more than the step takes him is looked at, as gravity changes how far he goes as the step is made.
         private const float CornerLookAhead = 0.01f;
 
-        // Rising slower than this in a step, there's nothing to forgive.
-        private const float CornerMinRise = 0.003f;
+        // Rising slower than this, in units a second, there's nothing to forgive: a jump is many times this. Standing on something that
+        // shifts a little, or going up with it, shouldn't be taken for a jump.
+        private const float CornerMinRiseSpeed = 1f;
 
-        private void ForgiveCeilingCorner()
+        private static readonly RaycastHit2D[] ceilingHits = new RaycastHit2D[8];
+
+        // supportSpeed is how fast what he's standing on is going up, which is the platform's and not his own.
+        private void ForgiveCeilingCorner(float supportSpeed)
         {
             // In someone else's game the host moves him.
             if (cornerForgiveness <= 0f || GameSession.IsClientOnly)
@@ -527,9 +531,18 @@ namespace Characters
                 return;
             }
 
+            var ownSpeed = rigidBody2D.linearVelocity.y - supportSpeed;
+
+            if (ownSpeed < CornerMinRiseSpeed)
+            {
+                return;
+            }
+
             var rise = rigidBody2D.linearVelocity.y * Time.fixedDeltaTime;
 
-            if (rise < CornerMinRise)
+            // Only if something is above him in the way, found without moving him: putting him at places to ask is what the rest of this does,
+            // and it isn't to be done to everyone who is going up for any reason.
+            if (!CeilingAbove(rise + CornerLookAhead))
             {
                 return;
             }
@@ -569,6 +582,45 @@ namespace Characters
             {
                 rigidBody2D.position = start;
             }
+        }
+
+        // Whether anything that would stop him is above, within a distance, found by looking up from where he is, so he isn't moved. A
+        // one-way platform doesn't stop him going up.
+        private bool CeilingAbove(float distance)
+        {
+            var filter = new ContactFilter2D { useTriggers = false };
+            filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
+
+            var count = GetSolidColliders();
+
+            for (var i = 0; i < count; i++)
+            {
+                var hits = solidColliders[i].Cast(Vector2.up, filter, ceilingHits, distance);
+
+                for (var j = 0; j < hits; j++)
+                {
+                    var hit = ceilingHits[j];
+
+                    if (hit.collider.attachedRigidbody == rigidBody2D || hit.normal.y > -0.05f)
+                    {
+                        continue;
+                    }
+
+                    if (hit.collider.usedByEffector)
+                    {
+                        var effector = hit.collider.GetComponent<PlatformEffector2D>();
+
+                        if (effector && effector.useOneWay)
+                        {
+                            continue;
+                        }
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // Whether he would be in something solid if he were at a place, other than the ground he's standing on and the like: he's put there

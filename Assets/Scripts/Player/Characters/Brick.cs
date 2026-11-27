@@ -25,6 +25,27 @@ namespace Characters
         // merely standing against him doesn't.
         private const float OverlapMargin = 0.05f;
 
+        // ----- Animation -----
+        //
+        // Turning solid is his Action: the clip for Action pulls his arms and legs in and shuts his eyes, and goes on by itself into Solid (the solid
+        // block, held for as long as he is). Turning back, he opens up for a moment, which is his own state, Unsolid (the same clip the other way
+        // round), before he's Idle or Walk again. See Docs/Animation.md.
+        public const string SolidState = "Solid";
+        public const string UnsolidState = "Unsolid";
+
+        private const float UnsolidSeconds = 0.25f;
+        private float unsolidUntil;
+
+        protected override string AnimationState(string commonState)
+        {
+            if (Time.time < unsolidUntil && (commonState == CharacterAnimationSet.Idle || commonState == CharacterAnimationSet.Walk))
+            {
+                return UnsolidState;
+            }
+
+            return commonState;
+        }
+
         private bool isSolid;
         private int originalLayer;
         private float originalMass;
@@ -152,6 +173,9 @@ namespace Characters
             }
 
             isSolid = solid;
+
+            // Turning back, he opens up before he walks off.
+            unsolidUntil = solid ? 0f : Time.time + UnsolidSeconds;
 
             if (flashTimeRemaining > 0f)
             {

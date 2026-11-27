@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c71ef8161f4a9d42b73ce18876c73aa, type: 3}
+  m_Name: Brick
+  m_EditorClassIdentifier: Assembly-CSharp::Characters.CharacterAnimationSet
+  clips:
+  - state: Idle
+    variant: 
+    frames:
+    - {fileID: 8222420645925065664, guid: 719461a63f8f4a24492cf9c62bf2f101, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Walk
+    variant: 
+    frames:
+    - {fileID: 1646919016949181292, guid: 8cccb911b567446c8fde742f76cf9a9b, type: 3}
+    - {fileID: -1604144952701445009, guid: 8cccb911b567446c8fde742f76cf9a9b, type: 3}
+    - {fileID: 3622676376481311101, guid: 8cccb911b567446c8fde742f76cf9a9b, type: 3}
+    - {fileID: 1152685234828007742, guid: 8cccb911b567446c8fde742f76cf9a9b, type: 3}
+    framesPerSecond: 8
+    loop: 1
+    followsWalkSpeed: 1
+    thenPlay: 
+  - state: Rise
+    variant: 
+    frames:
+    - {fileID: -1181222199150292189, guid: 5732fc0747b842d88c90c3d7b9b88d49, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Fall
+    variant: 
+    frames:
+    - {fileID: 1667820190999009259, guid: 5732fc0747b842d88c90c3d7b9b88d49, type: 3}
+    - {fileID: -715766369467526102, guid: 5732fc0747b842d88c90c3d7b9b88d49, type: 3}
+    framesPerSecond: 8
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Interact
+    variant: 
+    frames:
+    - {fileID: 4350215640482022719, guid: 4950fafcd01b43028baf59148203494c, type: 3}
+    - {fileID: 529094596634360989, guid: 4950fafcd01b43028baf59148203494c, type: 3}
+    framesPerSecond: 10
+    loop: 0
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Idle
+    variant: Carrying
+    frames:
+    - {fileID: 1313032964457840195, guid: d213344a05bd4def9d2a434abab5996d, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Walk
+    variant: Carrying
+    frames:
+    - {fileID: 2844896721340289791, guid: d213344a05bd4def9d2a434abab5996d, type: 3}
+    - {fileID: 650187892900795377, guid: d213344a05bd4def9d2a434abab5996d, type: 3}
+    - {fileID: 2140620425625875432, guid: d213344a05bd4def9d2a434abab5996d, type: 3}
+    - {fileID: 492019101967917855, guid: d213344a05bd4def9d2a434abab5996d, type: 3}
+    framesPerSecond: 6
+    loop: 1
+    followsWalkSpeed: 1
+    thenPlay: 
+  - state: Rise
+    variant: Carrying
+    frames:
+    - {fileID: -1031534335125815430, guid: d213344a05bd4def9d2a434abab5996d, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Fall
+    variant: Carrying
+    frames:
+    - {fileID: -1795167114215430685, guid: d213344a05bd4def9d2a434abab5996d, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Action
+    variant: 
+    frames:
+    - {fileID: 1038186324643130740, guid: 4bcad8d6c4d24b56a0a98fb5dbb875f9, type: 3}
+    - {fileID: 4558730576160249342, guid: 4bcad8d6c4d24b56a0a98fb5dbb875f9, type: 3}
+    - {fileID: -730595499357999029, guid: 4bcad8d6c4d24b56a0a98fb5dbb875f9, type: 3}
+    framesPerSecond: 12
+    loop: 0
+    followsWalkSpeed: 0
+    thenPlay: Solid
+  - state: Solid
+    variant: 
+    frames:
+    - {fileID: -730595499357999029, guid: 4bcad8d6c4d24b56a0a98fb5dbb875f9, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: AirAction
+    variant: 
+    frames:
+    - {fileID: -730595499357999029, guid: 4bcad8d6c4d24b56a0a98fb5dbb875f9, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Unsolid
+    variant: 
+    frames:
+    - {fileID: -730595499357999029, guid: 4bcad8d6c4d24b56a0a98fb5dbb875f9, type: 3}
+    - {fileID: 4558730576160249342, guid: 4bcad8d6c4d24b56a0a98fb5dbb875f9, type: 3}
+    - {fileID: 1038186324643130740, guid: 4bcad8d6c4d24b56a0a98fb5dbb875f9, type: 3}
+    framesPerSecond: 12
+    loop: 0
+    followsWalkSpeed: 0
+    thenPlay: 

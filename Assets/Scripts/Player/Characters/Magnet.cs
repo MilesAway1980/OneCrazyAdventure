@@ -16,6 +16,22 @@ namespace Characters
 
         private PointEffector2D effector;
 
+        // ----- Animation -----
+        //
+        // His field on is his Action (standing) and AirAction (in the air): the field lines flickering round him. Walking with it on is his own
+        // state, ActionWalk, which is his walk with the lines. A set without an ActionWalk clip shows his ordinary walk, as before.
+        public const string ActionWalkState = "ActionWalk";
+
+        protected override string AnimationState(string commonState)
+        {
+            if (commonState == CharacterAnimationSet.Action && WalkingForAnimation && HasAnimationClip(ActionWalkState))
+            {
+                return ActionWalkState;
+            }
+
+            return commonState;
+        }
+
         protected override void Start()
         {
             base.Start();

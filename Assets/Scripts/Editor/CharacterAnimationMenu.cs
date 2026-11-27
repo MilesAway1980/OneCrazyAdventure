@@ -11,7 +11,8 @@ using Object = UnityEngine.Object;
 //
 //  - Add Animation To Characters puts a Character Animator on every character in the open scene, and gives each the Animation Set that is
 //    named like the character, from the folder below. The characters are objects in each scene, not prefabs, so it's done once per scene.
-//  - Create Torch Animation Set makes his the same way, with his Snuffed and Flickering variants.
+//  - Create Torch and Magnet Animation Set make theirs the same way, with the Torch's Snuffed variant and the Magnet's field.
+//  - Create Brick Animation Set makes his the same way, with turning solid.
 //  - Create Bowling Ball, Paperclip, Pencil and Die Animation Set make theirs the same way: see the methods.
 //  - Create Zipper Animation Set makes Zipper's set from his pictures: standing, walking, going up and down, the same carrying something, and
 //    interacting. It can be run again, and only changes those clips, so any others added to his set are left alone.
@@ -241,6 +242,48 @@ public static class CharacterAnimationMenu
                   "Run Tools > Animation > Add Animation To Characters to give it to him.", set);
     }
 
+    // The Brick: the ordinary clips and the Carrying ones, and turning solid, which is his action. Action pulls his limbs in and shuts his eyes, on
+    // into Solid (the solid block); AirAction is the block; and Unsolid, his own state, is the first the other way round.
+    [MenuItem("Tools/Animation/Create Brick Animation Set")]
+    private static void CreateBrickSet()
+    {
+        var standing = LoadSprites(PlayerSprites + "Brick.png");
+        var sheets = new[] { "Brick_walk", "Brick_air", "Brick_interact", "Brick_carry", "Brick_curl" }
+            .Select(n => LoadSprites($"{PlayerSprites}{n}.png")).ToArray();
+
+        if (standing.Length < 1 || Missing(sheets, new[] { 4, 3, 2, 7, 3 }))
+        {
+            EditorUtility.DisplayDialog("Create Brick Animation Set",
+                $"Couldn't find all of his pictures in {PlayerSprites}: Brick, and the cut-up sheets Brick_walk (4), _air (3), _interact (2), " +
+                "_carry (7) and _curl (3).", "OK");
+            return;
+        }
+
+        var set = GetOrCreateSet("Brick");
+
+        AddOrdinaryClips(set, null, standing[0], sheets[0], sheets[1], sheets[2], 8f);
+        AddCarryingClips(set, CharacterAnimationSet.Carrying, sheets[3]);
+
+        // The last of the curling pictures is the solid block.
+        var curling = sheets[4];
+        var solid = new[] { curling[curling.Length - 1] };
+        var opening = (Sprite[])curling.Clone();
+        System.Array.Reverse(opening);
+
+        set.SetClip(CharacterAnimationSet.Action, null, curling, 12f, false, false).thenPlay = Brick.SolidState;
+        set.SetClip(Brick.SolidState, null, solid, 1f, true, false);
+        set.SetClip(CharacterAnimationSet.AirAction, null, solid, 1f, true, false);
+        set.SetClip(Brick.UnsolidState, null, opening, 12f, false, false);
+
+        EditorUtility.SetDirty(set);
+        AssetDatabase.SaveAssets();
+        Selection.activeObject = set;
+        EditorGUIUtility.PingObject(set);
+
+        Debug.Log($"The Brick's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle, Walk, Rise, Fall, Interact, Carrying, and for turning solid " +
+                  "Action, Solid, AirAction and Unsolid. Run Tools > Animation > Add Animation To Characters to give it to him.", set);
+    }
+
     [MenuItem("Tools/Animation/Create Paperclip Animation Set")]
     private static void CreatePaperclipSet()
     {
@@ -366,6 +409,42 @@ public static class CharacterAnimationMenu
 
         Debug.Log($"The Torch's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle, Walk, Rise, Fall, Interact and Carrying, lit, and the same " +
                   "with the variants Snuffed and SnuffedCarrying for when he's put out, and Flickering and FlickeringCarrying for the small flame as he lights up again. Run Tools > Animation > Add Animation To Characters to give it to him.", set);
+    }
+
+    // The Magnet: the ordinary clips and the Carrying ones, and his action, which switches his field on. Action is standing with the field lines
+    // flickering round him, AirAction the same in the air, and ActionWalk (his own state, which his script asks for) walking with them.
+    [MenuItem("Tools/Animation/Create Magnet Animation Set")]
+    private static void CreateMagnetSet()
+    {
+        var standing = LoadSprites(PlayerSprites + "Magnet.png");
+        var sheets = new[] { "Magnet_walk", "Magnet_air", "Magnet_interact", "Magnet_carry", "Magnet_action", "Magnet_actionwalk", "Magnet_airaction" }
+            .Select(n => LoadSprites($"{PlayerSprites}{n}.png")).ToArray();
+        var needed = new[] { 4, 3, 2, 7, 4, 4, 4 };
+
+        if (standing.Length < 1 || Missing(sheets, needed))
+        {
+            EditorUtility.DisplayDialog("Create Magnet Animation Set",
+                $"Couldn't find all of his pictures in {PlayerSprites}: Magnet, and the cut-up sheets Magnet_walk (4), _air (3), _interact (2), " +
+                "_carry (7), _action (4), _actionwalk (4) and _airaction (4).", "OK");
+            return;
+        }
+
+        var set = GetOrCreateSet("Magnet");
+
+        AddOrdinaryClips(set, null, standing[0], sheets[0], sheets[1], sheets[2], 12f);
+        AddCarryingClips(set, CharacterAnimationSet.Carrying, sheets[3]);
+
+        set.SetClip(CharacterAnimationSet.Action, null, sheets[4], 8f, true, false);
+        set.SetClip(Magnet.ActionWalkState, null, sheets[5], 12f, true, true);
+        set.SetClip(CharacterAnimationSet.AirAction, null, sheets[6], 8f, true, false);
+
+        EditorUtility.SetDirty(set);
+        AssetDatabase.SaveAssets();
+        Selection.activeObject = set;
+        EditorGUIUtility.PingObject(set);
+
+        Debug.Log($"The Magnet's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle, Walk, Rise, Fall, Interact, Carrying, and for his field " +
+                  "Action, ActionWalk and AirAction. Run Tools > Animation > Add Animation To Characters to give it to him.", set);
     }
 
     // The sprites a sheet has been cut into, in order of their names.

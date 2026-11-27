@@ -1,0 +1,142 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c71ef8161f4a9d42b73ce18876c73aa, type: 3}
+  m_Name: Pebble
+  m_EditorClassIdentifier: Assembly-CSharp::Characters.CharacterAnimationSet
+  clips:
+  - state: Idle
+    variant: 
+    frames:
+    - {fileID: 3832943217357383680, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: 3832943217357383680, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: 3832943217357383680, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: 3832943217357383680, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: -1153194525173898175, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: 3832943217357383680, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: 3832943217357383680, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: 3832943217357383680, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: 3832943217357383680, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: 1738444476433772054, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: 3832943217357383680, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: 3832943217357383680, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: -2759554144314400193, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: 3832943217357383680, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: 3832943217357383680, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    - {fileID: 3832943217357383680, guid: 52b0cf13267042bf859ff2e7cf1863ec, type: 3}
+    framesPerSecond: 8
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Walk
+    variant: 
+    frames:
+    - {fileID: -606718032921303191, guid: eab171cc923e40088d0dfc871a394dba, type: 3}
+    - {fileID: 1902014969710365093, guid: eab171cc923e40088d0dfc871a394dba, type: 3}
+    - {fileID: 816192361702368908, guid: eab171cc923e40088d0dfc871a394dba, type: 3}
+    - {fileID: 1191983049749361730, guid: eab171cc923e40088d0dfc871a394dba, type: 3}
+    - {fileID: 508228305203094889, guid: eab171cc923e40088d0dfc871a394dba, type: 3}
+    - {fileID: -344220033703714941, guid: eab171cc923e40088d0dfc871a394dba, type: 3}
+    framesPerSecond: 14
+    loop: 1
+    followsWalkSpeed: 1
+    thenPlay: 
+  - state: Rise
+    variant: 
+    frames:
+    - {fileID: 1242762111727326749, guid: a04c9f1862b645caa73419233d5360f3, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Fall
+    variant: 
+    frames:
+    - {fileID: -4384759451084492084, guid: a04c9f1862b645caa73419233d5360f3, type: 3}
+    - {fileID: -2241660340197981535, guid: a04c9f1862b645caa73419233d5360f3, type: 3}
+    framesPerSecond: 8
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Interact
+    variant: 
+    frames:
+    - {fileID: 3486272439913202321, guid: feb5a0f40f7d4931a552c235c93b531a, type: 3}
+    - {fileID: -4403369630319657291, guid: feb5a0f40f7d4931a552c235c93b531a, type: 3}
+    framesPerSecond: 10
+    loop: 0
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Idle
+    variant: Carrying
+    frames:
+    - {fileID: 3923808384578055406, guid: 8e0011b6cd084579be100c9ed808e3a6, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Walk
+    variant: Carrying
+    frames:
+    - {fileID: 3253248710857901854, guid: 8e0011b6cd084579be100c9ed808e3a6, type: 3}
+    - {fileID: 1348515506375132166, guid: 8e0011b6cd084579be100c9ed808e3a6, type: 3}
+    - {fileID: 4520947652969382255, guid: 8e0011b6cd084579be100c9ed808e3a6, type: 3}
+    - {fileID: 1127770070443265138, guid: 8e0011b6cd084579be100c9ed808e3a6, type: 3}
+    framesPerSecond: 6
+    loop: 1
+    followsWalkSpeed: 1
+    thenPlay: 
+  - state: Rise
+    variant: Carrying
+    frames:
+    - {fileID: 3586491292817030051, guid: 8e0011b6cd084579be100c9ed808e3a6, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Fall
+    variant: Carrying
+    frames:
+    - {fileID: 321477529541303056, guid: 8e0011b6cd084579be100c9ed808e3a6, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Roll
+    variant: 
+    frames:
+    - {fileID: 2367932051975847746, guid: f717d743bdb8410c8e68098b48968a3f, type: 3}
+    - {fileID: -1284122933458529645, guid: f717d743bdb8410c8e68098b48968a3f, type: 3}
+    - {fileID: 3945972614788214846, guid: f717d743bdb8410c8e68098b48968a3f, type: 3}
+    - {fileID: -3757655933223844674, guid: f717d743bdb8410c8e68098b48968a3f, type: 3}
+    - {fileID: 1468843534217477597, guid: f717d743bdb8410c8e68098b48968a3f, type: 3}
+    - {fileID: 2013505364093792936, guid: f717d743bdb8410c8e68098b48968a3f, type: 3}
+    - {fileID: -3304200441622880543, guid: f717d743bdb8410c8e68098b48968a3f, type: 3}
+    - {fileID: -4479716806682864712, guid: f717d743bdb8410c8e68098b48968a3f, type: 3}
+    - {fileID: 3024212625953003545, guid: f717d743bdb8410c8e68098b48968a3f, type: 3}
+    - {fileID: 3987604568485039832, guid: f717d743bdb8410c8e68098b48968a3f, type: 3}
+    framesPerSecond: 20
+    loop: 0
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Sprint
+    variant: 
+    frames:
+    - {fileID: -4340146456215710552, guid: 795297cb31564b7f844665c4cfe1349d, type: 3}
+    - {fileID: 3141502213665600255, guid: 795297cb31564b7f844665c4cfe1349d, type: 3}
+    - {fileID: 2726343618485746787, guid: 795297cb31564b7f844665c4cfe1349d, type: 3}
+    - {fileID: -2289744947154705656, guid: 795297cb31564b7f844665c4cfe1349d, type: 3}
+    - {fileID: 3613968387149693308, guid: 795297cb31564b7f844665c4cfe1349d, type: 3}
+    - {fileID: 3080254924968171699, guid: 795297cb31564b7f844665c4cfe1349d, type: 3}
+    framesPerSecond: 14
+    loop: 1
+    followsWalkSpeed: 1
+    thenPlay: 

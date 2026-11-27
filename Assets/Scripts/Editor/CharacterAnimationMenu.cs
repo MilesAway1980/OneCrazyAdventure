@@ -15,6 +15,7 @@ using Object = UnityEngine.Object;
 //  - Create Brick Animation Set makes his the same way, with turning solid, and Create Bulb Animation Set with his flickering filament and light.
 //  - Create Balloon Animation Set makes his, which is about his shape and face: blowing up, blinking, and being held.
 //  - Create Bouncy Ball Animation Set makes his: a soft blob that breathes, blinks, squashes as he walks, and charges and inflates.
+//  - Create Pebble Animation Set makes his: fidgeting, running, and a roll at the top of a big jump.
 //  - Create Bowling Ball, Paperclip, Pencil and Die Animation Set make theirs the same way: see the methods.
 //  - Create Zipper Animation Set makes Zipper's set from his pictures: standing, walking, going up and down, the same carrying something, and
 //    interacting. It can be run again, and only changes those clips, so any others added to his set are left alone.
@@ -436,6 +437,49 @@ public static class CharacterAnimationMenu
 
         Debug.Log($"The Bouncy Ball's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle (breathing and blinking), Walk, Rise, Fall, Interact, " +
                   "Carrying, Inflated, and Charge and ChargeFull for charging a jump. Run Tools > Animation > Add Animation To Characters to give it to him.", set);
+    }
+
+    // The Pebble: fast and nimble, with no action. He fidgets standing (a toe tap, a hop on the spot, a blink), runs in six pictures, and at the top of a
+    // big jump he rolls (Roll, his own state, which his script asks for): he tucks in, spins once, the whole stone turning, and opens out. Running flat out for a second he's Sprint: hands up and smiling. The rest is the
+    // ordinary clips and the Carrying ones.
+    [MenuItem("Tools/Animation/Create Pebble Animation Set")]
+    private static void CreatePebbleSet()
+    {
+        var names = new[] { "Pebble_idle", "Pebble_run", "Pebble_air", "Pebble_interact", "Pebble_carry", "Pebble_roll", "Pebble_sprint" };
+        var sheets = names.Select(n => LoadSprites($"{PlayerSprites}{n}.png")).ToArray();
+
+        if (Missing(sheets, new[] { 4, 6, 3, 2, 7, 10, 6 }))
+        {
+            EditorUtility.DisplayDialog("Create Pebble Animation Set",
+                $"Couldn't find all of his pictures in {PlayerSprites}: the cut-up sheets Pebble_idle (4), _run (6), _air (3), _interact (2), _carry (7) " +
+                "and _roll (10) and _sprint (6).", "OK");
+            return;
+        }
+
+        var set = GetOrCreateSet("Pebble");
+
+        AddOrdinaryClips(set, null, sheets[0][0], sheets[1], sheets[2], sheets[3], 14f);
+        AddCarryingClips(set, CharacterAnimationSet.Carrying, sheets[4]);
+
+        // Standing, he can't keep still: a toe tap, a hop on the spot, and a blink, at eight a second.
+        var idle = sheets[0];
+        set.SetClip(CharacterAnimationSet.Idle, null,
+            new[] { idle[0], idle[0], idle[0], idle[0], idle[1], idle[0], idle[0], idle[0], idle[0], idle[3], idle[0], idle[0], idle[2], idle[0], idle[0], idle[0] },
+            8f, true, false);
+
+        // The roll: ten pictures at twenty a second is half a second, which is what his script gives it.
+        set.SetClip(Pebble.RollState, null, sheets[5], 20f, false, false);
+
+        // Running flat out, hands up and smiling: the run with that on top, so it follows his speed like Walk does.
+        set.SetClip(Pebble.SprintState, null, sheets[6], 14f, true, true);
+
+        EditorUtility.SetDirty(set);
+        AssetDatabase.SaveAssets();
+        Selection.activeObject = set;
+        EditorGUIUtility.PingObject(set);
+
+        Debug.Log($"The Pebble's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle (fidgeting), Walk (running), Rise, Fall, Interact, Carrying, " +
+                  "Roll, for the top of a big jump, and Sprint, for running flat out. Run Tools > Animation > Add Animation To Characters to give it to him.", set);
     }
 
     [MenuItem("Tools/Animation/Create Paperclip Animation Set")]

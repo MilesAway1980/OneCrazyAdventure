@@ -14,6 +14,7 @@ using Object = UnityEngine.Object;
 //  - Create Torch and Magnet Animation Set make theirs the same way, with the Torch's Snuffed variant and the Magnet's field.
 //  - Create Brick Animation Set makes his the same way, with turning solid, and Create Bulb Animation Set with his flickering filament and light.
 //  - Create Balloon Animation Set makes his, which is about his shape and face: blowing up, blinking, and being held.
+//  - Create Bouncy Ball Animation Set makes his: a soft blob that breathes, blinks, squashes as he walks, and charges and inflates.
 //  - Create Bowling Ball, Paperclip, Pencil and Die Animation Set make theirs the same way: see the methods.
 //  - Create Zipper Animation Set makes Zipper's set from his pictures: standing, walking, going up and down, the same carrying something, and
 //    interacting. It can be run again, and only changes those clips, so any others added to his set are left alone.
@@ -389,6 +390,52 @@ public static class CharacterAnimationMenu
         Debug.Log($"The Balloon's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle (blinking), Walk, Rise, Fall, Interact, Carrying, and blowing up: " +
                   "Action, Inflated and Deflate, each again with the variant Held for while someone is hanging from his string. " +
                   "Run Tools > Animation > Add Animation To Characters to give it to him.", set);
+    }
+
+    // The Bouncy Ball: a soft blob with two eyes and no limbs, so his clips are his shape and his face. Standing he breathes and blinks (Idle is the four pictures
+    // of his idle sheet in a pattern), and walking he squashes and stretches. Charging a jump is his own state:
+    // Charge squashes him down over the two seconds it takes, on into ChargeFull, trembling. Inflated is his own too, for while he's blown up, and he's
+    // made bigger by his script. The picture shown for Rise is his own stretched one.
+    [MenuItem("Tools/Animation/Create Bouncy Ball Animation Set")]
+    private static void CreateBouncyBallSet()
+    {
+        var names = new[] { "BouncyBall_idle", "BouncyBall_walk", "BouncyBall_air", "BouncyBall_interact", "BouncyBall_carry", "BouncyBall_inflated",
+                            "BouncyBall_charge", "BouncyBall_chargefull" };
+        var sheets = names.Select(n => LoadSprites($"{PlayerSprites}{n}.png")).ToArray();
+
+        if (Missing(sheets, new[] { 4, 4, 3, 2, 7, 4, 4, 2 }))
+        {
+            EditorUtility.DisplayDialog("Create Bouncy Ball Animation Set",
+                $"Couldn't find all of his pictures in {PlayerSprites}: the cut-up sheets BouncyBall_idle (4), _walk (4), _air (3), _interact (2), " +
+                "_carry (7), _inflated (4), _charge (4) and _chargefull (2).", "OK");
+            return;
+        }
+
+        var set = GetOrCreateSet("Bouncy Ball");
+
+        AddOrdinaryClips(set, null, sheets[0][0], sheets[1], sheets[2], sheets[3], 10f);
+        AddCarryingClips(set, CharacterAnimationSet.Carrying, sheets[4]);
+
+        // Standing: his own picture, a breath in and out, and every so often a blink (the fourth picture), at eight a second.
+        var idle = sheets[0];
+        set.SetClip(CharacterAnimationSet.Idle, null,
+            new[] { idle[0], idle[0], idle[0], idle[1], idle[2], idle[2], idle[1], idle[0], idle[0], idle[0], idle[0], idle[0], idle[3], idle[0] },
+            8f, true, false);
+
+        // Blown up: the same shape, pulsing. (His size is his script's.)
+        set.SetClip(BouncyBall.InflatedState, null, sheets[5], 8f, true, false);
+
+        // Charging: four pictures at two a second takes the two seconds his charge does, and then he trembles.
+        set.SetClip(BouncyBall.ChargeState, null, sheets[6], 2f, false, false).thenPlay = BouncyBall.ChargeFullState;
+        set.SetClip(BouncyBall.ChargeFullState, null, sheets[7], 20f, true, false);
+
+        EditorUtility.SetDirty(set);
+        AssetDatabase.SaveAssets();
+        Selection.activeObject = set;
+        EditorGUIUtility.PingObject(set);
+
+        Debug.Log($"The Bouncy Ball's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle (breathing and blinking), Walk, Rise, Fall, Interact, " +
+                  "Carrying, Inflated, and Charge and ChargeFull for charging a jump. Run Tools > Animation > Add Animation To Characters to give it to him.", set);
     }
 
     [MenuItem("Tools/Animation/Create Paperclip Animation Set")]

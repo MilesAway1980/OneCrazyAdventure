@@ -1,0 +1,139 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c71ef8161f4a9d42b73ce18876c73aa, type: 3}
+  m_Name: Bouncy Ball
+  m_EditorClassIdentifier: Assembly-CSharp::Characters.CharacterAnimationSet
+  clips:
+  - state: Idle
+    variant: 
+    frames:
+    - {fileID: 1931949584733690282, guid: 841ff9d5caf440cf836cce1dfa2e4c1a, type: 3}
+    - {fileID: 1931949584733690282, guid: 841ff9d5caf440cf836cce1dfa2e4c1a, type: 3}
+    - {fileID: 1931949584733690282, guid: 841ff9d5caf440cf836cce1dfa2e4c1a, type: 3}
+    - {fileID: 2474509136385468923, guid: 841ff9d5caf440cf836cce1dfa2e4c1a, type: 3}
+    - {fileID: -1183157359013368047, guid: 841ff9d5caf440cf836cce1dfa2e4c1a, type: 3}
+    - {fileID: -1183157359013368047, guid: 841ff9d5caf440cf836cce1dfa2e4c1a, type: 3}
+    - {fileID: 2474509136385468923, guid: 841ff9d5caf440cf836cce1dfa2e4c1a, type: 3}
+    - {fileID: 1931949584733690282, guid: 841ff9d5caf440cf836cce1dfa2e4c1a, type: 3}
+    - {fileID: 1931949584733690282, guid: 841ff9d5caf440cf836cce1dfa2e4c1a, type: 3}
+    - {fileID: 1931949584733690282, guid: 841ff9d5caf440cf836cce1dfa2e4c1a, type: 3}
+    - {fileID: 1931949584733690282, guid: 841ff9d5caf440cf836cce1dfa2e4c1a, type: 3}
+    - {fileID: 1931949584733690282, guid: 841ff9d5caf440cf836cce1dfa2e4c1a, type: 3}
+    - {fileID: 544861595860986904, guid: 841ff9d5caf440cf836cce1dfa2e4c1a, type: 3}
+    - {fileID: 1931949584733690282, guid: 841ff9d5caf440cf836cce1dfa2e4c1a, type: 3}
+    framesPerSecond: 8
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Walk
+    variant: 
+    frames:
+    - {fileID: 1963266137109542799, guid: ad1ff64179144084bfebd81208847787, type: 3}
+    - {fileID: -1324529588076769945, guid: ad1ff64179144084bfebd81208847787, type: 3}
+    - {fileID: -4370343721783540973, guid: ad1ff64179144084bfebd81208847787, type: 3}
+    - {fileID: 4302553347778428377, guid: ad1ff64179144084bfebd81208847787, type: 3}
+    framesPerSecond: 10
+    loop: 1
+    followsWalkSpeed: 1
+    thenPlay: 
+  - state: Rise
+    variant: 
+    frames:
+    - {fileID: 1476364276595257780, guid: b51e098a22154cf49d8f499a6ee86be3, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Fall
+    variant: 
+    frames:
+    - {fileID: -469089284533971791, guid: b51e098a22154cf49d8f499a6ee86be3, type: 3}
+    - {fileID: -4359275476470760201, guid: b51e098a22154cf49d8f499a6ee86be3, type: 3}
+    framesPerSecond: 8
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Interact
+    variant: 
+    frames:
+    - {fileID: 101330130549718276, guid: 1a5f70c665f047cdadcf9da5eb9fb236, type: 3}
+    - {fileID: -2942923031147998761, guid: 1a5f70c665f047cdadcf9da5eb9fb236, type: 3}
+    framesPerSecond: 10
+    loop: 0
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Idle
+    variant: Carrying
+    frames:
+    - {fileID: -2344550761124380418, guid: c3296527f62948fcab66524a737b6f57, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Walk
+    variant: Carrying
+    frames:
+    - {fileID: -969380288826584755, guid: c3296527f62948fcab66524a737b6f57, type: 3}
+    - {fileID: 1856414588227763162, guid: c3296527f62948fcab66524a737b6f57, type: 3}
+    - {fileID: -2613881982382554858, guid: c3296527f62948fcab66524a737b6f57, type: 3}
+    - {fileID: -1741052698614758918, guid: c3296527f62948fcab66524a737b6f57, type: 3}
+    framesPerSecond: 6
+    loop: 1
+    followsWalkSpeed: 1
+    thenPlay: 
+  - state: Rise
+    variant: Carrying
+    frames:
+    - {fileID: 2554900131215154604, guid: c3296527f62948fcab66524a737b6f57, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Fall
+    variant: Carrying
+    frames:
+    - {fileID: -2094230784079128843, guid: c3296527f62948fcab66524a737b6f57, type: 3}
+    framesPerSecond: 1
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Inflated
+    variant: 
+    frames:
+    - {fileID: 1012641980986971201, guid: d1ba9db8311c4a79a89b91fce2341a9f, type: 3}
+    - {fileID: -502169575711373845, guid: d1ba9db8311c4a79a89b91fce2341a9f, type: 3}
+    - {fileID: 3565272098552369888, guid: d1ba9db8311c4a79a89b91fce2341a9f, type: 3}
+    - {fileID: -178124952253106994, guid: d1ba9db8311c4a79a89b91fce2341a9f, type: 3}
+    framesPerSecond: 8
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 
+  - state: Charge
+    variant: 
+    frames:
+    - {fileID: -3051739171506826917, guid: 1ee4b40e68a84abbb8599cc979365dd0, type: 3}
+    - {fileID: 86600875443306787, guid: 1ee4b40e68a84abbb8599cc979365dd0, type: 3}
+    - {fileID: -852034599593732007, guid: 1ee4b40e68a84abbb8599cc979365dd0, type: 3}
+    - {fileID: 3466975453175902186, guid: 1ee4b40e68a84abbb8599cc979365dd0, type: 3}
+    framesPerSecond: 2
+    loop: 0
+    followsWalkSpeed: 0
+    thenPlay: ChargeFull
+  - state: ChargeFull
+    variant: 
+    frames:
+    - {fileID: -267562308386170578, guid: e2f346498f6d4674a5313410e0a530a9, type: 3}
+    - {fileID: 4416245499051203539, guid: e2f346498f6d4674a5313410e0a530a9, type: 3}
+    framesPerSecond: 20
+    loop: 1
+    followsWalkSpeed: 0
+    thenPlay: 

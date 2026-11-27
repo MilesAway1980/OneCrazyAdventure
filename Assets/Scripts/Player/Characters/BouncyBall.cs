@@ -11,6 +11,57 @@ namespace Characters
             get { return 1.0f; }
         }
 
+        // ----- Animation -----
+        //
+        // Charging a jump is his own state, Charge: the clip squashes him down over the two seconds the charge takes and goes on by itself into
+        // ChargeFull, trembling. Inflated, whether the button is held or locked, is his Inflated clip. (He's made bigger by his script, not by the clip,
+        // and eased up to size, so the picture is the same one.) His stretch and squish as he moves and bounces is ShapeFlex, not clips.
+        // See Docs/Animation.md.
+        public const string ChargeState = "Charge";
+        public const string ChargeFullState = "ChargeFull";
+        public const string InflatedState = "Inflated";
+
+        protected override string AnimationState(string commonState)
+        {
+            if (commonState != CharacterAnimationSet.Action && commonState != CharacterAnimationSet.AirAction)
+            {
+                return commonState;
+            }
+
+            if (charging)
+            {
+                return ChargeState;
+            }
+
+            if (IsInflated())
+            {
+                return InflatedState;
+            }
+
+            // The button is held but he's an ordinary ball, such as just after a charged jump: what he'd be without it.
+            if (isJumping)
+            {
+                return rigidBody2D.linearVelocity.y > 0f ? CharacterAnimationSet.Rise : CharacterAnimationSet.Fall;
+            }
+
+            return WalkingForAnimation ? CharacterAnimationSet.Walk : CharacterAnimationSet.Idle;
+        }
+
+        // How long he takes to blow up to his full size, or to shrink back.
+        private const float InflateSeconds = 0.18f;
+
+        // How big his picture is, as a multiple of its ordinary size: 1 normal, inflateSize inflated, and between while he's growing or shrinking.
+        private float sizeNow = 1f;
+
+        // Eases his picture to the size for whether he's inflated, every frame. Whatever else sets his size (ShapeFlex) goes on top.
+        private void EaseSize(bool inflatedNow)
+        {
+            var target = inflatedNow ? inflateSize : 1f;
+
+            sizeNow = Mathf.MoveTowards(sizeNow, target, Mathf.Abs(inflateSize - 1f) / InflateSeconds * Time.deltaTime);
+            spriteRenderer.transform.localScale = new Vector3(originalSpriteSize.x * sizeNow, originalSpriteSize.y * sizeNow, originalSpriteSize.z);
+        }
+
         PhysicsMaterial2D bouncyBallMaterial;
         [Tooltip("How many times bigger he gets when he's fully inflated.")]
         public float inflateSize;
@@ -130,9 +181,7 @@ namespace Characters
             var shown = (Form)form;
             var inflatedNow = shown == Form.Inflated;
 
-            spriteRenderer.transform.localScale = inflatedNow
-                ? new Vector3(originalSpriteSize.x * inflateSize, originalSpriteSize.y * inflateSize, originalSpriteSize.z)
-                : originalSpriteSize;
+            EaseSize(inflatedNow);
 
             if (bouncyShell.activeSelf != inflatedNow)
             {
@@ -143,7 +192,7 @@ namespace Characters
             {
                 bouncyShell.transform.position = transform.position;
             }
-            else if (shown == Form.Charging)
+            else if (shown == Form.Charging && !ShowingAnimation)
             {
                 spriteRenderer.sprite = chargeSprite;
             }
@@ -208,7 +257,12 @@ namespace Characters
             }
             else if (form == Form.Charging)
             {
-                spriteRenderer.sprite = chargeSprite;
+                // His squashed picture, unless his clips are drawing him, which they do.
+                if (!ShowingAnimation)
+                {
+                    spriteRenderer.sprite = chargeSprite;
+                }
+
                 chargeValue += chargeValueIncreaseSpeed * Time.deltaTime;
                 if (chargeValue > maximumChargeValue)
                 {
@@ -216,6 +270,7 @@ namespace Characters
                 }
             }
 
+            EaseSize(form == Form.Inflated);
             UpdateMeter();
         }
 
@@ -225,11 +280,6 @@ namespace Characters
             if (form == Form.Inflated)
             {
                 rigidBody2D.sharedMaterial = bouncyBallMaterial;
-                spriteRenderer.transform.localScale = new Vector3(
-                    originalSpriteSize.x * inflateSize,
-                    originalSpriteSize.y * inflateSize,
-                    originalSpriteSize.z
-                );
 
                 capsuleCollider.size = originalColliderDimensions * inflateSize;
                 ShiftFloorDetectors(new Vector2(0, -0.02f));
@@ -239,7 +289,6 @@ namespace Characters
             }
 
             ShiftFloorDetectors(Vector2.zero);
-            spriteRenderer.transform.localScale = originalSpriteSize;
             rigidBody2D.sharedMaterial = null;
             bouncyShell.SetActive(false);
 

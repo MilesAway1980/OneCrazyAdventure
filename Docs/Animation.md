@@ -65,6 +65,10 @@ The Bowling Ball is the example (`BowlingBall.cs`). Rolling is his Action, so **
 there's nothing to curl up from in the air. And when he lets go he unrolls: his script gives back `Unroll` for a moment (while he would otherwise be Idle or
 Walk), and its clip is the curl the other way round. Tools > Animation > Create Bowling Ball Animation Set makes the set.
 
+The Torch has a whole second set of clips for when he's put out under liquid: the variants `Snuffed` and, if he's carrying, `SnuffedCarrying` (`Torch.cs` asks for them while he's in liquid), drawn charred with no flame. Tools > Animation > Create Torch Animation Set makes both sets of clips. His old `Unlit Stand` and `Unlit Jump` pictures are only used if he has no clips drawing him.
+
+He's put out the moment he's in liquid, but lights up in stages when he comes out: `Torch.cs` runs through **Relight Seconds**, a small flame (the variants `Flickering` and `FlickeringCarrying`, drawn as a small flame on the charred head), then out, then a small flame, and so on, ending on the small flame, and then the full one. His light follows (the small flame's brightness is **Small Flame Light**), and he only lights sconces and warms things once he's burning fully. Empty Relight Seconds and he's lit as soon as he's out. The other machines are sent how much he's burning (`Torch.Flame`), so they see the flickers too.
+
 He also has the **Carrying** clips, for if he's ever allowed to carry something (Able To Carry Objects is a switch on the character, and the clips don't turn it
 on). Every character's set can have them: clips for Idle, Walk, Rise and Fall with the variant Carrying. Zipper has them, and each set made from here on
 should too, so any character can be given something to carry without more art.

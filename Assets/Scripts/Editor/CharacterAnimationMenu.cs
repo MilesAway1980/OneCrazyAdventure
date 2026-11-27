@@ -11,6 +11,7 @@ using Object = UnityEngine.Object;
 //
 //  - Add Animation To Characters puts a Character Animator on every character in the open scene, and gives each the Animation Set that is
 //    named like the character, from the folder below. The characters are objects in each scene, not prefabs, so it's done once per scene.
+//  - Create Torch Animation Set makes his the same way, with his Snuffed and Flickering variants.
 //  - Create Bowling Ball, Paperclip, Pencil and Die Animation Set make theirs the same way: see the methods.
 //  - Create Zipper Animation Set makes Zipper's set from his pictures: standing, walking, going up and down, the same carrying something, and
 //    interacting. It can be run again, and only changes those clips, so any others added to his set are left alone.
@@ -280,17 +281,8 @@ public static class CharacterAnimationMenu
 
         var set = GetOrCreateSet(characterName);
 
-        set.SetClip(CharacterAnimationSet.Idle, null, new[] { standing[0] }, 1f, true, false);
-        set.SetClip(CharacterAnimationSet.Walk, null, walking, walkFps, true, true);
-        set.SetClip(CharacterAnimationSet.Rise, null, new[] { inAir[0] }, 1f, true, false);
-        set.SetClip(CharacterAnimationSet.Fall, null, inAir.Skip(1).ToArray(), 8f, true, false);
-        set.SetClip(CharacterAnimationSet.Interact, null, interacting, 10f, false, false);
-
-        // Carrying: the first picture is standing, then four walking, then going up and coming down.
-        set.SetClip(CharacterAnimationSet.Idle, CharacterAnimationSet.Carrying, new[] { carrying[0] }, 1f, true, false);
-        set.SetClip(CharacterAnimationSet.Walk, CharacterAnimationSet.Carrying, carrying.Skip(1).Take(4).ToArray(), 6f, true, true);
-        set.SetClip(CharacterAnimationSet.Rise, CharacterAnimationSet.Carrying, new[] { carrying[5] }, 1f, true, false);
-        set.SetClip(CharacterAnimationSet.Fall, CharacterAnimationSet.Carrying, new[] { carrying[6] }, 1f, true, false);
+        AddOrdinaryClips(set, null, standing[0], walking, inAir, interacting, walkFps);
+        AddCarryingClips(set, CharacterAnimationSet.Carrying, carrying);
 
         EditorUtility.SetDirty(set);
         AssetDatabase.SaveAssets();
@@ -299,6 +291,81 @@ public static class CharacterAnimationMenu
 
         Debug.Log($"{characterName}'s animation set is at {AssetDatabase.GetAssetPath(set)}: Idle, Walk ({walking.Length} pictures), Rise, Fall, " +
                   "Interact, and Carrying (Idle, Walk, Rise, Fall). Run Tools > Animation > Add Animation To Characters to give it to him.", set);
+    }
+
+    // Idle, Walk, Rise, Fall and Interact for one look (the variant, or null for the ordinary one): the standing picture; the walking sheet; the air
+    // sheet (going up, then two for coming down that swap); and the interact sheet (reaching, then pulling, which it ends on).
+    private static void AddOrdinaryClips(CharacterAnimationSet set, string variant, Sprite standing, Sprite[] walking, Sprite[] inAir,
+                                         Sprite[] interacting, float walkFps)
+    {
+        set.SetClip(CharacterAnimationSet.Idle, variant, new[] { standing }, 1f, true, false);
+        set.SetClip(CharacterAnimationSet.Walk, variant, walking, walkFps, true, true);
+        set.SetClip(CharacterAnimationSet.Rise, variant, new[] { inAir[0] }, 1f, true, false);
+        set.SetClip(CharacterAnimationSet.Fall, variant, inAir.Skip(1).ToArray(), 8f, true, false);
+        set.SetClip(CharacterAnimationSet.Interact, variant, interacting, 10f, false, false);
+    }
+
+    // The carrying clips for one look: the sheet is standing, then four walking, then going up and coming down.
+    private static void AddCarryingClips(CharacterAnimationSet set, string variant, Sprite[] carrying)
+    {
+        set.SetClip(CharacterAnimationSet.Idle, variant, new[] { carrying[0] }, 1f, true, false);
+        set.SetClip(CharacterAnimationSet.Walk, variant, carrying.Skip(1).Take(4).ToArray(), 6f, true, true);
+        set.SetClip(CharacterAnimationSet.Rise, variant, new[] { carrying[5] }, 1f, true, false);
+        set.SetClip(CharacterAnimationSet.Fall, variant, new[] { carrying[6] }, 1f, true, false);
+    }
+
+    // Whether any sheet has fewer pictures than it needs.
+    private static bool Missing(Sprite[][] sheets, int[] needed)
+    {
+        for (var i = 0; i < sheets.Length; i++)
+        {
+            if (sheets[i].Length < needed[i])
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // The Torch: lit; Snuffed, which is how he looks put out under liquid; and Flickering, the small flame he lights up with as he comes out of it
+    // (his script asks for the variants). Each has its own walking, air, interact and carrying sheets (the carrying ones are taller, as the arms go up over the flame). The lit idle is his own picture, and the snuffed
+    // one is the first picture of the snuffed walking sheet, and the small flame's the first of its, so that they line up with the rest.
+    [MenuItem("Tools/Animation/Create Torch Animation Set")]
+    private static void CreateTorchSet()
+    {
+        var standing = LoadSprites(PlayerSprites + "torch.png");
+        var lit = new[] { "Torch_walk", "Torch_air", "Torch_interact", "Torch_carry" }.Select(n => LoadSprites($"{PlayerSprites}{n}.png")).ToArray();
+        var snuffed = new[] { "Torch_snuffed_walk", "Torch_snuffed_air", "Torch_snuffed_interact", "Torch_snuffed_carry" }
+            .Select(n => LoadSprites($"{PlayerSprites}{n}.png")).ToArray();
+        var small = new[] { "Torch_small_walk", "Torch_small_air", "Torch_small_interact", "Torch_small_carry" }
+            .Select(n => LoadSprites($"{PlayerSprites}{n}.png")).ToArray();
+        var needed = new[] { 4, 3, 2, 7 };
+
+        if (standing.Length < 1 || Missing(lit, needed) || Missing(snuffed, needed) || Missing(small, needed))
+        {
+            EditorUtility.DisplayDialog("Create Torch Animation Set",
+                $"Couldn't find all of his pictures in {PlayerSprites}: torch, and the cut-up sheets Torch_, Torch_snuffed_ and Torch_small_ walk (4), air (3), " +
+                "interact (2) and carry (7).", "OK");
+            return;
+        }
+
+        var set = GetOrCreateSet("Torch");
+
+        AddOrdinaryClips(set, null, standing[0], lit[0], lit[1], lit[2], 12f);
+        AddCarryingClips(set, CharacterAnimationSet.Carrying, lit[3]);
+        AddOrdinaryClips(set, Torch.SnuffedVariant, snuffed[0][0], snuffed[0], snuffed[1], snuffed[2], 12f);
+        AddCarryingClips(set, Torch.SnuffedCarryingVariant, snuffed[3]);
+        AddOrdinaryClips(set, Torch.FlickeringVariant, small[0][0], small[0], small[1], small[2], 12f);
+        AddCarryingClips(set, Torch.FlickeringCarryingVariant, small[3]);
+
+        EditorUtility.SetDirty(set);
+        AssetDatabase.SaveAssets();
+        Selection.activeObject = set;
+        EditorGUIUtility.PingObject(set);
+
+        Debug.Log($"The Torch's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle, Walk, Rise, Fall, Interact and Carrying, lit, and the same " +
+                  "with the variants Snuffed and SnuffedCarrying for when he's put out, and Flickering and FlickeringCarrying for the small flame as he lights up again. Run Tools > Animation > Add Animation To Characters to give it to him.", set);
     }
 
     // The sprites a sheet has been cut into, in order of their names.

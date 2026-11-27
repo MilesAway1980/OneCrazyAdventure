@@ -2,14 +2,15 @@ using Characters;
 using Mirror;
 using UnityEngine;
 
-// Sends whether the Torch is burning, so that other machines show him put out in water: his light out and his unlit pictures. Where he
+// Sends how much the Torch is burning, so that other machines show him put out in water, and lighting up again: his light and his unlit pictures. Where he
 // lights sconces and what his heat does is decided on the host.
 //
 // Added to the Torch by Tools > Network > Make Characters Networked.
 [RequireComponent(typeof(Torch))]
 public class TorchNetwork : NetworkBehaviour
 {
-    [SyncVar] private bool burning = true;
+    // How much he's burning, in hundredths: 0 is out, 100 fully lit, and between is the small flame as he lights up again.
+    [SyncVar] private byte flame = 100;
 
     private Torch torch;
 
@@ -30,7 +31,7 @@ public class TorchNetwork : NetworkBehaviour
     {
         if (isServer)
         {
-            burning = TheTorch.IsBurning;
+            flame = (byte)Mathf.RoundToInt(Mathf.Clamp01(TheTorch.Flame) * 100f);
         }
     }
 
@@ -39,7 +40,7 @@ public class TorchNetwork : NetworkBehaviour
     {
         if (!isServer && isClient)
         {
-            TheTorch.ShowLit(burning);
+            TheTorch.ShowLit(flame / 100f);
         }
     }
 }

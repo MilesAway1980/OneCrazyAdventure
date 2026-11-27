@@ -1375,6 +1375,22 @@ namespace Characters
         // The clip to show, as its number in his Animation Set, or None if he has none for what he's doing.
         public int AnimationClip { get; private set; } = CharacterAnimationSet.None;
 
+        // Whether a clip drew him the last time he was shown, as opposed to his ordinary pictures. A character's own script that sets
+        // his picture by hand (the Torch's unlit ones) leaves it alone while this is true.
+        protected bool ShowingAnimation { get; private set; }
+
+        // Whether he's walking, as far as his animation goes: he's moving faster than a crawl.
+        protected bool WalkingForAnimation
+        {
+            get { return Mathf.Abs(moveSpeed) > WalkAnimationMinSpeed; }
+        }
+
+        // Whether his set has a clip for this state, for how he looks right now (the variant).
+        protected bool HasAnimationClip(string state)
+        {
+            return characterAnimator && characterAnimator.Find(state, AnimationVariant()) != CharacterAnimationSet.None;
+        }
+
         // How fast he's walking, as a fraction of the fastest he does, for a clip that follows his speed.
         public float AnimationSpeed { get; private set; } = 1f;
 
@@ -1457,7 +1473,7 @@ namespace Characters
             {
                 common = CharacterAnimationSet.Interact;
             }
-            else if (Mathf.Abs(moveSpeed) > WalkAnimationMinSpeed)
+            else if (WalkingForAnimation)
             {
                 common = CharacterAnimationSet.Walk;
             }
@@ -1502,7 +1518,9 @@ namespace Characters
             isJumping = airborne;
 
             // His own clip, if he has one for this. It draws him, and the pictures below are for when it doesn't.
-            if (characterAnimator && characterAnimator.Show(clip, walkSpeed))
+            ShowingAnimation = characterAnimator && characterAnimator.Show(clip, walkSpeed);
+
+            if (ShowingAnimation)
             {
                 return;
             }

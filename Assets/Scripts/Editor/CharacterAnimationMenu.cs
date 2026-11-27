@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 //  - Add Animation To Characters puts a Character Animator on every character in the open scene, and gives each the Animation Set that is
 //    named like the character, from the folder below. The characters are objects in each scene, not prefabs, so it's done once per scene.
 //  - Create Torch and Magnet Animation Set make theirs the same way, with the Torch's Snuffed variant and the Magnet's field.
-//  - Create Brick Animation Set makes his the same way, with turning solid.
+//  - Create Brick Animation Set makes his the same way, with turning solid, and Create Bulb Animation Set with his flickering filament and light.
 //  - Create Bowling Ball, Paperclip, Pencil and Die Animation Set make theirs the same way: see the methods.
 //  - Create Zipper Animation Set makes Zipper's set from his pictures: standing, walking, going up and down, the same carrying something, and
 //    interacting. It can be run again, and only changes those clips, so any others added to his set are left alone.
@@ -282,6 +282,44 @@ public static class CharacterAnimationMenu
 
         Debug.Log($"The Brick's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle, Walk, Rise, Fall, Interact, Carrying, and for turning solid " +
                   "Action, Solid, AirAction and Unsolid. Run Tools > Animation > Add Animation To Characters to give it to him.", set);
+    }
+
+    // The Bulb: the ordinary clips and the Carrying ones, and his light. His filament flickers a little when he stands (Idle is six pictures, going
+    // round slowly), flares as he pulls (Interact), and goes orange under a load (Carrying). Lit is his action: Action is standing with the filament
+    // flickering bright, AirAction the same in the air, and ActionWalk (his own state, which his script asks for) walking with it.
+    [MenuItem("Tools/Animation/Create Bulb Animation Set")]
+    private static void CreateBulbSet()
+    {
+        var sheets = new[] { "Bulb_idle", "Bulb_walk", "Bulb_air", "Bulb_interact", "Bulb_carry", "Bulb_action", "Bulb_actionwalk", "Bulb_airaction" }
+            .Select(n => LoadSprites($"{PlayerSprites}{n}.png")).ToArray();
+
+        if (Missing(sheets, new[] { 6, 4, 3, 2, 7, 6, 4, 4 }))
+        {
+            EditorUtility.DisplayDialog("Create Bulb Animation Set",
+                $"Couldn't find all of his pictures in {PlayerSprites}: the cut-up sheets Bulb_idle (6), _walk (4), _air (3), _interact (2), " +
+                "_carry (7), _action (6), _actionwalk (4) and _airaction (4).", "OK");
+            return;
+        }
+
+        var set = GetOrCreateSet("Bulb");
+
+        AddOrdinaryClips(set, null, sheets[0][0], sheets[1], sheets[2], sheets[3], 12f);
+        AddCarryingClips(set, CharacterAnimationSet.Carrying, sheets[4]);
+
+        // Standing, the filament flickers: the first picture of each set above is only one of them.
+        set.SetClip(CharacterAnimationSet.Idle, null, sheets[0], 5f, true, false);
+
+        set.SetClip(CharacterAnimationSet.Action, null, sheets[5], 12f, true, false);
+        set.SetClip(Bulb.ActionWalkState, null, sheets[6], 12f, true, true);
+        set.SetClip(CharacterAnimationSet.AirAction, null, sheets[7], 12f, true, false);
+
+        EditorUtility.SetDirty(set);
+        AssetDatabase.SaveAssets();
+        Selection.activeObject = set;
+        EditorGUIUtility.PingObject(set);
+
+        Debug.Log($"The Bulb's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle (flickering), Walk, Rise, Fall, Interact, Carrying, and for his " +
+                  "light Action, ActionWalk and AirAction. Run Tools > Animation > Add Animation To Characters to give it to him.", set);
     }
 
     [MenuItem("Tools/Animation/Create Paperclip Animation Set")]

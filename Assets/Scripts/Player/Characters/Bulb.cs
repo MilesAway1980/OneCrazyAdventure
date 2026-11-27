@@ -77,6 +77,23 @@ namespace Characters
         private Transform picture;
         private Vector3 pictureScale;
 
+        // ----- Animation -----
+        //
+        // Lit is his Action (standing), and AirAction in the air: the filament flickering bright. Walking while lit is his own state, ActionWalk, which is
+        // his walk with the bright filament. Screwed into a socket, he's lit as well, so he shows the lit one. A set without an ActionWalk clip shows
+        // the standing lit one while he walks. See Docs/Animation.md.
+        public const string ActionWalkState = "ActionWalk";
+
+        protected override string AnimationState(string commonState)
+        {
+            if (commonState == CharacterAnimationSet.Action && WalkingForAnimation && HasAnimationClip(ActionWalkState))
+            {
+                return ActionWalkState;
+            }
+
+            return commonState;
+        }
+
         protected override void Start()
         {
             if (!lightSource)

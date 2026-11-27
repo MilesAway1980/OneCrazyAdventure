@@ -193,6 +193,21 @@ namespace Characters
         private static int characterCount;
         private static List<Character> characters;
         private static List<InteractableObject> interactableObjects;
+
+        // Something that's added to the scene as it plays (the grab point on the Balloon's string) and so wasn't there when the characters looked for what
+        // they can use with Interact. Told to them here.
+        public static void RegisterInteractable(InteractableObject thing)
+        {
+            if (interactableObjects == null)
+            {
+                interactableObjects = FindObjectsByType<InteractableObject>(FindObjectsInactive.Exclude).ToList();
+            }
+
+            if (thing && !interactableObjects.Contains(thing))
+            {
+                interactableObjects.Add(thing);
+            }
+        }
         private static List<CarryableObject> carryableObjects;
 
         // The last place he was that no destroyable tile has ever been, which is always somewhere he can be put back.
@@ -364,6 +379,12 @@ namespace Characters
 
             // The carry point has to move with the character, and only a kinematic body does when it's a child of one that moves. A
             // dynamic one is a body of its own: it falls and is left behind, and whatever is joined to it is left with it.
+            // A carry point that's meant to hang free (the end of the Balloon's string) is a Dynamic body, whatever the scene was saved with.
+            if (carryAttachmentPoint && !CarryPointMovesWithHim && carryAttachmentPoint.bodyType == RigidbodyType2D.Kinematic)
+            {
+                carryAttachmentPoint.bodyType = RigidbodyType2D.Dynamic;
+            }
+
             if (carryAttachmentPoint && carryAttachmentPoint.bodyType != RigidbodyType2D.Kinematic && CarryPointMovesWithHim)
             {
                 Debug.LogWarning($"{gameObject.name}'s Carry Attachment Point was not Kinematic, so what it carried would be left behind. " +
@@ -1061,6 +1082,25 @@ namespace Characters
 
             // Nothing solid on him to go by: his middle.
             return count == 0 && area.bounds.Contains(transform.position);
+        }
+
+        // How far a point is from his body, in units: from the nearest part of him, and 0 if it's in him. His middle if he has nothing solid to go by.
+        public float DistanceFromBody(Vector2 point)
+        {
+            var count = rigidBody2D.GetAttachedColliders(ownColliders);
+            var nearest = float.PositiveInfinity;
+
+            for (var i = 0; i < count; i++)
+            {
+                if (ownColliders[i].isTrigger)
+                {
+                    continue;
+                }
+
+                nearest = Mathf.Min(nearest, Vector2.Distance(ownColliders[i].ClosestPoint(point), point));
+            }
+
+            return float.IsPositiveInfinity(nearest) ? Vector2.Distance(transform.position, point) : nearest;
         }
 
         // How far his solid body reaches to the right or the left of a place, in units: the distance from a wall detector to his edge.

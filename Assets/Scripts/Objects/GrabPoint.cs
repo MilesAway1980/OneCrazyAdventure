@@ -8,7 +8,8 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class GrabPoint : InteractableObject
 {
-    [Tooltip("How close, in units, a character has to be to take hold of this.")]
+    [Tooltip("How close, in units, a character's body has to be to take hold of this: from the nearest part of him, not his middle, so a big one can reach " +
+             "it as well as a small one.")]
     public float reach = 1f;
 
     [Tooltip("How many characters can hold on at once. Each one's weight is carried by whatever this hangs from.")]
@@ -29,7 +30,7 @@ public class GrabPoint : InteractableObject
             !grabber.ableToGrabObjects ||
             IsGrabbedBy(grabber) ||
             holds.Count >= maxGrabbers ||
-            Vector2.Distance(grabber.transform.position, transform.position) > reach
+            grabber.DistanceFromBody(transform.position) > reach
         )
         {
             return false;

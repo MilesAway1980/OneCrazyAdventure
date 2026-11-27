@@ -122,6 +122,13 @@ namespace Characters
             // His string hangs from him, so taking hold of the end of it would tie him in a loop.
             ableToGrabObjects = false;
 
+            // The end of his string is somewhere to take hold of, with Interact, and hang from: a light character can be lifted by it and a heavy one can't.
+            // It's put on here if the scene doesn't have it, which is the same as having added it by hand.
+            if (carryAttachmentPoint && !carryAttachmentPoint.GetComponent<GrabPoint>())
+            {
+                RegisterInteractable(carryAttachmentPoint.gameObject.AddComponent<GrabPoint>());
+            }
+
             grabPoints = GetComponentsInChildren<GrabPoint>(true);
             carryable = GetComponent<CarryableObject>();
 

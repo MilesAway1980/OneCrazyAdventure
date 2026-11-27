@@ -99,6 +99,13 @@ not change mass or speed (those come from the profile's **Mass**), so a heavy fo
 | Wood | 0.6 | | Stone | 2.7 |
 | Plastic | 1.05 | | Steel | 7.8 |
 
+### How soft it is
+
+A profile's **Softness** (under What it is) is how much the character's picture squashes and stretches as it moves and when it hits
+something: 0 is hard (a brick or a bowling ball: not at all) and 1 is as soft as a balloon. Left at -1 it's what the class says (a
+Balloon and a Bouncy Ball are 1, a Suction Cup 0.6, an Umbrella 0.3, the plain characters 0.15, the rest 0). It only changes the
+picture, not the body, and the numbers for the softest are on the `ShapeFlex` component. See [Animation.md](Animation.md).
+
 ### Tune how a character feels
 
 Work from the general to the particular:
@@ -136,6 +143,19 @@ stopping, 0.25 for jumping, 0.15 for falling and 0.2 for terminal speed.
 `speed = sqrt(2 x gravity x riseGravity x height)`. With the button held the jump reaches the height; letting go early applies
 **Jump Cut** times as much gravity going up, so a short press makes a short jump. A kick or hop in a liquid is cut the same way: let
 go early and it's shorter, hold and it goes its full height (so the liquid's Min Kick Height is for a held press).
+
+**Jump Cut and the heavy-fall pull go by weight.** The extra pull going up after a let-go jump and the extra pull falling are on how much
+the character weighs in what's round it. Held up by the air, as a balloon in its `float` mode is, it weighs little or nothing, so it
+has little or none of them: a balloon isn't dragged down by Jump Cut as it rises. Something that rises because it's lighter than what's
+round it goes up no faster than its **Terminal Speed**, the fastest it could fall. A profile can also set its own **Jump Cut** under
+Overrides (1 is no cut).
+
+**The Balloon** is set up with **Tools > Movement > Set Up Balloon Floating**: left alone he can't jump and falls at most 1.5 tiles a second
+(Overrides: Jump Height 0, Fall Gravity 0.15, Terminal Speed 1.5), and holding the action (the `float` mode, density 0.1 of a balloon's)
+he rises, up to 3 tiles a second (the mode's Terminal Speed 2 times that). His string is a chain of heavy-ish pieces hung from him, and
+what lifts him has to carry it, which is why the mode's density is so low. Rising, he lifts the weight of his string on top of his own lift (a
+character can say what hangs from him with `HangingWeight()`), so he rises whatever his Mass is. A character hanging from his string isn't counted:
+a light one is lifted and a heavy one isn't.
 
 **Gravity** on a character is the world's gravity times **Character Gravity** (default 2). **Air Damping** defaults to 0, so a jump
 goes as high as the numbers say.

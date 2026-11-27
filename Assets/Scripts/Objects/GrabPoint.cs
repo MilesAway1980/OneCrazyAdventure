@@ -63,6 +63,16 @@ public class GrabPoint : InteractableObject
         }
     }
 
+    // Whether anyone is hanging from it.
+    public bool IsHeld
+    {
+        get
+        {
+            ForgetGone();
+            return holds.Count > 0;
+        }
+    }
+
     public bool IsGrabbedBy(Character grabber)
     {
         ForgetGone();

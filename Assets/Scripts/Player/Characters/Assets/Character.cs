@@ -219,13 +219,21 @@ namespace Characters
         // The spaces of the tiles that came back on him during that, which may not have a collider yet.
         private readonly List<Vector2Int> blockingCells = new List<Vector2Int>();
 
+        // Whether what he carries is held by a body that moves with him, as a Kinematic one inside him does, which is how most things are carried:
+        // the Carry Attachment Point is made Kinematic, here and in the editor. A character whose carry point is meant to hang free instead (the end of
+        // the Balloon's string, which things dangle from and which swings) says no, and it's left as it is, a body of its own.
+        protected virtual bool CarryPointMovesWithHim
+        {
+            get { return true; }
+        }
+
 #if UNITY_EDITOR
         // In the editor, when something is changed in the Inspector: a Carry Attachment Point that isn't Kinematic is made so, and
         // said so, straight away. (When playing, Start does it.) It's done a moment later, as changing other objects while this is
         // called isn't allowed to be relied on.
         protected virtual void OnValidate()
         {
-            if (Application.isPlaying || !carryAttachmentPoint || carryAttachmentPoint.bodyType == RigidbodyType2D.Kinematic)
+            if (Application.isPlaying || !carryAttachmentPoint || carryAttachmentPoint.bodyType == RigidbodyType2D.Kinematic || !CarryPointMovesWithHim)
             {
                 return;
             }
@@ -235,7 +243,7 @@ namespace Characters
 
             UnityEditor.EditorApplication.delayCall += () =>
             {
-                if (!character || !point || point.bodyType == RigidbodyType2D.Kinematic)
+                if (!character || !point || point.bodyType == RigidbodyType2D.Kinematic || !character.CarryPointMovesWithHim)
                 {
                     return;
                 }
@@ -251,8 +259,31 @@ namespace Characters
         }
 #endif
 
+        // How soft he is, from 0 (his picture never changes size) to 1 (as soft as a balloon): his Movement Profile's Softness, or, left at -1 there,
+        // what his class says. See ShapeFlex.
+        public float Softness
+        {
+            get
+            {
+                var set = movementProfile ? movementProfile.softness : -1f;
+                return set >= 0f ? Mathf.Clamp01(set) : DefaultSoftness;
+            }
+        }
+
+        // How soft a character of this class is, if his profile doesn't say. Most are hard.
+        protected virtual float DefaultSoftness
+        {
+            get { return 0f; }
+        }
+
         protected virtual void Start()
         {
+            // Every character squashes and stretches as far as he's soft, which is not at all for most.
+            if (!GetComponent<ShapeFlex>())
+            {
+                gameObject.AddComponent<ShapeFlex>();
+            }
+
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
             characterAnimator = GetComponent<CharacterAnimator>();
             rigidBody2D = GetComponent<Rigidbody2D>();
@@ -333,7 +364,7 @@ namespace Characters
 
             // The carry point has to move with the character, and only a kinematic body does when it's a child of one that moves. A
             // dynamic one is a body of its own: it falls and is left behind, and whatever is joined to it is left with it.
-            if (carryAttachmentPoint && carryAttachmentPoint.bodyType != RigidbodyType2D.Kinematic)
+            if (carryAttachmentPoint && carryAttachmentPoint.bodyType != RigidbodyType2D.Kinematic && CarryPointMovesWithHim)
             {
                 Debug.LogWarning($"{gameObject.name}'s Carry Attachment Point was not Kinematic, so what it carried would be left behind. " +
                                  "It has been made Kinematic. Set its Body Type to Kinematic to stop this message.", carryAttachmentPoint);
@@ -482,7 +513,9 @@ namespace Characters
 
             // The extra pull is on his own weight, not on what a liquid holds him up by. It's left off while any of him is in a
             // liquid, or something floating at the surface would weigh as much as when it falls, and settle too deep.
-            var pull = submerged > 0f || Kicking ? 0f : Physics2D.gravity.y * currentMovementSettings.gravity;
+            // They're on how much he weighs, so a balloon, which is held up by the air, isn't pulled down by a fall or a jump let go of as if it
+            // weighed all it does: with none of its weight it has none of the pull, and with some of it, it has that much of it.
+            var pull = submerged > 0f || Kicking ? 0f : Physics2D.gravity.y * currentMovementSettings.gravity * Mathf.Clamp01(bodyWeight);
 
             float fallVelocity;
             if (rigidBody2D.linearVelocity.y <= 0)
@@ -511,6 +544,13 @@ namespace Characters
             {
                 rigidBody2D.linearVelocity =
                     new Vector2(rigidBody2D.linearVelocity.x, -currentMovementSettings.maxFallSpeed);
+            }
+
+            // Lighter than what's round him, he rises, and no faster than the fastest he could fall.
+            if (bodyWeight < 0f && !Kicking && rigidBody2D.linearVelocity.y > currentMovementSettings.maxFallSpeed)
+            {
+                rigidBody2D.linearVelocity =
+                    new Vector2(rigidBody2D.linearVelocity.x, currentMovementSettings.maxFallSpeed);
             }
 
             // Last, with the speed he'll be going at for this step settled. What he's riding going up isn't him going up.
@@ -741,7 +781,15 @@ namespace Characters
             var lift = Mathf.Min(around / Mathf.Max(0.0001f, settings.density), t.maxBuoyancyRatio);
 
             var weight = Buoyancy.Weight(lift, fluidDensity, settings.density, t);
+            bodyWeight = weight;
             rigidBody2D.gravityScale = settings.gravity * weight;
+
+            // Held up by more than he weighs, he lifts what's hung from him as well (a balloon's string), however little he weighs himself: the
+            // weight is taken off by lifting that much more, so only what's left over, which is his lift, is what raises him.
+            if (weight < 0f && rigidBody2D.mass > 0.0001f)
+            {
+                rigidBody2D.gravityScale -= HangingWeight() / rigidBody2D.mass;
+            }
 
             // Only something denser than the liquid is brought back: a floater leaves it, and gets its weight back as it does.
             kickScale = fluid != null && settings.density > fluid.density ? Mathf.Sqrt(Mathf.Clamp(weight, 0.05f, 1f)) : 1f;
@@ -774,6 +822,17 @@ namespace Characters
             rigidBody2D.linearDamping = settings.linearDampening + drag;
             rigidBody2D.angularDamping = settings.angularDampening;
         }
+
+        // How much weight hangs from him that he has to lift when he rises, as a mass times a gravity scale (what it weighs, in the same units as
+        // his own), and not counting what a character might be hanging from him. Nothing, except for something such as a balloon with a string.
+        protected virtual float HangingWeight()
+        {
+            return 0f;
+        }
+
+        // How much of his weight he has in what's round him, which his gravity is multiplied by: 1 is all of it, 0 is none (he hangs there), and
+        // below 0 he's lighter than what's round him and rises. The extra pulls on a jump and a fall go by it too.
+        private float bodyWeight = 1f;
 
         // Whether a kick that was made in a liquid is still on its way up.
         private bool Kicking

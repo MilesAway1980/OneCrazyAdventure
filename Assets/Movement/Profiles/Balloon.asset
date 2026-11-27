@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Balloon
   m_EditorClassIdentifier: Assembly-CSharp::MovementProfile
   material: {fileID: 11400000, guid: b07204087a9557343a9a53a20ab19ad1, type: 2}
-  mass: 15
+  mass: 2
   applyMass: 1
+  softness: -1
   traits:
     runSpeed: 0.2
     acceleration: 1
@@ -22,19 +23,20 @@ MonoBehaviour:
     floatiness: 1
   modes:
   - name: float
-    speed: 1
-    acceleration: 1
+    speed: 0.75
+    acceleration: 0.7
     braking: 1
     jumpHeight: 1
     riseGravity: 1
-    fallGravity: 0.5
-    terminalSpeed: 0.4
-    density: 0.2
+    fallGravity: 1
+    terminalSpeed: 2
+    density: 0.1
   overrides:
-    topSpeed: -1
-    timeToTopSpeed: -1
-    timeToStop: -1
-    jumpHeight: -1
-    fallGravity: -1
-    terminalSpeed: -1
+    topSpeed: 2
+    timeToTopSpeed: 2
+    timeToStop: 5
+    jumpHeight: 0
+    fallGravity: 0.15
+    terminalSpeed: 1.5
     climbSpeed: -1
+    jumpCut: 1

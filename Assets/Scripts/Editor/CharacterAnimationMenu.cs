@@ -13,6 +13,7 @@ using Object = UnityEngine.Object;
 //    named like the character, from the folder below. The characters are objects in each scene, not prefabs, so it's done once per scene.
 //  - Create Torch and Magnet Animation Set make theirs the same way, with the Torch's Snuffed variant and the Magnet's field.
 //  - Create Brick Animation Set makes his the same way, with turning solid, and Create Bulb Animation Set with his flickering filament and light.
+//  - Create Balloon Animation Set makes his, which is about his shape and face: blowing up, blinking, and being held.
 //  - Create Bowling Ball, Paperclip, Pencil and Die Animation Set make theirs the same way: see the methods.
 //  - Create Zipper Animation Set makes Zipper's set from his pictures: standing, walking, going up and down, the same carrying something, and
 //    interacting. It can be run again, and only changes those clips, so any others added to his set are left alone.
@@ -320,6 +321,74 @@ public static class CharacterAnimationMenu
 
         Debug.Log($"The Bulb's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle (flickering), Walk, Rise, Fall, Interact, Carrying, and for his " +
                   "light Action, ActionWalk and AirAction. Run Tools > Animation > Add Animation To Characters to give it to him.", set);
+    }
+
+    // The Balloon: he's a round balloon, with no arms or legs, so his clips are about his shape and his face. Standing he blinks (the long open-eyed
+    // picture and a short blink, going round). Action blows him up in six pictures, on into Inflated, the full size, which blinks too; Deflate is the
+    // blowing up the other way round (his script asks for it as he lets go). Held is a variant, for while someone is hanging from his string: the same
+    // with the eyes squeezed shut, > and <, which is also his Interact and his Carrying, as he has no arms to reach or lift with.
+    [MenuItem("Tools/Animation/Create Balloon Animation Set")]
+    private static void CreateBalloonSet()
+    {
+        var sheets = new[] { "Balloon_idle", "Balloon_big", "Balloon_inflate", "Balloon_held" }.Select(n => LoadSprites($"{PlayerSprites}{n}.png")).ToArray();
+
+        if (Missing(sheets, new[] { 2, 2, 6, 6 }))
+        {
+            EditorUtility.DisplayDialog("Create Balloon Animation Set",
+                $"Couldn't find all of his pictures in {PlayerSprites}: the cut-up sheets Balloon_idle (2), _big (2), _inflate (6) and _held (6).", "OK");
+            return;
+        }
+
+        var set = GetOrCreateSet("Balloon");
+
+        // Blinking: open for a while, then a blink, at eight pictures a second.
+        Sprite[] Blinking(Sprite[] sheet)
+        {
+            return Enumerable.Repeat(sheet[0], 20).Concat(new[] { sheet[1] }).ToArray();
+        }
+
+        Sprite[] Backwards(Sprite[] sheet)
+        {
+            var reversed = (Sprite[])sheet.Clone();
+            System.Array.Reverse(reversed);
+            return reversed;
+        }
+
+        var small = new[] { sheets[0][0] };
+
+        foreach (var state in new[] { CharacterAnimationSet.Walk, CharacterAnimationSet.Rise, CharacterAnimationSet.Fall })
+        {
+            set.SetClip(state, null, small, 1f, true, false);
+        }
+
+        set.SetClip(CharacterAnimationSet.Idle, null, Blinking(sheets[0]), 8f, true, false);
+        set.SetClip(CharacterAnimationSet.Action, null, sheets[2], 14f, false, false).thenPlay = Balloon.InflatedState;
+        set.SetClip(Balloon.InflatedState, null, Blinking(sheets[1]), 8f, true, false);
+        set.SetClip(Balloon.DeflateState, null, Backwards(sheets[2]), 14f, false, false);
+
+        // Held: eyes squeezed shut and no blinking. He pulls a lever the same way, so that's his Interact, and his Carrying, as he has no arms.
+        var held = new[] { sheets[3][0] };
+        var heldInflated = new[] { sheets[3][5] };
+
+        foreach (var state in new[] { CharacterAnimationSet.Idle, CharacterAnimationSet.Walk, CharacterAnimationSet.Rise, CharacterAnimationSet.Fall })
+        {
+            set.SetClip(state, Balloon.HeldVariant, held, 1f, true, false);
+            set.SetClip(state, CharacterAnimationSet.Carrying, held, 1f, true, false);
+        }
+
+        set.SetClip(CharacterAnimationSet.Action, Balloon.HeldVariant, sheets[3], 14f, false, false).thenPlay = Balloon.InflatedState;
+        set.SetClip(Balloon.InflatedState, Balloon.HeldVariant, heldInflated, 1f, true, false);
+        set.SetClip(Balloon.DeflateState, Balloon.HeldVariant, Backwards(sheets[3]), 14f, false, false);
+        set.SetClip(CharacterAnimationSet.Interact, null, new[] { held[0], held[0], held[0] }, 6f, false, false);
+
+        EditorUtility.SetDirty(set);
+        AssetDatabase.SaveAssets();
+        Selection.activeObject = set;
+        EditorGUIUtility.PingObject(set);
+
+        Debug.Log($"The Balloon's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle (blinking), Walk, Rise, Fall, Interact, Carrying, and blowing up: " +
+                  "Action, Inflated and Deflate, each again with the variant Held for while someone is hanging from his string. " +
+                  "Run Tools > Animation > Add Animation To Characters to give it to him.", set);
     }
 
     [MenuItem("Tools/Animation/Create Paperclip Animation Set")]

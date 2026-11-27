@@ -10,6 +10,12 @@ namespace Characters
     // open, is left off, so he can be carried up a long way, and for a moment after it stops.
     public class Umbrella : Character
     {
+        // How soft he is when his profile doesn't say, for ShapeFlex. Fabric: a little give.
+        protected override float DefaultSoftness
+        {
+            get { return 0.3f; }
+        }
+
         [Header("Wind")]
         [Tooltip("How many times the force of a blower fan he feels while he is open. At 1 he is no different from anyone else.")]
         [Min(0f)]

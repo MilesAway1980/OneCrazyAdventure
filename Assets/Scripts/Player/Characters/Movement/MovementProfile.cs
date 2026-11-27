@@ -22,6 +22,11 @@ public class MovementProfile : ScriptableObject
     [Tooltip("Whether the Rigidbody2D's mass is set to the mass above when the game starts.")]
     public bool applyMass = true;
 
+    [Tooltip("How soft it is, which is how much its picture squashes and stretches as it moves and when it hits something: 0 is hard (a brick, a " +
+             "bowling ball: not at all), 1 is as soft as a balloon. -1 uses what its class says (a balloon and a bouncy ball are very soft, most are hard).")]
+    [Min(-1f)]
+    public float softness = -1f;
+
     [Header("How it differs from others of its weight")]
     [Tooltip("How this character differs from others of its weight: the things that make them quicker, snappier or floatier than their weight alone would.")]
     public MovementTraits traits = new MovementTraits();
@@ -76,7 +81,7 @@ public class MovementProfile : ScriptableObject
         var riseGravity = t.riseGravity * mode.riseGravity;
         var fallGravity = Auto(overrides.fallGravity, t.fallGravity * Mathf.Pow(heavy, t.fallMassExponent) / Mathf.Max(0.01f, traits.floatiness)) * mode.fallGravity;
         var terminalSpeed = Auto(overrides.terminalSpeed, t.terminalSpeed * Mathf.Pow(heavy, t.terminalMassExponent)) * mode.terminalSpeed;
-        var jumpCut = t.jumpCut;
+        var jumpCut = Auto(overrides.jumpCut, t.jumpCut);
 
         if (fluid != null)
         {
@@ -199,6 +204,8 @@ public class MovementOverrides
     [Tooltip("Times normal gravity.")] public float fallGravity = -1f;
     [Tooltip("Tiles per second.")] public float terminalSpeed = -1f;
     [Tooltip("Tiles per second.")] public float climbSpeed = -1f;
+    [Tooltip("How many times harder gravity pulls going up once the jump is let go, so a tap is a short jump. 1 is no cut, which is right for something " +
+             "that rises by itself, such as a balloon.")] public float jumpCut = -1f;
 }
 
 // What a profile works out for how a character moves right now, in the form the movement code uses. The first block is that;

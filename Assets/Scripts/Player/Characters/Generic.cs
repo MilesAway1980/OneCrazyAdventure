@@ -4,6 +4,12 @@ namespace Characters
 {
     public class Generic : Character
     {
+        // How soft he is when his profile doesn't say, for ShapeFlex. A hint of give.
+        protected override float DefaultSoftness
+        {
+            get { return 0.15f; }
+        }
+
         /*
         protected override void Start()
         {

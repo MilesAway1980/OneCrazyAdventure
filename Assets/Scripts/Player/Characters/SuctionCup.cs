@@ -12,6 +12,12 @@ namespace Characters
     //  - He is a fixed anchor, such as for Piton's rope.
     public class SuctionCup : Character
     {
+        // How soft he is when his profile doesn't say, for ShapeFlex. Rubber: it gives a good deal.
+        protected override float DefaultSoftness
+        {
+            get { return 0.6f; }
+        }
+
         [Tooltip("The picture shown while he's holding on to a wall.")]
         public Sprite wallHoldSprite;
         [Tooltip("The picture shown while he's holding on to a ceiling.")]

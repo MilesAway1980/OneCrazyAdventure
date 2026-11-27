@@ -5,6 +5,12 @@ namespace Characters
     [RequireComponent(typeof(CapsuleCollider2D))]
     public class BouncyBall : Character
     {
+        // How soft he is when his profile doesn't say, for ShapeFlex. As soft as they come, with the Balloon: see ShapeFlex.
+        protected override float DefaultSoftness
+        {
+            get { return 1.0f; }
+        }
+
         PhysicsMaterial2D bouncyBallMaterial;
         [Tooltip("How many times bigger he gets when he's fully inflated.")]
         public float inflateSize;

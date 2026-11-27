@@ -927,14 +927,23 @@ namespace Characters
             // What he's carrying is held out in front of him, so it isn't a wall either.
             var carried = objectCarrying ? objectCarrying.GetComponent<Rigidbody2D>() : null;
 
-            var distance = float.PositiveInfinity;
+            var nearWall = false;
             foreach (var wallDetector in wallDetectors)
             {
                 // Pushable things aren't walls: walking into them is how they get pushed.
-                var dist = Map.DistanceFromDirection(wallDetector.transform.position, direction, 5, true, rigidBody2D, carried);
-                if (dist != null && dist < distance)
+                var detectorPosition = wallDetector.transform.position;
+                var dist = Map.DistanceFromDirection(detectorPosition, direction, 5, true, rigidBody2D, carried);
+
+                if (dist != null)
                 {
-                    distance = (float)dist;
+                    // A wall is that near, or, for a character wider than that, right at his edge: the detector sits in the middle of him, so
+                    // for one whose edge is further out than WallDistance it would otherwise never see a wall before he's in it.
+                    var edge = SideReach(moveSpeed > 0f, detectorPosition.x);
+
+                    if (dist <= Mathf.Max(WallDistance, edge + WallSkin))
+                    {
+                        nearWall = true;
+                    }
                 }
             }
 
@@ -942,7 +951,7 @@ namespace Characters
             // had given him: if that were left, it would turn into other speed, kept through the air, and when he was clear of the
             // wall and walking again it would be added to his walking, and he'd be going twice as fast. Speed that wasn't his
             // walking stays.
-            if (distance <= 0.75f || (moveSpeed > 0f ? wallOnRight : wallOnLeft))
+            if (nearWall || (moveSpeed > 0f ? wallOnRight : wallOnLeft))
             {
                 moveSpeed = 0f;
                 walkApplied = 0f;
@@ -954,6 +963,65 @@ namespace Characters
             rigidBody2D.linearVelocityX = moveSpeed + external + pushSpeed;
             walkApplied = moveSpeed;
             lastSetSpeed = rigidBody2D.linearVelocityX;
+        }
+
+        // How near a wall has to be, from a wall detector, for walking toward it to stop, and how far past his own edge that is at least.
+        private const float WallDistance = 0.75f;
+        private const float WallSkin = 0.05f;
+
+        private static readonly Collider2D[] ownColliders = new Collider2D[8];
+
+        // How near his body has to be to an area, in units, to count as being in it: touching, the way two colliders do.
+        private const float AreaTouchMargin = 0.02f;
+
+        // Whether his body is in an area such as a lever's trigger, or touching it, and not just his middle: a wide character can be right up
+        // against something with his middle well outside it.
+        public bool IsInArea(Collider2D area)
+        {
+            if (!area)
+            {
+                return false;
+            }
+
+            var count = rigidBody2D.GetAttachedColliders(ownColliders);
+
+            for (var i = 0; i < count; i++)
+            {
+                if (ownColliders[i].isTrigger)
+                {
+                    continue;
+                }
+
+                var gap = area.Distance(ownColliders[i]);
+
+                if (gap.isOverlapped || gap.distance <= AreaTouchMargin)
+                {
+                    return true;
+                }
+            }
+
+            // Nothing solid on him to go by: his middle.
+            return count == 0 && area.bounds.Contains(transform.position);
+        }
+
+        // How far his solid body reaches to the right or the left of a place, in units: the distance from a wall detector to his edge.
+        private float SideReach(bool toRight, float fromX)
+        {
+            var count = rigidBody2D.GetAttachedColliders(ownColliders);
+            var reach = 0f;
+
+            for (var i = 0; i < count; i++)
+            {
+                if (ownColliders[i].isTrigger)
+                {
+                    continue;
+                }
+
+                var bounds = ownColliders[i].bounds;
+                reach = Mathf.Max(reach, toRight ? bounds.max.x - fromX : fromX - bounds.min.x);
+            }
+
+            return reach;
         }
 
         // Notes that he is touching something at his side, not under him, so what that does to his speed isn't mistaken for a shove.

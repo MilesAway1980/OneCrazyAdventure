@@ -241,7 +241,8 @@ public class LeverSwitch : InteractableObject
             return false;
         }
 
-        if (!triggerCollider.bounds.Contains(interacter.transform.position))
+        // His body in the trigger, or touching it, and not just his middle: a wide character is right up against the lever with his middle outside.
+        if (!interacter.IsInArea(triggerCollider))
         {
             print($"{this.gameObject} is out of range");
             //Character is not within the range to interact
@@ -420,7 +421,7 @@ public class LeverSwitch : InteractableObject
             return "they're put away or in a teleporter";
         }
 
-        if (!triggerCollider || !triggerCollider.bounds.Contains(character.transform.position))
+        if (!triggerCollider || !character.IsInArea(triggerCollider))
         {
             return "they're out of the lever's trigger area";
         }

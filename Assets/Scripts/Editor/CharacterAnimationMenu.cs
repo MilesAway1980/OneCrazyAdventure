@@ -16,6 +16,8 @@ using Object = UnityEngine.Object;
 //  - Create Balloon Animation Set makes his, which is about his shape and face: blowing up, blinking, and being held.
 //  - Create Bouncy Ball Animation Set makes his: a soft blob that breathes, blinks, squashes as he walks, and charges and inflates.
 //  - Create Pebble Animation Set makes his: fidgeting, running, and a roll at the top of a big jump.
+//  - Create Dynamite Animation Set makes his: a swaying fuse, the fuse burning in three stages, the blast and smouldering, and being put back together.
+//  - Create Ladder Animation Set makes his: googly eyes, and the top of the ladder with his face while he's stretched out.
 //  - Create Bowling Ball, Paperclip, Pencil and Die Animation Set make theirs the same way: see the methods.
 //  - Create Zipper Animation Set makes Zipper's set from his pictures: standing, walking, going up and down, the same carrying something, and
 //    interacting. It can be run again, and only changes those clips, so any others added to his set are left alone.
@@ -480,6 +482,105 @@ public static class CharacterAnimationMenu
 
         Debug.Log($"The Pebble's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle (fidgeting), Walk (running), Rise, Fall, Interact, Carrying, " +
                   "Roll, for the top of a big jump, and Sprint, for running flat out. Run Tools > Animation > Add Animation To Characters to give it to him.", set);
+    }
+
+    // The Dynamite: he loves going off. Standing he's sleepy, his fuse swaying, and blinking. As his fuse burns (his charge) there are three states, Charge1,
+    // 2 and 3, a grin that gets wilder and a spark that works down the fuse; going off is Boom, the blast; and Restore, a puff of smoke and twinkles, is
+    // when he's put back together. Those are states his script asks for. While he's blown up he can still move, so he has the variants Exploded and
+    // ExplodedCarrying: standing (smoke drifting off him), walking, in the air, interacting and carrying, on his blown-up picture.
+    [MenuItem("Tools/Animation/Create Dynamite Animation Set")]
+    private static void CreateDynamiteSet()
+    {
+        var names = new[] { "Dynamite_idle", "Dynamite_walk", "Dynamite_air", "Dynamite_interact", "Dynamite_carry", "Dynamite_charge", "Dynamite_boom",
+                            "Dynamite_smoulder", "Dynamite_restore", "Dynamite_xwalk", "Dynamite_xair", "Dynamite_xinteract", "Dynamite_xcarry" };
+        var sheets = names.Select(n => LoadSprites($"{PlayerSprites}{n}.png")).ToArray();
+
+        if (Missing(sheets, new[] { 6, 4, 3, 2, 7, 6, 5, 4, 4, 4, 3, 2, 7 }))
+        {
+            EditorUtility.DisplayDialog("Create Dynamite Animation Set",
+                $"Couldn't find all of his pictures in {PlayerSprites}: the cut-up sheets Dynamite_idle (6), _walk (4), _air (3), _interact (2), " +
+                "_carry (7), _charge (6), _boom (5), _smoulder (4), _restore (4), and the blown-up ones _xwalk (4), _xair (3), _xinteract (2) and " +
+                "_xcarry (7).", "OK");
+            return;
+        }
+
+        var set = GetOrCreateSet("Dynamite");
+
+        AddOrdinaryClips(set, null, sheets[0][0], sheets[1], sheets[2], sheets[3], 6f);
+        AddCarryingClips(set, CharacterAnimationSet.Carrying, sheets[4]);
+
+        // Standing: the fuse sways slowly one way and the other, with a blink.
+        var idle = sheets[0];
+        set.SetClip(CharacterAnimationSet.Idle, null,
+            new[] { idle[0], idle[1], idle[2], idle[1], idle[0], idle[4], idle[5], idle[4], idle[0], idle[3], idle[0], idle[1] }, 5f, true, false);
+
+        // The fuse burning: two pictures in each of the three stages, going faster as it gets nearer.
+        var charge = sheets[5];
+        set.SetClip(Dynamite.Charge1State, null, new[] { charge[0], charge[1] }, 8f, true, false);
+        set.SetClip(Dynamite.Charge2State, null, new[] { charge[2], charge[3] }, 12f, true, false);
+        set.SetClip(Dynamite.Charge3State, null, new[] { charge[4], charge[5] }, 18f, true, false);
+
+        // Going off, and being put back together.
+        set.SetClip(Dynamite.BoomState, null, sheets[6], 14f, false, false);
+        set.SetClip(Dynamite.RestoreState, null, sheets[8], 10f, false, false);
+
+        // Blown up, he can still move: his blown-up pictures are a variant of the ordinary clips. Standing, he smoulders; the rest go as before.
+        AddOrdinaryClips(set, Dynamite.ExplodedVariant, sheets[7][0], sheets[9], sheets[10], sheets[11], 6f);
+        set.SetClip(CharacterAnimationSet.Idle, Dynamite.ExplodedVariant, sheets[7], 5f, true, false);
+        AddCarryingClips(set, Dynamite.ExplodedCarryingVariant, sheets[12]);
+
+        EditorUtility.SetDirty(set);
+        AssetDatabase.SaveAssets();
+        Selection.activeObject = set;
+        EditorGUIUtility.PingObject(set);
+
+        Debug.Log($"The Dynamite's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle, Walk, Rise, Fall, Interact, Carrying, Charge1, Charge2 and " +
+                  "Charge3 for the fuse burning, Boom for going off, Restore, and the same moves again with the variants Exploded and ExplodedCarrying while he's " +
+                  "blown up. Run Tools > Animation > Add Animation To Characters to give it to him.", set);
+    }
+
+    // The Ladder: googly eyes, and a ladder that stretches. Standing, his eyes look about and he blinks, and walking they swing about as googly eyes do. When he
+    // does something hard (stretching, shrinking, being stretched out, pulling a lever, carrying) his eyes each point their own random, wrong way. Stretched
+    // out he's the Action state, and Extend and Retract as he goes up and down; those clips are of the top of the ladder, where his face is, and his script
+    // puts their pictures on the top piece.
+    [MenuItem("Tools/Animation/Create Ladder Animation Set")]
+    private static void CreateLadderSet()
+    {
+        var names = new[] { "Ladder_idle", "Ladder_walk", "Ladder_air", "Ladder_interact", "Ladder_carry", "Ladder_hold", "Ladder_stretch", "Ladder_retract" };
+        var sheets = names.Select(n => LoadSprites($"{PlayerSprites}{n}.png")).ToArray();
+
+        if (Missing(sheets, new[] { 6, 4, 3, 2, 7, 6, 4, 4 }))
+        {
+            EditorUtility.DisplayDialog("Create Ladder Animation Set",
+                $"Couldn't find all of his pictures in {PlayerSprites}: the cut-up sheets Ladder_idle (6), _walk (4), _air (3), _interact (2), _carry (7), " +
+                "_hold (6), _stretch (4) and _retract (4).", "OK");
+            return;
+        }
+
+        var set = GetOrCreateSet("Ladder");
+
+        AddOrdinaryClips(set, null, sheets[0][0], sheets[1], sheets[2], sheets[3], 7f);
+        AddCarryingClips(set, CharacterAnimationSet.Carrying, sheets[4]);
+
+        // Standing: looking about, a blink, an "oh", and a silly cross-eyed look.
+        var idle = sheets[0];
+        set.SetClip(CharacterAnimationSet.Idle, null,
+            new[] { idle[0], idle[0], idle[1], idle[1], idle[0], idle[2], idle[2], idle[0], idle[3], idle[0], idle[0], idle[4], idle[4], idle[0], idle[5], idle[0] },
+            4f, true, false);
+
+        // Stretched out, and going up and down: the top of the ladder, with his face, and his eyes pointing every which way.
+        var hold = sheets[5];
+        set.SetClip(CharacterAnimationSet.Action, null, new[] { hold[0], hold[1], hold[0], hold[2], hold[3], hold[4], hold[5] }, 3f, true, false);
+        set.SetClip(Ladder.ExtendState, null, sheets[6], 8f, true, false);
+        set.SetClip(Ladder.RetractState, null, sheets[7], 8f, true, false);
+
+        EditorUtility.SetDirty(set);
+        AssetDatabase.SaveAssets();
+        Selection.activeObject = set;
+        EditorGUIUtility.PingObject(set);
+
+        Debug.Log($"The Ladder's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle, Walk, Rise, Fall, Interact, Carrying, and stretched out " +
+                  "Action (held), Extend and Retract, which are pictures of the top of the ladder. Run Tools > Animation > Add Animation To Characters to give it to him.", set);
     }
 
     [MenuItem("Tools/Animation/Create Paperclip Animation Set")]

@@ -38,6 +38,63 @@ namespace Characters
         private const float PieceShrinkPerFrame = 0.95f;
         private const float PieceGoneScale = 0.001f;
 
+        // ----- Animation -----
+        //
+        // He loves going off. As the fuse burns (his charge) he's in one of three states, each a grin that gets wilder and a spark that works down the
+        // fuse: Charge1, Charge2 and Charge3, by how far the charge has got. Going off is Boom, the blast, for a moment. Then, for as long as he's blown
+        // up, he's himself still, standing, walking, in the air, interacting and carrying, but with the variant Exploded (ExplodedCarrying when carrying):
+        // his blown-up picture, with smoke drifting off it. He can still move, so each of those has its own pictures. And when he's put back together
+        // it's Restore, a puff of smoke and a few twinkles. See Docs/Animation.md.
+        public const string Charge1State = "Charge1";
+        public const string Charge2State = "Charge2";
+        public const string Charge3State = "Charge3";
+        public const string BoomState = "Boom";
+        public const string RestoreState = "Restore";
+        public const string ExplodedVariant = "Exploded";
+        public const string ExplodedCarryingVariant = "ExplodedCarrying";
+
+        // How long the Boom clip takes: its five pictures, at 14 a second. And the Restore clip: its four, at ten.
+        private const float BoomSeconds = 0.36f;
+        private const float RestoreSeconds = 0.4f;
+
+        private float restoreUntil;
+        private bool wasExploded;
+
+        protected override string AnimationState(string commonState)
+        {
+            if (exploded)
+            {
+                // The blast, and then whatever he'd be doing, in his blown-up pictures (the variant).
+                return Time.time - explodingTime < BoomSeconds ? BoomState : commonState;
+            }
+
+            if (commonState == CharacterAnimationSet.Action || commonState == CharacterAnimationSet.AirAction)
+            {
+                var fraction = ChargeFraction;
+
+                return fraction < 0.34f ? Charge1State : (fraction < 0.67f ? Charge2State : Charge3State);
+            }
+
+            if (Time.time < restoreUntil)
+            {
+                return RestoreState;
+            }
+
+            return commonState;
+        }
+
+        protected override string AnimationVariant()
+        {
+            var ordinary = base.AnimationVariant();
+
+            if (!exploded)
+            {
+                return ordinary;
+            }
+
+            return ordinary == CharacterAnimationSet.Carrying ? ExplodedCarryingVariant : ExplodedVariant;
+        }
+
         private List<GameObject> explodedPieces;
 
         private ScreenMeter meter;
@@ -97,9 +154,18 @@ namespace Characters
                 exploded = false;
             }
 
+            // Put back together: his Restore clip shows for a moment.
+            if (wasExploded && !exploded)
+            {
+                restoreUntil = Time.time + RestoreSeconds;
+            }
+
+            wasExploded = exploded;
+
             CalculateExplosionPieces();
 
-            if (exploded)
+            // His blown-up picture, unless his clips are drawing him, which they do.
+            if (exploded && !ShowingAnimation)
             {
                 spriteRenderer.sprite = explodedSprite;
             }
@@ -199,7 +265,7 @@ namespace Characters
 
             CalculateExplosionPieces();
 
-            if (isExploded && spriteRenderer)
+            if (isExploded && spriteRenderer && !ShowingAnimation)
             {
                 spriteRenderer.sprite = explodedSprite;
             }

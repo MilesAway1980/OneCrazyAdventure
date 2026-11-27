@@ -24,6 +24,50 @@ namespace Characters
         [Tooltip("Two presses of the action button this close together, in seconds, count as a double tap.")]
         public float doubleTapSeconds = 0.3f;
 
+        // ----- Animation -----
+        //
+        // Standing, walking and the rest are his ordinary clips, on the whole ladder. Stretched out he's the Action state (the clip for holding it out),
+        // and while he's being stretched or shrunk he's Extend or Retract. Those clips are of the top of the ladder, which is where his face is, and
+        // the top piece is shown with whatever picture they're on (the whole ladder's own picture is hidden then). His eyes point in random, wrong
+        // directions when he does something hard, which is all of those. See Docs/Animation.md.
+        public const string ExtendState = "Extend";
+        public const string RetractState = "Retract";
+
+        protected override string AnimationState(string commonState)
+        {
+            if (commonState != CharacterAnimationSet.Action && commonState != CharacterAnimationSet.AirAction)
+            {
+                return commonState;
+            }
+
+            var going = autoState != 0 ? autoState : extendState;
+
+            return going > 0 ? ExtendState : (going < 0 ? RetractState : CharacterAnimationSet.Action);
+        }
+
+        private SpriteRenderer topRenderer;
+
+        // Puts the picture his clip is on onto the top piece of the ladder while it's stretched out, which is the part with his face, and its own
+        // picture back when it isn't.
+        private void ShowTopPicture()
+        {
+            if (!topRenderer)
+            {
+                return;
+            }
+
+            if (extendLength > 0f && ShowingAnimation && spriteRenderer)
+            {
+                topRenderer.sprite = spriteRenderer.sprite;
+                topRenderer.flipX = spriteRenderer.flipX;
+            }
+            else
+            {
+                topRenderer.sprite = topSprite;
+                topRenderer.flipX = false;
+            }
+        }
+
         private bool extended;
 
         private Vector2 topSpot;
@@ -91,6 +135,8 @@ namespace Characters
 
             var top = topLadderObject.AddComponent<SpriteRenderer>();
             var bottom = bottomLadderObject.AddComponent<SpriteRenderer>();
+
+            topRenderer = top;
 
             top.sprite = topSprite;
             bottom.sprite = bottomSprite;
@@ -181,6 +227,7 @@ namespace Characters
                 }
             }
 
+            ShowTopPicture();
             UpdateMeter();
         }
 
@@ -318,6 +365,7 @@ namespace Characters
 
             interactableLadder.climbable = extended;
 
+            ShowTopPicture();
             UpdateMeter();
         }
 

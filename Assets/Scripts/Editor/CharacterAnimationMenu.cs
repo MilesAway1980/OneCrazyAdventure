@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 //
 //  - Add Animation To Characters puts a Character Animator on every character in the open scene, and gives each the Animation Set that is
 //    named like the character, from the folder below. The characters are objects in each scene, not prefabs, so it's done once per scene.
-//  - Create Bowling Ball Animation Set and Create Paperclip Animation Set make theirs the same way: see the methods.
+//  - Create Bowling Ball, Paperclip, Pencil and Die Animation Set make theirs the same way: see the methods.
 //  - Create Zipper Animation Set makes Zipper's set from his pictures: standing, walking, going up and down, the same carrying something, and
 //    interacting. It can be run again, and only changes those clips, so any others added to his set are left alone.
 public static class CharacterAnimationMenu
@@ -243,25 +243,45 @@ public static class CharacterAnimationMenu
     [MenuItem("Tools/Animation/Create Paperclip Animation Set")]
     private static void CreatePaperclipSet()
     {
-        var standing = LoadSprites(PlayerSprites + "Paperclip.png");
-        var walking = LoadSprites(PlayerSprites + "Paperclip_walk.png");
-        var inAir = LoadSprites(PlayerSprites + "Paperclip_air.png");
-        var interacting = LoadSprites(PlayerSprites + "Paperclip_interact.png");
-        var carrying = LoadSprites(PlayerSprites + "Paperclip_carry.png");
+        CreateWalkingCarryingSet("Paperclip", "Paperclip", 12f);
+    }
+
+    [MenuItem("Tools/Animation/Create Pencil Animation Set")]
+    private static void CreatePencilSet()
+    {
+        CreateWalkingCarryingSet("Pencil", "Pencil", 12f);
+    }
+
+    // The character is called Die, and his pictures are Dice. He's heavy, so he walks slowly.
+    [MenuItem("Tools/Animation/Create Die Animation Set")]
+    private static void CreateDieSet()
+    {
+        CreateWalkingCarryingSet("Die", "Dice", 8f);
+    }
+
+    // The set for a character with no ability, whose pictures are named with the prefix (usually the character's name): <prefix>.png standing, and
+    // the cut-up sheets <prefix>_walk (4), <prefix>_air (3: going up, then two for coming down that swap), <prefix>_interact (2) and <prefix>_carry
+    // (7: standing, four walking, going up, coming down). No Action or AirAction. Paperclip, Pencil and Die are built this way.
+    private static void CreateWalkingCarryingSet(string characterName, string pictures, float walkFps)
+    {
+        var standing = LoadSprites($"{PlayerSprites}{pictures}.png");
+        var walking = LoadSprites($"{PlayerSprites}{pictures}_walk.png");
+        var inAir = LoadSprites($"{PlayerSprites}{pictures}_air.png");
+        var interacting = LoadSprites($"{PlayerSprites}{pictures}_interact.png");
+        var carrying = LoadSprites($"{PlayerSprites}{pictures}_carry.png");
 
         if (standing.Length < 1 || walking.Length < 1 || inAir.Length < 3 || interacting.Length < 2 || carrying.Length < 7)
         {
-            EditorUtility.DisplayDialog("Create Paperclip Animation Set",
-                $"Couldn't find all of his pictures in {PlayerSprites}: Paperclip, and the cut-up sheets Paperclip_walk (4), _air (3), _interact (2) " +
-                "and _carry (7).", "OK");
+            EditorUtility.DisplayDialog($"Create {characterName} Animation Set",
+                $"Couldn't find all of his pictures in {PlayerSprites}: {pictures}, and the cut-up sheets {pictures}_walk (4), _air (3), " +
+                "_interact (2) and _carry (7).", "OK");
             return;
         }
 
-        var set = GetOrCreateSet("Paperclip");
+        var set = GetOrCreateSet(characterName);
 
-        // No ability, so no Action or AirAction. Going up is the first picture of the air sheet, and coming down the other two, which swap.
         set.SetClip(CharacterAnimationSet.Idle, null, new[] { standing[0] }, 1f, true, false);
-        set.SetClip(CharacterAnimationSet.Walk, null, walking, 12f, true, true);
+        set.SetClip(CharacterAnimationSet.Walk, null, walking, walkFps, true, true);
         set.SetClip(CharacterAnimationSet.Rise, null, new[] { inAir[0] }, 1f, true, false);
         set.SetClip(CharacterAnimationSet.Fall, null, inAir.Skip(1).ToArray(), 8f, true, false);
         set.SetClip(CharacterAnimationSet.Interact, null, interacting, 10f, false, false);
@@ -277,8 +297,8 @@ public static class CharacterAnimationMenu
         Selection.activeObject = set;
         EditorGUIUtility.PingObject(set);
 
-        Debug.Log($"Paperclip's animation set is at {AssetDatabase.GetAssetPath(set)}: Idle, Walk ({walking.Length} pictures), Rise, Fall, Interact, and " +
-                  "Carrying (Idle, Walk, Rise, Fall). Run Tools > Animation > Add Animation To Characters to give it to him.", set);
+        Debug.Log($"{characterName}'s animation set is at {AssetDatabase.GetAssetPath(set)}: Idle, Walk ({walking.Length} pictures), Rise, Fall, " +
+                  "Interact, and Carrying (Idle, Walk, Rise, Fall). Run Tools > Animation > Add Animation To Characters to give it to him.", set);
     }
 
     // The sprites a sheet has been cut into, in order of their names.

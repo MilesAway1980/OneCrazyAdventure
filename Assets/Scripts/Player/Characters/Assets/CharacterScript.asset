@@ -18,7 +18,7 @@ MonoBehaviour:
   bowlingBall: 0
   brick: 0
   bulb: 0
-  die: 0
+  die: 1
   drill: 0
   dynamite: 0
   flashlight: 0
@@ -26,7 +26,7 @@ MonoBehaviour:
   magnet: 0
   paperclip: 1
   pebble: 0
-  pencil: 0
+  pencil: 1
   piton: 0
   suctionCup: 0
   torch: 0

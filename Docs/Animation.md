@@ -42,6 +42,8 @@ Every character is given one of these, picked in this order (the first that's tr
 | **Walk** | He's walking on the ground. |
 | **Idle** | Anything else. |
 
+A character with no ability (Zipper, Die, Paperclip, Pencil) has no Action or AirAction clip. Pressing the action button doesn't change anything for him: he goes on with the next line that's true, Rise, Fall, Interact, Walk or Idle, whichever he'd be without it.
+
 Hurt, pushed back, landing and the like will be more lines in the list as they're added. Each is a state with a clip.
 
 ## A character's own states

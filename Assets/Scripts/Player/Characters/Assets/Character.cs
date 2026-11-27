@@ -1423,13 +1423,33 @@ namespace Characters
                 return;
             }
 
-            string common;
-
+            // Using his action, when he has a clip for it. A character with no action of his own (Zipper, Die, Paperclip, Pencil) has none, and
+            // goes on being whatever he would have been, instead of showing nothing until the button is let go.
             if (performing)
             {
-                common = airborne ? CharacterAnimationSet.AirAction : CharacterAnimationSet.Action;
+                AnimationClip = characterAnimator.Find(AnimationState(airborne ? CharacterAnimationSet.AirAction : CharacterAnimationSet.Action),
+                                                       AnimationVariant());
             }
-            else if (airborne)
+            else
+            {
+                AnimationClip = CharacterAnimationSet.None;
+            }
+
+            if (AnimationClip == CharacterAnimationSet.None)
+            {
+                AnimationClip = characterAnimator.Find(AnimationState(OrdinaryAnimationState(airborne)), AnimationVariant());
+            }
+
+            var fastest = MaxWalkSpeed;
+            AnimationSpeed = fastest > 0.01f ? Mathf.Clamp(Mathf.Abs(moveSpeed) / fastest, 0.3f, 1.5f) : 1f;
+        }
+
+        // What he is doing when it isn't his action: Rise or Fall in the air, otherwise Interact, Walk or Idle.
+        private string OrdinaryAnimationState(bool airborne)
+        {
+            string common;
+
+            if (airborne)
             {
                 common = rigidBody2D.linearVelocity.y > 0f ? CharacterAnimationSet.Rise : CharacterAnimationSet.Fall;
             }
@@ -1446,10 +1466,7 @@ namespace Characters
                 common = CharacterAnimationSet.Idle;
             }
 
-            AnimationClip = characterAnimator.Find(AnimationState(common), AnimationVariant());
-
-            var fastest = MaxWalkSpeed;
-            AnimationSpeed = fastest > 0.01f ? Mathf.Clamp(Mathf.Abs(moveSpeed) / fastest, 0.3f, 1.5f) : 1f;
+            return common;
         }
 
         // The three things that decide which picture a character is shown with: which way they face, whether they're in the air,
@@ -1490,13 +1507,14 @@ namespace Characters
                 return;
             }
 
+            // A character with no picture for his action shows his ordinary one, not nothing.
             if (airborne)
             {
-                spriteRenderer.sprite = performing ? jumpUseSprite : jumpSprite;
+                spriteRenderer.sprite = performing && jumpUseSprite ? jumpUseSprite : jumpSprite;
             }
-            else if (performing)
+            else if (performing && actionSprite)
             {
-                spriteRenderer.sprite = actionSprite ? actionSprite : null;
+                spriteRenderer.sprite = actionSprite;
             }
             else if (walkSprite)
             {

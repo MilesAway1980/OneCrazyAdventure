@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: 3196acd40f31c2549917519601b45540
+guid: b161eb0f46e34297bf53c6e45de06390
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 378912892361772757
-    second: Generic_0
+      213: 379752193372905482
+    second: Dice_air_0
+  - first:
+      213: 188079946899668995
+    second: Dice_air_1
+  - first:
+      213: 2257425703206116756
+    second: Dice_air_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -102,23 +108,67 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Generic_0
+      name: Dice_air_0
       rect:
         serializedVersion: 2
-        x: 5
-        y: 2
-        width: 21
-        height: 26
+        x: 0
+        y: 0
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5de0a0e944b224500800000000000000
-      internalID: 378912892361772757
+      spriteID: a00eaac9b96254500800000000000000
+      internalID: 379752193372905482
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dice_air_1
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 300445817b13c9200800000000000000
+      internalID: 188079946899668995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dice_air_2
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49ddf6a77bcf35f10800000000000000
+      internalID: 2257425703206116756
       vertices: []
       indices: 
       edges: []
@@ -127,7 +177,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -137,7 +187,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Generic_0: 378912892361772757
+      Dice_air_0: 379752193372905482
+      Dice_air_1: 188079946899668995
+      Dice_air_2: 2257425703206116756
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

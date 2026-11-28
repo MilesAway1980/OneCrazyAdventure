@@ -370,6 +370,15 @@ public static class NetworkCharactersMenu
             found.Add(magnet.gameObject);
         }
 
+        // What floating objects hold up: the host moves it, and its position is sent. (The floats go along with it by themselves.)
+        foreach (var anchor in Object.FindObjectsByType<FloatingAnchorPoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (anchor.Body)
+            {
+                found.Add(anchor.Body.gameObject);
+            }
+        }
+
         return found;
     }
 

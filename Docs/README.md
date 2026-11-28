@@ -11,6 +11,7 @@ Notes for working on the game. They're meant to be kept up to date as things cha
 | [Liquids.md](Liquids.md) | Making bodies of water: Liquid Areas (freeform outlines with a fluid and an overlay), and what responds to them. |
 | [MovingPlatform.md](MovingPlatform.md) | The moving platform switchable object: path, corners, movement methods, and how levers and buttons run it. |
 | [Drawbridge.md](Drawbridge.md) | The drawbridge switchable object: how to set one up, and how speed and weight make it slam or settle. |
+| [Floating.md](Floating.md) | Floating objects: balloons on strings that hold up platforms and crates by their lift, anchor points, and what happens when one is taken away. |
 | [CharacterRoles.md](CharacterRoles.md) | What each character does, what puzzles it solves and how it helps the others. |
 | [Teleporter.md](Teleporter.md) | The teleporter pad: pairs that are one way or two way, single use or repeated use, and how a character is sent. |
 | [Lights.md](Lights.md) | Lights: the LightSource (lit and unlit looks), sconces, and the Switch Light that lets a lever or button light them, dim them, or chain them one by one. |

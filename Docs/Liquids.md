@@ -67,7 +67,14 @@ Everything asks `Map.FluidAt(point)` where a liquid is, and areas answer it as t
 - **Things the physics moves**, with a `FloatsInFluid` component, are held up by as much of them as is under the surface and slowed by
   the liquid's thickness, so they float and sink as characters do. It's added by itself to a **carryable crate**, as wood (density
   0.6), which floats. To change it, or to make anything else float, add `FloatsInFluid` by hand and set its Material or Density. A
-  crate being carried isn't affected while it's held.
+  crate being carried isn't affected while it's held. It also **levels itself with the surface**: the
+  liquid holds it up through the middle of what's under it, which is off to the side of its own middle when it's tipped (the low end is the wet one), so
+  it turns it back toward level, as it would a raft, and rocking dies away by the liquid's thickness. So an end that's pushed down comes back up, and a
+  light platform doesn't hang one end in the air. **Leveling** (1 is how a raft sits) sets how strongly; 0 leaves it at whatever angle it's pushed to. It needs
+  a collider, and is ignored with Freeze Rotation Z. **A character standing on it weighs his mass.** Characters have
+  gravity much heavier than the world's, so that they fall and jump well, and all of it presses on what they stand on (a character of 30 might press like 250), which
+  would sink a raft far deeper than he weighs. So in a liquid, all of that but his mass is taken back off it, as an upward force where he stands
+  (**Character Weighs Mass**, on by default). The same is done for platforms held up by floating objects ([Floating.md](Floating.md)).
 
 ## Tide: a surface that rises and falls by itself
 

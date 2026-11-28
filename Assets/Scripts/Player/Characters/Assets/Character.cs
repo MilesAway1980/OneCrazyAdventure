@@ -299,6 +299,9 @@ namespace Characters
                 gameObject.AddComponent<ShapeFlex>();
             }
 
+            // And is drawn in a place of his own among the characters, so they don't flicker over each other when they stand together.
+            CharacterSorting.EnsureOn(this);
+
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
             characterAnimator = GetComponent<CharacterAnimator>();
             rigidBody2D = GetComponent<Rigidbody2D>();

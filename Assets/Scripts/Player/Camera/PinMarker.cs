@@ -67,6 +67,12 @@ public class PinMarker : MonoBehaviour
         if (!targetPicture)
         {
             targetPicture = target.GetComponentInChildren<SpriteRenderer>();
+
+            // On the layer he's on (the characters' own, if there is one), so that it's drawn over him and not behind.
+            if (targetPicture)
+            {
+                GetComponent<SpriteRenderer>().sortingLayerID = targetPicture.sortingLayerID;
+            }
         }
 
         Vector2 top;

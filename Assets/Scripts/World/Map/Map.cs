@@ -80,12 +80,13 @@ public class Map : MonoBehaviour
     // ignorePushable, anything marked PushableSolid is looked straight through, so it's the next thing that really
     // blocks the way. With ignoreBody, so is anything attached to that body: a character that has joined the Ground
     // layer, such as a solid Brick, would otherwise find himself with every ray that starts inside him. alsoIgnoreBody is one
-    // more body to look through: what that character is carrying, which is held out in front of him.
+    // more body to look through: what that character is carrying, which is held out in front of him. With ignoreOneWaySides, so is
+    // a one-way platform (a Platform Effector 2D) that the ray meets from a side it's not solid from, since that can be walked through.
     private static RaycastHit2D NearestGround(
         Vector3 point, Vector2 direction, float distance, bool ignorePushable, Rigidbody2D ignoreBody,
-        Rigidbody2D alsoIgnoreBody = null)
+        Rigidbody2D alsoIgnoreBody = null, bool ignoreOneWaySides = false)
     {
-        if (!ignorePushable && !ignoreBody && !alsoIgnoreBody)
+        if (!ignorePushable && !ignoreBody && !alsoIgnoreBody && !ignoreOneWaySides)
         {
             return Physics2D.Raycast(point, direction, distance, LayerMask.GetMask("Ground"));
         }
@@ -110,6 +111,11 @@ public class Map : MonoBehaviour
                 continue;
             }
 
+            if (ignoreOneWaySides && IsOneWayPassable(hit))
+            {
+                continue;
+            }
+
             if (ignorePushable)
             {
                 var pushable = hit.collider.GetComponentInParent<PushableSolid>();
@@ -129,11 +135,36 @@ public class Map : MonoBehaviour
         return nearest;
     }
 
+    // Whether a hit is a one-way platform (a Platform Effector 2D with Use One Way) met from a side that it isn't solid from: what a
+    // character walks through. Where it's solid from is an arc (Surface Arc) around the way it faces, so a hit on a face outside
+    // that arc, like the end of a flat platform, is let through. A little extra is allowed, as the effector itself allows for.
+    public static bool IsOneWayPassable(RaycastHit2D hit)
+    {
+        var collider = hit.collider;
+
+        if (!collider || !collider.usedByEffector)
+        {
+            return false;
+        }
+
+        var effector = collider.GetComponent<PlatformEffector2D>();
+
+        if (!effector || !effector.useOneWay)
+        {
+            return false;
+        }
+
+        var facing = Quaternion.Euler(0f, 0f, effector.rotationalOffset) * effector.transform.up;
+
+        return Vector2.Angle(hit.normal, facing) > effector.surfaceArc * 0.5f + 1f;
+    }
+
+    // With lookThroughOneWaySides, a one-way platform is looked straight through if it's met from a side it's not solid from.
     public static float? DistanceFromDirection(
         Vector3 point, Vector2 direction, float distance = 20, bool ignorePushable = false, Rigidbody2D ignoreBody = null,
-        Rigidbody2D alsoIgnoreBody = null)
+        Rigidbody2D alsoIgnoreBody = null, bool lookThroughOneWaySides = false)
     {
-        var tile = NearestGround(point, direction, distance, ignorePushable, ignoreBody, alsoIgnoreBody);
+        var tile = NearestGround(point, direction, distance, ignorePushable, ignoreBody, alsoIgnoreBody, lookThroughOneWaySides);
 
         if (!tile.collider)
         {

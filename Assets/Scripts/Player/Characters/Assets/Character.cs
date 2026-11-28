@@ -1044,9 +1044,9 @@ namespace Characters
             var nearWall = false;
             foreach (var wallDetector in wallDetectors)
             {
-                // Pushable things aren't walls: walking into them is how they get pushed.
+                // Pushable things aren't walls: walking into them is how they get pushed. Nor is the side of a one-way platform, which he walks through.
                 var detectorPosition = wallDetector.transform.position;
-                var dist = Map.DistanceFromDirection(detectorPosition, direction, 5, true, rigidBody2D, carried);
+                var dist = Map.DistanceFromDirection(detectorPosition, direction, 5, true, rigidBody2D, carried, true);
 
                 if (dist != null)
                 {

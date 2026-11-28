@@ -84,6 +84,9 @@ namespace Characters
         // Which way the player is steering (-1, 0 or 1), and the frame they last said so. The steering is read a frame at a time
         // but the walking is worked out a physics step at a time, so it's kept until the next frame says otherwise. If nothing
         // says so for a frame, nobody is steering him any more.
+        // How far the player is steering him sideways, -1 (all the way left) to 1 (all the way right). The Move binding does the stick's dead zone;
+        // this is only a little more, for the sticks that don't.
+        private const float WalkDeadZone = 0.05f;
         private float walkInput;
         private int walkInputFrame = -10;
 
@@ -909,24 +912,31 @@ namespace Characters
             var before = moveSpeed;
             var scale = Time.fixedDeltaTime / WalkStep;
             var input = Time.frameCount - walkInputFrame <= 1 ? walkInput : 0f;
+            var fastest = MaxWalkSpeed;
 
             if (input != 0f)
             {
-                // Turning round has to stop him as well as get him going again.
+                // How far the stick is pushed is how fast he's heading for, so a gentle push is a slow walk. A key or a button is all the way.
+                var target = input * fastest;
+
+                // Turning round has to stop him as well as get him going again, and easing off to a slower walk is slowing down.
                 var rate = settings.moveSpeedIncrease;
                 if (moveSpeed * input < 0f)
                 {
                     rate += settings.moveSpeedDecay;
                 }
+                else if (Mathf.Abs(moveSpeed) > Mathf.Abs(target))
+                {
+                    rate = settings.moveSpeedDecay;
+                }
 
-                moveSpeed += input * rate * scale;
+                moveSpeed = Mathf.MoveTowards(moveSpeed, target, rate * scale);
             }
             else
             {
                 moveSpeed = Mathf.MoveTowards(moveSpeed, 0f, settings.moveSpeedDecay * scale);
             }
 
-            var fastest = MaxWalkSpeed;
             moveSpeed = Mathf.Clamp(moveSpeed, -fastest, fastest);
 
             // Speed that isn't walking: beyond what was put in last step, in the same way. If moveSpeed was just set by something
@@ -1831,14 +1841,15 @@ namespace Characters
             // that can't move isn't steered either way.
             var xPress = canMove ? direction.x : 0f;
 
-            walkInput = xPress < 0f ? -1f : xPress > 0f ? 1f : 0f;
+            // How far it's pushed, from -1 to 1, with a touch of play so a stick that doesn't quite rest at the middle doesn't walk him off.
+            walkInput = Mathf.Abs(xPress) < WalkDeadZone ? 0f : Mathf.Clamp(xPress, -1f, 1f);
             walkInputFrame = Time.frameCount;
 
-            if (xPress < 0f)
+            if (walkInput < 0f)
             {
                 facing = CharacterFacing.Left;
             }
-            else if (xPress > 0f)
+            else if (walkInput > 0f)
             {
                 facing = CharacterFacing.Right;
             }

@@ -549,7 +549,7 @@
                     "id": "66b65d94-04f2-4acb-8320-25099ee730d4",
                     "path": "<Joystick>/stick",
                     "interactions": "",
-                    "processors": "",
+                    "processors": "StickDeadzone",
                     "groups": "Joystick",
                     "action": "Move",
                     "isComposite": false,

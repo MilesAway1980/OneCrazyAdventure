@@ -297,8 +297,12 @@ and the Umbrella) is still whether its **middle** is in a liquid.
 
 ## Walking and jumping in the code
 
-- **Walking** is `Character.ApplyWalking`, once per physics step. `Move()` only records which way the player is steering. Speeding
+- **Walking** is `Character.ApplyWalking`, once per physics step. `Move()` only records how far the player is steering him sideways, -1 to 1. Speeding
   up and slowing down are per 0.02 s step, scaled to the real step length, so they don't change with the frame rate.
+- **How far the stick is pushed** is how fast he heads for: he speeds up (at the usual rate) to that fraction of his top speed and stays there, so a gentle
+  push is a slow walk and he can inch along. Keys and buttons are all the way, as before. Easing off to a slower walk uses the stopping rate. He only sprints
+  once he's held his top speed for a while, so a partial push never sprints. A stick has a dead zone (the Joystick Move binding has the `StickDeadzone`
+  processor; the Gamepad's has one of its own) and `Character.WalkDeadZone` (0.05) on top.
 - Walking is **added** to the speed a character already has, so a shove, a force switch or a moving platform in the direction it's
   walking isn't cut back to walking pace. That other speed wears off **on the ground** at one rate for every character, **Ground Friction** in the tuning (default 4 tiles/s
   every second), whatever its weight or traits, as friction does; a character standing with no input slows to a halt the same way.

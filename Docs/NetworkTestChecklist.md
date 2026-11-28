@@ -14,7 +14,7 @@ the main editor and "Joined" means the second. Tick each box when what's said ha
 ## 2. Players and seats
 - [ ] Press a button on the joined editor's controller: a player appears there and takes a free character.
 - [ ] That player can walk, jump, and use their ability, and the host sees every move.
-- [ ] Switch character with **1** and **2** (gamepad: d-pad left and right) from both editors. They never end up on the same character.
+- [ ] Switch character with **1** and **2** (gamepad: the left and right shoulder buttons) from both editors. They never end up on the same character.
 - [ ] Hold the leave button on the joined player: their character becomes free on the host.
 - [ ] Close the joined editor while its player is in: the host frees that character.
 - [ ] With four players in (host and joined together), a fifth is refused with "the game is full".

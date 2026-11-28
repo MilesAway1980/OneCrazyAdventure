@@ -135,7 +135,8 @@ public class PlayerManager : MonoBehaviour
         players.Add(player);
         Renumber();
 
-        var devices = string.Join(", ", playerInput.devices.Select(d => d.displayName));
+        // The layout says what kind of device it is (Gamepad, Joystick, or a generic HID one), which decides which bindings it gets.
+        var devices = string.Join(", ", playerInput.devices.Select(d => $"{d.displayName} [{d.layout}]"));
         print($"{player.name} joined, using {devices} ({playerInput.currentControlScheme}).");
     }
 

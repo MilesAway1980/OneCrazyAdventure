@@ -152,10 +152,66 @@ Overrides (1 is no cut).
 
 **The Balloon** is set up with **Tools > Movement > Set Up Balloon Floating**: left alone he can't jump and falls at most 1.5 tiles a second
 (Overrides: Jump Height 0, Fall Gravity 0.15, Terminal Speed 1.5), and holding the action (the `float` mode, density 0.1 of a balloon's)
-he rises, up to 3 tiles a second (the mode's Terminal Speed 2 times that). His string is a chain of heavy-ish pieces hung from him, and
-what lifts him has to carry it, which is why the mode's density is so low. Rising, he lifts the weight of his string on top of his own lift (a
-character can say what hangs from him with `HangingWeight()`), so he rises whatever his Mass is. A character hanging from his string isn't counted:
-a light one is lifted and a heavy one isn't.
+he rises, up to 3 tiles a second (the mode's Terminal Speed 2 times that).
+
+**His string and what hangs from it** (`BalloonString.cs`, `Balloon.cs`). The string is a rope worked out by script, not a chain of bodies with
+joints. It's a line of points a fixed distance apart, hung from the bottom of him, with a line of a colour drawn through them, so it always
+looks joined up however far they're pulled apart (like the Piton's rope). It has no bodies, joints or weight, so it can't stretch or go wild
+with something heavy on it, and can't throw him about. It still drapes over the ground and piles up on it. It's made every time he starts, so
+the pieces of the old string in the scene aren't needed (if they're there they're taken away). On the Balloon:
+
+- **String Length** is how long it is, in units.
+- **Segment Spacing** is how far apart the points are. Fewer, further apart, is a stiffer string; more, closer together, is a more flexible
+  one that hangs and piles up like a real string, and costs a little more to work out.
+- **String Color** and **String Width** are the line.
+
+Another character takes hold of the end of it with Interact (and lets go with Interact), or he lets go of whatever is hanging from it with his
+own Interact. And he can take hold of another character, or a crate (anything with a `CarryableObject`), with it: with Interact, with nothing
+hanging and one within reach of the end of it, he hangs it from the string the same way, the nearer of the two if there are both (a character lets
+go with Interact too). Only one thing hangs from it at a time: while it's holding a character it can't pick up a crate, and the other way round,
+and nobody else can take hold of the string while there's a crate on it. A crate on it isn't carried: it keeps its own weight and its solid
+colliders, and the string goes to it, as it does to a character, so it's the string that moves, never the crate. (He can't carry things any other
+way.) Nobody else can pick up a crate that's hanging from the string.
+
+What hangs from it is joined by a rope to the Balloon himself. While the string is slack the two don't affect each other at all. When it's pulled
+tight they pull on each other, as heavy as each is:
+
+- **Not using his action**, he's light, and is pulled around. A character standing on the ground can drag him along by walking, and one who
+  jumps off a ledge and falls pulls him along the ground by their weight, until he's pulled off the ledge as well. How fast what hangs falls is
+  slowed by him a little, less the heavier it is (his own slow fall, and **Heavy Fall Speed** for a very heavy load).
+- **Using his action** (inflating), he holds it up. Up to his **Lift Capacity**, in mass, he bears what hangs from the string: he takes on that
+  much mass, ramped up over a moment, and his lift is made to hold it, so the load is carried as if it weighed nothing to him. (He's a light
+  body and the load may be many times heavier, which the physics doesn't manage well when only a force is used: the string would throw him about.)
+  He only bears what's really hanging: how much of it counts goes by how tight the string is and how straight down from him it goes, so a load on
+  the ground at the end of a string that runs sideways, or one that's tight with the load above him, counts for nothing, and it's taken up smoothly as
+  he rises into place above it. What he and the load are going at is taken toward the speed they settle at
+  a bit at a time (**Load Acceleration**), nothing instantly:
+  - A load that falls and brings the string tight is slowed, its fall getting slower and slower, to nothing.
+  - Then, if the load is lighter than his capacity, he lifts it, slowly: at his usual rising speed less the load's share of it, so a load of a
+    quarter of his capacity is lifted at three quarters of the speed.
+  - At exactly his capacity he has no strength to lift it: he can only hold it where it is, and it doesn't fall any further.
+  - Over his capacity he sinks with it, faster the heavier the load, towards Heavy Fall Speed, but slowed by his lift.
+
+As the string comes tight, any sideways speed it has given him, beyond his own walking and how what's hanging is walking, is settled away (**Settle Rate**),
+and is never more than his top speed, so he comes to rest above them and doesn't swing about them. His own walking is left alone, so he can still
+move to either side, and so is someone hanging who is walking (it's how they're trying to walk that counts, not how fast they're going, which the
+string is part of, or he'd be pulled along by his own pulling and go faster and faster). With who's hanging off the ground the two move together, at no more than his
+top speed, steered by his walking alone. Between the two, it goes by how high what hangs is, measured as clear space down from the bottom of it to
+whatever is under it (not by what a character's feet say, which jump from standing to well off the ground in a step): below **Grounded Height** it's
+the first, above **Lifted Height** it's the second, and between them the one gives way to the other, so his speed never changes all at once as
+they leave the ground. (The tuning is the `SettleToLoad` method in `Balloon.cs`; **Settle Rate** is how quickly it settles.)
+
+A crate hanging from the string counts the same as a character. A load counts for as much as the string is pulled tight, so one lying on the ground on a
+slack string weighs nothing on him yet. His own Mass and the string don't change any of this.
+
+Someone standing on the ground walking away with the rope tight drags the Balloon along. This is the rope pulling him, not a special case.
+
+The rope puts itself right if part of it gets into the ground, which it can when it's made very long or he's moved to somewhere new. It's
+laid out on the ground to start with, not through it; a piece that is inside the ground is put on top of it; and a piece further from the
+top of the rope than the rope is long up to it, by a lot, ignores the ground until it's back in reach. It lies on whatever the Balloon himself is
+stopped by, not only the Ground layer, so it goes over crates and platforms as well. A one-way platform stops it from above only.
+
+His own Mass, and the string, don't change any of this.
 
 **Gravity** on a character is the world's gravity times **Character Gravity** (default 2). **Air Damping** defaults to 0, so a jump
 goes as high as the numbers say.

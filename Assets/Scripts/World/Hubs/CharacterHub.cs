@@ -8,7 +8,7 @@ using UnityEngine;
 //
 //  - It is reached as soon as anyone in the party touches its area, which makes it the checkpoint: whoever dies comes back
 //    at the hub that was reached last.
-//  - A character in its area can press Interact to open the hub menu, to swap characters from all of those found, or to bring
+//  - A character in its area can press the Hub button (Enter, or Start) to open the hub menu, to swap characters from all of those found, or to bring
 //    the rest of the party to the hub.
 //  - Characters found elsewhere wait to be chosen here.
 //
@@ -164,8 +164,22 @@ public class CharacterHub : InteractableObject
         }
     }
 
-    // Pressing Interact in the hub's area opens the menu, for the player who is playing that character.
-    public override bool Interact(Character interacter)
+    // Pressing the Hub button opens the menu of the hub he's at, for the player who is playing that character. It isn't Interact, which belongs to
+    // what he's standing by: a hub is a big area, and would take the press from a lever or a crate in it.
+    public static bool OpenMenuFor(Character character)
+    {
+        foreach (var hub in hubs)
+        {
+            if (hub && hub.OpenMenu(character))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool OpenMenu(Character interacter)
     {
         if (!Reached || !IsAtHub(interacter))
         {

@@ -103,7 +103,7 @@ public class GameText : ScriptableObject
     public string playerLeaving = "{player} leaving...";
 
     [Header("Hints")]
-    [Tooltip("The hints that a Hint component in the world can show, each with the topic that names it and its words. A Hint is given a topic (any text), and shows the words of the entry with the same topic, ignoring capitals. Add as many as you like here. The controls in curly brackets are replaced with the buttons the player is using: {move}, {jump}, {action}, {interact}, {next} and {previous}.")]
+    [Tooltip("The hints that a Hint component in the world can show, each with the topic that names it and its words. A Hint is given a topic (any text), and shows the words of the entry with the same topic, ignoring capitals. Add as many as you like here. The controls in curly brackets are replaced with the buttons the player is using: {move}, {jump}, {action}, {interact}, {hub}, {next} and {previous}.")]
     public List<HintText> hints = new List<HintText>
     {
         new HintText("Move", "Move with {move}."),
@@ -114,7 +114,7 @@ public class GameText : ScriptableObject
         new HintText("Button", "Stand on a button to press it. The door only stays open while it's pressed."),
         new HintText("SwitchOnButton", "Leave one character on the button, press {next} to switch to another, and walk through."),
         new HintText("Teamwork", "Some doors need everyone. Put a character on each button, and send another through."),
-        new HintText("Hub", "A hub! Stand here and press {interact} to swap characters.")
+        new HintText("Hub", "A hub! Stand here and press {hub} to swap characters.")
     };
 
     [Header("Meters")]
@@ -208,7 +208,7 @@ public class HintText
     public string topic;
 
     [TextArea]
-    [Tooltip("The words the hint shows. Controls can be put in curly brackets, and are replaced by the player's own buttons: {move}, {jump}, {action}, {interact}, {next} and {previous}.")]
+    [Tooltip("The words the hint shows. Controls can be put in curly brackets, and are replaced by the player's own buttons: {move}, {jump}, {action}, {interact}, {hub}, {next} and {previous}.")]
     public string text;
 
     public HintText()

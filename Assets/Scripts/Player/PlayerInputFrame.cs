@@ -21,10 +21,13 @@ public struct PlayerInputFrame
     public bool abilityPressed;
     public bool interactPressed;
 
+    // Opens the hub menu, if he's at a hub. It's a button of its own, so a hub doesn't take the Interact of a character who is standing by something else.
+    public bool hubPressed;
+
     // Whether any button went down this frame. Those are always sent, so a press isn't lost.
     public bool AnyPressed
     {
-        get { return jumpPressed || abilityPressed || interactPressed; }
+        get { return jumpPressed || abilityPressed || interactPressed || hubPressed; }
     }
 
     // Whether what is being held is the same, which is all that needs sending again if nothing has been pressed.

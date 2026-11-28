@@ -536,7 +536,11 @@ namespace Characters
             // liquid, or something floating at the surface would weigh as much as when it falls, and settle too deep.
             // They're on how much he weighs, so a balloon, which is held up by the air, isn't pulled down by a fall or a jump let go of as if it
             // weighed all it does: with none of its weight it has none of the pull, and with some of it, it has that much of it.
-            var pull = submerged > 0f || Kicking ? 0f : Physics2D.gravity.y * currentMovementSettings.gravity * Mathf.Clamp01(bodyWeight);
+            //
+            // Held up by a rope that's pulled tight (the end of the Balloon's string) he has none of them either: it carries him, and a pull that made him fall
+            // harder would only be a tug of war with it. Hanging with the rope slack, he falls as he does anywhere.
+            var hanging = grabPoint && grabPoint.IsGrabbedBy(this) && grabPoint.ropeTaut;
+            var pull = submerged > 0f || Kicking || hanging ? 0f : Physics2D.gravity.y * currentMovementSettings.gravity * Mathf.Clamp01(bodyWeight);
 
             float fallVelocity;
             if (rigidBody2D.linearVelocity.y <= 0)
@@ -561,18 +565,24 @@ namespace Characters
             rigidBody2D.linearVelocity += new Vector2(0, fallVelocity);
 
             //print(-currentMovementSettings.maxFallSpeed + "   " + rigidBody2D.linearVelocity.y);
-            if (rigidBody2D.linearVelocity.y < -currentMovementSettings.maxFallSpeed)
+            var fastestFall = TerminalFallSpeed(currentMovementSettings.maxFallSpeed);
+
+            if (rigidBody2D.linearVelocity.y < -fastestFall)
             {
                 rigidBody2D.linearVelocity =
-                    new Vector2(rigidBody2D.linearVelocity.x, -currentMovementSettings.maxFallSpeed);
+                    new Vector2(rigidBody2D.linearVelocity.x, -fastestFall);
             }
 
             // Lighter than what's round him, he rises, and no faster than the fastest he could fall.
-            if (bodyWeight < 0f && !Kicking && rigidBody2D.linearVelocity.y > currentMovementSettings.maxFallSpeed)
+            var fastestRise = TerminalRiseSpeed(currentMovementSettings.maxFallSpeed);
+
+            if (bodyWeight < 0f && !Kicking && rigidBody2D.linearVelocity.y > fastestRise)
             {
                 rigidBody2D.linearVelocity =
-                    new Vector2(rigidBody2D.linearVelocity.x, currentMovementSettings.maxFallSpeed);
+                    new Vector2(rigidBody2D.linearVelocity.x, fastestRise);
             }
+
+            ShapeVerticalSpeed();
 
             // Last, with the speed he'll be going at for this step settled. What he's riding going up isn't him going up.
             ForgiveCeilingCorner(ride.y);
@@ -801,16 +811,10 @@ namespace Characters
             var around = fluidDensity * submerged + t.airDensity * (1f - submerged);
             var lift = Mathf.Min(around / Mathf.Max(0.0001f, settings.density), t.maxBuoyancyRatio);
 
-            var weight = Buoyancy.Weight(lift, fluidDensity, settings.density, t);
+            var weight = ShapeBuoyancyWeight(Buoyancy.Weight(lift, fluidDensity, settings.density, t));
             bodyWeight = weight;
             rigidBody2D.gravityScale = settings.gravity * weight;
 
-            // Held up by more than he weighs, he lifts what's hung from him as well (a balloon's string), however little he weighs himself: the
-            // weight is taken off by lifting that much more, so only what's left over, which is his lift, is what raises him.
-            if (weight < 0f && rigidBody2D.mass > 0.0001f)
-            {
-                rigidBody2D.gravityScale -= HangingWeight() / rigidBody2D.mass;
-            }
 
             // Only something denser than the liquid is brought back: a floater leaves it, and gets its weight back as it does.
             kickScale = fluid != null && settings.density > fluid.density ? Mathf.Sqrt(Mathf.Clamp(weight, 0.05f, 1f)) : 1f;
@@ -844,11 +848,28 @@ namespace Characters
             rigidBody2D.angularDamping = settings.angularDampening;
         }
 
-        // How much weight hangs from him that he has to lift when he rises, as a mass times a gravity scale (what it weighs, in the same units as
-        // his own), and not counting what a character might be hanging from him. Nothing, except for something such as a balloon with a string.
-        protected virtual float HangingWeight()
+        // How much of his weight he has in what's round him, given what the buoyancy works out: 1 all of it, 0 none, below 0 he rises. A character whose lift is
+        // taken up by something (a load on the Balloon's string) says so here.
+        protected virtual float ShapeBuoyancyWeight(float weight)
         {
-            return 0f;
+            return weight;
+        }
+
+        // The fastest he can fall, and the fastest he can rise when he's lighter than what's round him, in units a second, given what his movement says.
+        // A character whose speed is limited by something else, such as a load, says so. And ShapeVerticalSpeed can push his speed to where it should be
+        // after the movement is worked out.
+        protected virtual float TerminalFallSpeed(float fromMovement)
+        {
+            return fromMovement;
+        }
+
+        protected virtual float TerminalRiseSpeed(float fromMovement)
+        {
+            return fromMovement;
+        }
+
+        protected virtual void ShapeVerticalSpeed()
+        {
         }
 
         // How much of his weight he has in what's round him, which his gravity is multiplied by: 1 is all of it, 0 is none (he hangs there), and
@@ -1587,7 +1608,7 @@ namespace Characters
         }
 
         // Starts his Interact clip, if he has one, for as long as it takes to play through.
-        private void StartInteractAnimation()
+        protected void StartInteractAnimation()
         {
             if (!characterAnimator)
             {
@@ -2019,6 +2040,83 @@ namespace Characters
         // part of a game played over a network.
         public bool InGame { get; private set; } = true;
 
+        // How far he is above what's under him, in units, from his feet: 0 standing on something, and a large number if there's nothing below. Whatever is
+        // lifting him, it's how far he's been lifted.
+        public float HeightAboveGround
+        {
+            get { return Mathf.Min(distFromGround, 100f); }
+        }
+
+        // How fast he's walking, in units a second, and which way: positive is right. What he's trying to do, not how fast he's actually going, which a
+        // wall or a rope can hold back. The Balloon's string goes by it to be pulled along.
+        public float WalkSpeedNow
+        {
+            get { return moveSpeed; }
+        }
+
+        // The nearest other character in the game with some of his body within reach of a point, or nothing. For the Balloon, taking hold of someone with
+        // the end of his string.
+        public static Character NearestOther(Character except, Vector2 point, float reach)
+        {
+            Character nearest = null;
+            var nearestDistance = reach;
+
+            if (characters == null)
+            {
+                return null;
+            }
+
+            foreach (var other in characters)
+            {
+                if (!other || other == except || !other.isActiveAndEnabled || !other.InGame || !other.ableToGrabObjects)
+                {
+                    continue;
+                }
+
+                var distance = other.DistanceFromBody(point);
+
+                if (distance <= nearestDistance)
+                {
+                    nearest = other;
+                    nearestDistance = distance;
+                }
+            }
+
+            return nearest;
+        }
+
+        // The nearest thing that can be carried with some of it within reach of a point, or nothing, and how far it is. Not what someone is carrying or what
+        // hangs from a rope already, and not a character (they're looked for with NearestOther). For the Balloon, taking hold of it with the end of his string.
+        public static CarryableObject NearestCarryable(Character except, Vector2 point, float reach, out float distance)
+        {
+            CarryableObject nearest = null;
+            distance = reach;
+
+            if (carryableObjects == null)
+            {
+                return null;
+            }
+
+            foreach (var thing in carryableObjects)
+            {
+                if (!thing || !thing.isActiveAndEnabled || thing.IsCarried || thing.IsHung || thing.GetComponent<Character>() ||
+                    (except && thing.gameObject == except.gameObject))
+                {
+                    continue;
+                }
+
+                var away = thing.DistanceFrom(point);
+
+                if (away <= distance)
+                {
+                    nearest = thing;
+                    distance = away;
+                }
+            }
+
+            return nearest;
+        }
+
         // Puts the character into the game, or puts them away. This changes at once; they're hidden or shown by the end of the
         // frame.
         public void SetInGame(bool inGame)
@@ -2130,6 +2228,13 @@ namespace Characters
             }
         }
 
+        // Mass he takes on as he holds something up that isn't carried: as heavy as that much as far as the physics goes, so that he's not a light body with a
+        // very heavy one hanging from him. It's not carried weight, so it doesn't slow him.
+        protected virtual float BorneMass
+        {
+            get { return 0f; }
+        }
+
         private void UpdateLoad()
         {
             // Not for a body whose mass is worked out from its shape, which can't be set.
@@ -2144,8 +2249,10 @@ namespace Characters
                 ownMass = rigidBody2D.mass;
             }
 
-            massWithLoad = ownMass + CarriedMassFelt;
-            loadFactor = ownMass / Mathf.Max(0.0001f, massWithLoad);
+            massWithLoad = ownMass + CarriedMassFelt + BorneMass;
+
+            // What he bears for something else (the Balloon holding up what hangs from his string) is mass for the physics only: it doesn't slow his walking.
+            loadFactor = ownMass / Mathf.Max(0.0001f, ownMass + CarriedMassFelt);
 
             if (!Mathf.Approximately(rigidBody2D.mass, massWithLoad))
             {

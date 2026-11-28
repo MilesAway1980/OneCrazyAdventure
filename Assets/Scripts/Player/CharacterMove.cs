@@ -11,6 +11,7 @@ public class CharacterMove : MonoBehaviour
     private InputAction jumpAction;
     private InputAction abilityAction;
     private InputAction interactAction;
+    private InputAction hubAction;
     private InputAction sprintAction;
     private InputAction attackAction;
     private InputAction prevAction;
@@ -64,6 +65,7 @@ public class CharacterMove : MonoBehaviour
             jumpAction = playerInput.actions.FindAction("Jump");
             abilityAction = playerInput.actions.FindAction("Ability");
             interactAction = playerInput.actions.FindAction("Interact");
+            hubAction = playerInput.actions.FindAction("Hub");
             sprintAction = playerInput.actions.FindAction("Sprint");
             attackAction = playerInput.actions.FindAction("Attack");
             prevAction = playerInput.actions.FindAction("PreviousCharacter");
@@ -330,6 +332,10 @@ public class CharacterMove : MonoBehaviour
         input.abilityPressed = input.abilityHeld && !GetPressed(abilityAction);
         input.interactPressed = input.interactHeld && !GetPressed(interactAction);
 
+        var hubHeld = hubAction != null && hubAction.IsPressed();
+
+        input.hubPressed = hubHeld && !GetPressed(hubAction);
+
         var prevHeld = prevAction.IsPressed();
         var nextHeld = nextAction.IsPressed();
         lockHeld = lookLock.IsPressed();
@@ -341,6 +347,12 @@ public class CharacterMove : MonoBehaviour
         SetPressed(jumpAction, input.jumpHeld);
         SetPressed(abilityAction, input.abilityHeld);
         SetPressed(interactAction, input.interactHeld);
+
+        if (hubAction != null)
+        {
+            SetPressed(hubAction, hubHeld);
+        }
+
         SetPressed(prevAction, prevHeld);
         SetPressed(nextAction, nextHeld);
         SetPressed(lookLock, lockHeld);
@@ -393,6 +405,11 @@ public class CharacterMove : MonoBehaviour
         if (input.interactPressed)
         {
             character.Interact();
+        }
+
+        if (input.hubPressed)
+        {
+            CharacterHub.OpenMenuFor(character);
         }
     }
 

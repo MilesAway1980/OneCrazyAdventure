@@ -135,6 +135,16 @@
                     "interactions": "Hold(duration=1)",
                     "initialStateCheck": false,
                     "priority": 0
+                },
+                {
+                    "name": "Hub",
+                    "type": "Button",
+                    "id": "4b9e2d17-8a03-4c65-b7f1-0d5c3a96e8b2",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
                 }
             ],
             "bindings": [
@@ -509,6 +519,50 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "Leave",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a3c71e48-5d29-4f0b-96e3-2b8d4f17c0a5",
+                    "path": "<Keyboard>/enter",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Hub",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f60b8d23-1e74-4a9c-8c52-7d3a95e1b4f8",
+                    "path": "<Keyboard>/numpadEnter",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Hub",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2d85c9f1-b3a6-4e07-a1d8-6f40e7b25c93",
+                    "path": "<Gamepad>/start",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "Hub",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7e1a4b96-c0d3-4852-9f7b-3a6e28d1c504",
+                    "path": "<Joystick>/button10",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Joystick",
+                    "action": "Hub",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

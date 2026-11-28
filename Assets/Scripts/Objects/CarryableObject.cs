@@ -183,6 +183,39 @@ public class CarryableObject : MonoBehaviour
         get { return beingCarried; }
     }
 
+    // What it's hanging from, if it's hanging from a rope: the end of the Balloon's string, which has taken hold of it. It's a body of its own then, with its
+    // gravity and its solid colliders, pulled by the rope, so it can't be carried as well.
+    public GrabPoint HungFrom { get; private set; }
+
+    public bool IsHung
+    {
+        get { return HungFrom; }
+    }
+
+    // Set by the grab point that has taken hold of it, and cleared when it lets go.
+    public void SetHung(GrabPoint point)
+    {
+        HungFrom = point;
+    }
+
+    // How far, in units, a point is from the nearest part of it: 0 if it's inside. Its solid colliders, not the trigger round it that's for reaching.
+    public float DistanceFrom(Vector2 point)
+    {
+        var nearest = float.MaxValue;
+
+        foreach (var own in GetComponentsInChildren<Collider2D>())
+        {
+            if (own.isTrigger || !own.enabled)
+            {
+                continue;
+            }
+
+            nearest = Mathf.Min(nearest, Vector2.Distance(own.ClosestPoint(point), point));
+        }
+
+        return nearest == float.MaxValue ? Vector2.Distance(transform.position, point) : nearest;
+    }
+
     // Joins this to the character's carry point. False if it can't be carried by them: there is no joint on this, or the
     // character has no carry point to hold it by. Nothing is changed then.
     public bool SetCarrier(Character newCarrier)
@@ -333,7 +366,7 @@ public class CarryableObject : MonoBehaviour
     // move.
     public bool TooHeavyFor(Character characterCheck)
     {
-        return !beingCarried && characterCheck && characterCheck.ableToCarryObjects && characterCheck.maxCarryWeight > 0f &&
+        return !beingCarried && !IsHung && characterCheck && characterCheck.ableToCarryObjects && characterCheck.maxCarryWeight > 0f &&
                Mass > characterCheck.maxCarryWeight && characters.Contains(characterCheck);
     }
 
@@ -341,9 +374,9 @@ public class CarryableObject : MonoBehaviour
     // a character who couldn't carry it isn't taken for one who is, and whatever else they could do with Interact is tried.
     public CarryableObject Carry(Character characterCheck)
     {
-        if (beingCarried)
+        if (beingCarried || IsHung)
         {
-            //Is being carried by someone else
+            //Is being carried by someone else, or hanging from a rope
             return null;
         }
 

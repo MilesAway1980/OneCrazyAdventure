@@ -29,6 +29,7 @@ public class ConnectionPlayer : NetworkBehaviour
         public bool jumpPressed;
         public bool abilityPressed;
         public bool interactPressed;
+        public bool hubPressed;
     }
 
     private static readonly List<ConnectionPlayer> onHost = new List<ConnectionPlayer>();
@@ -322,6 +323,7 @@ public class ConnectionPlayer : NetworkBehaviour
                 frame.jumpPressed = seat.jumpPressed;
                 frame.abilityPressed = seat.abilityPressed;
                 frame.interactPressed = seat.interactPressed;
+                frame.hubPressed = seat.hubPressed;
 
                 CharacterMove.ApplyInput(character, frame);
             }
@@ -329,6 +331,7 @@ public class ConnectionPlayer : NetworkBehaviour
             seat.jumpPressed = false;
             seat.abilityPressed = false;
             seat.interactPressed = false;
+            seat.hubPressed = false;
 
             var identity = character ? character.GetComponent<NetworkIdentity>() : null;
             var netId = identity ? identity.netId : 0u;
@@ -377,6 +380,7 @@ public class ConnectionPlayer : NetworkBehaviour
         seat.jumpPressed |= frame.jumpPressed;
         seat.abilityPressed |= frame.abilityPressed;
         seat.interactPressed |= frame.interactPressed;
+        seat.hubPressed |= frame.hubPressed;
     }
 
     [Command]

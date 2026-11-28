@@ -69,7 +69,7 @@ the main editor and "Joined" means the second. Tick each box when what's said ha
 
 ## 11. The hub menu, and tutorial hints, for a joined player
 (Needs the hubs networked: run **Make World Networked** and save.)
-- [ ] A joined player stands at a reached hub and presses Interact: the menu opens **on the joined editor**, and their character stands still.
+- [ ] A joined player stands at a reached hub and presses the Hub button (Enter, or Start): the menu opens **on the joined editor**, and their character stands still.
 - [ ] They play the menu with their own controls: move round, Jump picks, Interact goes back.
 - [ ] Swap Characters on the joined editor shows the characters found, with the party ticked. Pick a new party and press Action to finish: the new characters appear at the hub on **both** editors, with "party changed" on both.
 - [ ] Characters out in the field can't be swapped out, and the last one at the hub can't be taken out (the same messages as on the host).

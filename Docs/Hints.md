@@ -25,7 +25,7 @@ The collider needs to be on a layer that collides with the characters, which the
   warns when the game starts. It shows nothing in the game. When it does match, the Inspector shows the words it will say. **Pick a
   Topic...** lists the topics that exist, if you'd rather not type, and **Open Master Text** goes to where they're written.
 - **Custom Text** is optional. If it has anything in it, it's shown instead of looking up the topic, for a hint that's only used
-  once. Controls can be put in curly brackets in any hint: `{move}`, `{jump}`, `{action}`, `{interact}`, `{next}` and `{previous}`.
+  once. Controls can be put in curly brackets in any hint: `{move}`, `{jump}`, `{action}`, `{interact}`, `{hub}`, `{next}` and `{previous}`.
   They're filled in with the buttons that player is using, such as "Space" or "Button South", so a hint always names the player's
   own controls.
 - **Only Once** shows it only the first time someone goes in, and not again after they've left.

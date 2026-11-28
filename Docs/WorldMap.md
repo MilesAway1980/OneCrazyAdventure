@@ -115,7 +115,7 @@ Decided rules:
   The ticks on the CharacterScript asset are the characters found from the start.
 - **`CharacterPickup`**: place it where a character is found. It shows the character, and a party member touching it adds
   them to the roster.
-- **`CharacterHub`**: a trigger area with spawn points. It sets the checkpoint, and Interact in its area opens the menu.
+- **`CharacterHub`**: a trigger area with spawn points. It sets the checkpoint, and the Hub button (Enter, or Start) in its area opens the menu. It has a button of its own, so a hub doesn't take the Interact of a character who is standing by a lever or a crate in it.
 - **`HubMenu`**: Swap Characters, Bring Everyone Here, Hints (on or off), Close. Operated by the player who opened it.
 - **Master text (`GameText`)**: every word the hub menu, the messages, the join and leave prompts and the Flashlight's
   "FLAT" show is in one list. Open it with Tools > Game Text > Open Master Text and change the words in the inspector.

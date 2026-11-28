@@ -14,6 +14,7 @@ public static class ControlNames
         ("{jump}", "Jump"),
         ("{action}", "Ability"),
         ("{interact}", "Interact"),
+        ("{hub}", "Hub"),
         ("{next}", "NextCharacter"),
         ("{previous}", "PreviousCharacter")
     };

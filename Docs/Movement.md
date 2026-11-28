@@ -201,6 +201,12 @@ whatever is under it (not by what a character's feet say, which jump from standi
 the first, above **Lifted Height** it's the second, and between them the one gives way to the other, so his speed never changes all at once as
 they leave the ground. (The tuning is the `SettleToLoad` method in `Balloon.cs`; **Settle Rate** is how quickly it settles.)
 
+**Staying upright.** The Balloon's Rigidbody can be left free to turn (Freeze Rotation Z off), so the string and what he hits twist him. He's then
+turned back upright by a spring (`RightHimself` in `Balloon.cs`): **Righting Strength** is how hard, **Righting Damping** how quickly the swinging
+dies away (lower, and he swings back and forth past upright more times), and **Righting Reach** is the furthest from upright it counts as being, in
+degrees, so that being upside down turns him over at a sensible speed and, unlike a plain spring, isn't a balance he can sit on. It sets nothing: it only
+adds to how fast he's turning, so he never snaps to straight.
+
 A crate hanging from the string counts the same as a character. A load counts for as much as the string is pulled tight, so one lying on the ground on a
 slack string weighs nothing on him yet. His own Mass and the string don't change any of this.
 

@@ -32,6 +32,55 @@ public static class CharacterAnimationMenu
     private const string ZipperCarrying = "Assets/Sprites/Player/Zipper_carry.png";
     private const string ZipperInteracting = "Assets/Sprites/Player/Zipper_interact.png";
 
+    // Makes (or remakes) every character's animation set in turn, from the pictures as they are now. Each is the same as choosing its own menu item below. One that
+    // can't be made (a picture is missing) says so, as it does on its own, and the rest go on. It doesn't give the sets to the characters in the scene: that's
+    // Add Animation To Characters, which is only needed once for a character, as the set stays the same asset when it's made again.
+    [MenuItem("Tools/Animation/Create All Animation Sets")]
+    private static void CreateAllSets()
+    {
+        var makers = new (string name, Action make)[]
+        {
+            ("Zipper", CreateZipperSet),
+            ("Die", CreateDieSet),
+            ("Paperclip", CreatePaperclipSet),
+            ("Pencil", CreatePencilSet),
+            ("Bowling Ball", CreateBowlingBallSet),
+            ("Brick", CreateBrickSet),
+            ("Torch", CreateTorchSet),
+            ("Magnet", CreateMagnetSet),
+            ("Bulb", CreateBulbSet),
+            ("Balloon", CreateBalloonSet),
+            ("Bouncy Ball", CreateBouncyBallSet),
+            ("Pebble", CreatePebbleSet),
+            ("Dynamite", CreateDynamiteSet),
+            ("Ladder", CreateLadderSet)
+        };
+
+        var failed = new System.Collections.Generic.List<string>();
+
+        for (var i = 0; i < makers.Length; i++)
+        {
+            EditorUtility.DisplayProgressBar("Create All Animation Sets", makers[i].name, (float)i / makers.Length);
+
+            try
+            {
+                makers[i].make();
+            }
+            catch (Exception problem)
+            {
+                failed.Add(makers[i].name);
+                Debug.LogException(problem);
+            }
+        }
+
+        EditorUtility.ClearProgressBar();
+        AssetDatabase.SaveAssets();
+
+        Debug.Log(failed.Count == 0
+            ? $"Made the animation sets for all {makers.Length} characters. (Any that were missing pictures said so above.)"
+            : $"Made the animation sets, except for {string.Join(", ", failed)}, which went wrong: see the errors above.");
+    }
+
     [MenuItem("Tools/Animation/Add Animation To Characters")]
     private static void AddToCharacters()
     {
@@ -121,8 +170,8 @@ public static class CharacterAnimationMenu
 
         var set = GetOrCreateSet("Zipper");
 
-        // Standing is one picture, and Walking goes round, quicker the faster he walks.
-        set.SetClip(CharacterAnimationSet.Idle, null, new[] { standing }, 1f, true, false);
+        // Standing is his fidgeting (Zipper_idle), and Walking goes round, quicker the faster he walks.
+        SetIdle(set, null, standing, "Zipper_idle", 6f);
         set.SetClip(CharacterAnimationSet.Walk, null, walking, 12f, true, true);
 
         // In the air: the first picture is going up, and the rest, which swap back and forth, are coming down.
@@ -201,7 +250,7 @@ public static class CharacterAnimationMenu
         // His set is named like him: the character is called Bowling Ball.
         var set = GetOrCreateSet("Bowling Ball");
 
-        set.SetClip(CharacterAnimationSet.Idle, null, new[] { standing[0] }, 1f, true, false);
+        SetIdle(set, null, standing[0], "BowlingBall_idle", 6f);
         set.SetClip(CharacterAnimationSet.Walk, null, walking, 8f, true, true);
         set.SetClip(CharacterAnimationSet.Rise, null, new[] { jumping[0] }, 1f, true, false);
         set.SetClip(CharacterAnimationSet.Fall, null, falling, 8f, true, false);
@@ -266,7 +315,7 @@ public static class CharacterAnimationMenu
 
         var set = GetOrCreateSet("Brick");
 
-        AddOrdinaryClips(set, null, standing[0], sheets[0], sheets[1], sheets[2], 8f);
+        AddOrdinaryClips(set, null, standing[0], sheets[0], sheets[1], sheets[2], 8f, "Brick_idle", 5f);
         AddCarryingClips(set, CharacterAnimationSet.Carrying, sheets[3]);
 
         // The last of the curling pictures is the solid block.
@@ -623,7 +672,7 @@ public static class CharacterAnimationMenu
 
         var set = GetOrCreateSet(characterName);
 
-        AddOrdinaryClips(set, null, standing[0], walking, inAir, interacting, walkFps);
+        AddOrdinaryClips(set, null, standing[0], walking, inAir, interacting, walkFps, pictures + "_idle", pictures == "Dice" ? 5f : 6f);
         AddCarryingClips(set, CharacterAnimationSet.Carrying, carrying);
 
         EditorUtility.SetDirty(set);
@@ -635,12 +684,33 @@ public static class CharacterAnimationMenu
                   "Interact, and Carrying (Idle, Walk, Rise, Fall). Run Tools > Animation > Add Animation To Characters to give it to him.", set);
     }
 
-    // Idle, Walk, Rise, Fall and Interact for one look (the variant, or null for the ordinary one): the standing picture; the walking sheet; the air
-    // sheet (going up, then two for coming down that swap); and the interact sheet (reaching, then pulling, which it ends on).
-    private static void AddOrdinaryClips(CharacterAnimationSet set, string variant, Sprite standing, Sprite[] walking, Sprite[] inAir,
-                                         Sprite[] interacting, float walkFps)
+    // His Idle: what he does while he stands, if there's a sheet of it (<name>_idle, cut into pictures that go round: a blink, a look about, a tap of his
+    // foot), and, if there isn't, the one standing picture. Every character should fidget; this is where it goes.
+    private static void SetIdle(CharacterAnimationSet set, string variant, Sprite standing, string idleSheet, float idleFps)
     {
-        set.SetClip(CharacterAnimationSet.Idle, variant, new[] { standing }, 1f, true, false);
+        var idling = idleSheet == null ? new Sprite[0] : LoadSprites($"{PlayerSprites}{idleSheet}.png");
+
+        if (idling.Length > 1)
+        {
+            set.SetClip(CharacterAnimationSet.Idle, variant, idling, idleFps, true, false);
+        }
+        else
+        {
+            set.SetClip(CharacterAnimationSet.Idle, variant, new[] { standing }, 1f, true, false);
+
+            if (idleSheet != null)
+            {
+                Debug.LogWarning($"There's no idle sheet at {PlayerSprites}{idleSheet}.png (cut into at least two pictures), so this look stands still.");
+            }
+        }
+    }
+
+    // Idle, Walk, Rise, Fall and Interact for one look (the variant, or null for the ordinary one): the standing picture, or the idle sheet's fidgeting if
+    // it's named; the walking sheet; the air sheet (going up, then two for coming down that swap); and the interact sheet (reaching, then pulling, which it ends on).
+    private static void AddOrdinaryClips(CharacterAnimationSet set, string variant, Sprite standing, Sprite[] walking, Sprite[] inAir,
+                                         Sprite[] interacting, float walkFps, string idleSheet = null, float idleFps = 6f)
+    {
+        SetIdle(set, variant, standing, idleSheet, idleFps);
         set.SetClip(CharacterAnimationSet.Walk, variant, walking, walkFps, true, true);
         set.SetClip(CharacterAnimationSet.Rise, variant, new[] { inAir[0] }, 1f, true, false);
         set.SetClip(CharacterAnimationSet.Fall, variant, inAir.Skip(1).ToArray(), 8f, true, false);
@@ -694,11 +764,11 @@ public static class CharacterAnimationMenu
 
         var set = GetOrCreateSet("Torch");
 
-        AddOrdinaryClips(set, null, standing[0], lit[0], lit[1], lit[2], 12f);
+        AddOrdinaryClips(set, null, standing[0], lit[0], lit[1], lit[2], 12f, "Torch_idle", 10f);
         AddCarryingClips(set, CharacterAnimationSet.Carrying, lit[3]);
-        AddOrdinaryClips(set, Torch.SnuffedVariant, snuffed[0][0], snuffed[0], snuffed[1], snuffed[2], 12f);
+        AddOrdinaryClips(set, Torch.SnuffedVariant, snuffed[0][0], snuffed[0], snuffed[1], snuffed[2], 12f, "Torch_snuffed_idle", 6f);
         AddCarryingClips(set, Torch.SnuffedCarryingVariant, snuffed[3]);
-        AddOrdinaryClips(set, Torch.FlickeringVariant, small[0][0], small[0], small[1], small[2], 12f);
+        AddOrdinaryClips(set, Torch.FlickeringVariant, small[0][0], small[0], small[1], small[2], 12f, "Torch_small_idle", 10f);
         AddCarryingClips(set, Torch.FlickeringCarryingVariant, small[3]);
 
         EditorUtility.SetDirty(set);
@@ -730,7 +800,7 @@ public static class CharacterAnimationMenu
 
         var set = GetOrCreateSet("Magnet");
 
-        AddOrdinaryClips(set, null, standing[0], sheets[0], sheets[1], sheets[2], 12f);
+        AddOrdinaryClips(set, null, standing[0], sheets[0], sheets[1], sheets[2], 12f, "Magnet_idle", 6f);
         AddCarryingClips(set, CharacterAnimationSet.Carrying, sheets[3]);
 
         set.SetClip(CharacterAnimationSet.Action, null, sheets[4], 8f, true, false);

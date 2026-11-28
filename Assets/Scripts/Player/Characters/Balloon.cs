@@ -47,6 +47,19 @@ namespace Characters
         [Tooltip("How thick the line is, in units.")]
         public float stringWidth = 0.06f;
 
+        [Header("Staying upright")]
+        [Tooltip("How strongly he's turned back upright when his Rigidbody is free to rotate (Freeze Rotation Z off), as he's tipped by his string or by " +
+                 "what he hits. It's a spring, so he swings back and forth past upright a few times before he settles, and doesn't snap into place. " +
+                 "Higher swings faster. 0 leaves him to turn however he's pushed.")]
+        public float rightingStrength = 20f;
+
+        [Tooltip("How quickly the swinging back and forth dies away. Lower swings more times before he's still; higher settles in fewer.")]
+        public float rightingDamping = 1.6f;
+
+        [Tooltip("The furthest from upright, in degrees, that the pull to turn him back counts as being, so that one who's upside down is turned over at a " +
+                 "reasonable speed and not spun like a top. It's what also gets him off being exactly upside down, where a plain spring would have him balanced.")]
+        public float rightingReach = 90f;
+
         [Header("What hangs from him")]
         [Tooltip("The mass, in units, that he can just hold up while he's floating, by what's on his string: a character hanging from it, or something he's " +
                  "carrying. Anything lighter and he rises, more slowly the heavier it is, until at this much he hovers. Anything heavier and he sinks, " +
@@ -245,6 +258,8 @@ namespace Characters
         // where it is.
         protected override void ShapeVerticalSpeed()
         {
+            RightHimself();
+
             var before = rigidBody2D.linearVelocity;
 
             SettleToLoad();
@@ -271,6 +286,27 @@ namespace Characters
             var velocity = rigidBody2D.linearVelocity;
 
             rigidBody2D.linearVelocity = new Vector2(velocity.x, Mathf.MoveTowards(velocity.y, target, loadAcceleration * Time.fixedDeltaTime));
+        }
+
+        // Turns him back upright, as a weight hung under him would, if he's free to turn. A spring toward upright with some damping, worked out as a speed of
+        // turning and not a torque, so it's the same however heavy he is (with a load he's bearing, he's much heavier). It's underdamped, so he overshoots and
+        // swings back a few times, and since he's only ever pulled, never set, there's no moment he's snapped to straight. The string's pull on him, and
+        // anything he hits, still turn him: this is only a tendency.
+        private void RightHimself()
+        {
+            if (rightingStrength <= 0f || rigidBody2D.freezeRotation || (rigidBody2D.constraints & RigidbodyConstraints2D.FreezeRotation) != 0)
+            {
+                return;
+            }
+
+            var reach = Mathf.Max(1f, rightingReach);
+            var away = Mathf.Clamp(Mathf.DeltaAngle(rigidBody2D.rotation, 0f), -reach, reach);
+            var spin = rigidBody2D.angularVelocity;
+
+            // DeltaAngle is how far there is to turn to be upright, so the pull is toward it.
+            var acceleration = rightingStrength * away - rightingDamping * spin;
+
+            rigidBody2D.angularVelocity = spin + acceleration * Time.fixedDeltaTime;
         }
 
         // One line of the log: where he and who's hanging are, and how fast, and how far they moved this step, the string, and what settling did to his speed.

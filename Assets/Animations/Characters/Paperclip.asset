@@ -16,8 +16,23 @@ MonoBehaviour:
   - state: Idle
     variant: 
     frames:
-    - {fileID: -3294014016939171930, guid: f869e530c5ba7fa4b900999a0534cbad, type: 3}
-    framesPerSecond: 1
+    - {fileID: -1157524076586921159, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: -2077907710481129023, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: -4530536910908437036, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: 3081637282110610240, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: 791785398327183982, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: 1005896968810706892, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: -596000948981076575, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: -3210520240543857094, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: -92758675002532353, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: 2522725116599701112, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: 1683954446949409486, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: 4166564735460705088, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: -2323388947081216838, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: -1070303490533347979, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: -3644346846146515306, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    - {fileID: -3762756369221471776, guid: 0b90574b38d04a6f9f0b563e2814163b, type: 3}
+    framesPerSecond: 6
     loop: 1
     followsWalkSpeed: 0
     thenPlay: 

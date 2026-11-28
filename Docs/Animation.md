@@ -46,6 +46,15 @@ A character with no ability (Zipper, Die, Paperclip, Pencil) has no Action or Ai
 
 Hurt, pushed back, landing and the like will be more lines in the list as they're added. Each is a state with a clip.
 
+**Every character fidgets.** His Idle clip is never one picture: it's a sheet of him doing the little things people do standing, which gives him a lot of
+character for nothing in the game. It's a sheet named `<name>_idle` (cut into pictures that go round at 5 to 10 a second: ten or more are numbered
+`_00`, `_01` and so on, so that they sort in order), and the set's menu uses it if it's there. The ones made so far: Zipper (his ring swings, he
+blinks and whistles), Die (blinks, scratches, yawns), Paperclip (looks left and right, blinks, stretches), Pencil (blinks, taps a foot, scratches, yawns), Brick (a slow
+blink, taps his foot, stretches an arm), Bowling Ball (glances about, blinks, bounces), Magnet (glances about, blinks, taps a foot), the Torch (the flame sways and
+gutters, and for the Snuffed and Flickering variants, a wisp of smoke and a small flame), and, from their own sets, the Balloon, Bouncy Ball, Bulb, Dynamite, Ladder and Pebble. Every
+set made from here on needs one: the Flashlight, Piton, Drill, Suction Cup and Umbrella are still to draw and animate. Each frame is made from the character's walking
+pieces, so it lines up with the rest of his set.
+
 ## A character's own states
 
 A character's own script can change what he's doing. It overrides `AnimationState`, which is given the ordinary state and returns the one it wants:

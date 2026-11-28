@@ -9,6 +9,7 @@ using UnityEngine;
 //    opens it 40 percent of the way.
 //  - With a lever, the door opens when the lever is thrown, and closes when it's thrown back. A lever that is One Time
 //    leaves it open.
+//  - Use Own Speed, if it's turned off, takes it out of the door's hands: it goes where the switch says, one to one, the fraction the switch is on.
 //  - Stay Switched On, on this, leaves it open once it has been opened. Switch Off Time closes it that many seconds after the
 //    last time it was told to open.
 //
@@ -22,8 +23,15 @@ public class SwitchDoor : SwitchableObject
     [Tooltip("How far, and which way, it moves when it opens, in world units from where it starts. A door that rises into the ceiling might go (0, 3).")]
     public Vector2 openOffset = new Vector2(0f, 3f);
 
+    [Tooltip("On: it opens and closes at its own Speed, whatever the switch does. Off: it goes exactly with the switch, one to one, so it is open by the same " +
+             "fraction as the switch is on: a lever half way through its swing has it half open, and a button pressed a quarter of the way down has it a " +
+             "quarter open (with or without Allow Partial Presses on the button). It has no speed of its own then, and moves as fast as the switch " +
+             "does, so a lever that swings slowly opens it slowly. A switch that is only on or off (a walk-in area) has no halfway to follow, so it " +
+             "takes the door all the way at once.")]
+    public bool useOwnSpeed = true;
+
     [Min(0.01f)]
-    [Tooltip("How fast, in units per second, it opens and closes.")]
+    [Tooltip("How fast, in units per second, it opens and closes. Only used when Use Own Speed is on.")]
     public float speed = 4f;
 
     private Vector2 closedPosition;
@@ -76,7 +84,9 @@ public class SwitchDoor : SwitchableObject
 
         var current = body ? body.position : (Vector2)door.position;
         var goal = wantsOpen ? Vector2.Lerp(closedPosition, openPosition, openAmount) : closedPosition;
-        var next = Vector2.MoveTowards(current, goal, speed * Time.fixedDeltaTime);
+
+        // Its own speed, or exactly where the switch says.
+        var next = useOwnSpeed ? Vector2.MoveTowards(current, goal, speed * Time.fixedDeltaTime) : goal;
 
         if (body)
         {
@@ -100,6 +110,11 @@ public class SwitchDoor : SwitchableObject
     public override bool AcceptsAmount
     {
         get { return true; }
+    }
+
+    public override bool FollowsSwitchPosition
+    {
+        get { return !useOwnSpeed; }
     }
 
     // Opens it that fraction of the way: a button that is half pressed opens it half way. One that's let go closes it again, unless

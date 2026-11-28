@@ -40,7 +40,7 @@ public class LeverSwitchEditor : Editor
             }
 
             if ((property.name == nameof(LeverSwitch.secondsToHold) || property.name == nameof(LeverSwitch.secondsToReturn) ||
-                 property.name == nameof(LeverSwitch.logHolding)) && !showHold)
+                 property.name == nameof(LeverSwitch.springLoaded) || property.name == nameof(LeverSwitch.logHolding)) && !showHold)
             {
                 continue;
             }

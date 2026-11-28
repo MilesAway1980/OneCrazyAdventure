@@ -541,7 +541,44 @@ public static class NetworkCharactersMenu
             Undo.AddComponent<NetworkIdentity>(go);
         }
 
+        RemoveChildIdentities(go);
+
         return true;
+    }
+
+    // Mirror allows one Network Identity in an object, on its root, and complains if one of its children has one too. A child gets one if it was made
+    // networked before it was put under this object, or before this object was. So the ones inside are taken off, along with the network scripts on those
+    // same children (which need them), and this object does the networking for all of it.
+    private static void RemoveChildIdentities(GameObject root)
+    {
+        foreach (var identity in root.GetComponentsInChildren<NetworkIdentity>(true))
+        {
+            if (!identity || identity.gameObject == root)
+            {
+                continue;
+            }
+
+            var child = identity.gameObject;
+
+            // Part of a prefab instance, and not something added to it here: it has to come off in the prefab itself.
+            if (PrefabUtility.IsPartOfPrefabInstance(identity) && !PrefabUtility.IsAddedComponentOverride(identity))
+            {
+                Debug.LogWarning($"{child.name} is inside {root.name}, which is networked, and has a Network Identity of its own that comes from its prefab, so it " +
+                                 "couldn't be taken off here. Take it off in the prefab.", child);
+                continue;
+            }
+
+            foreach (var script in child.GetComponents<NetworkBehaviour>())
+            {
+                if (script)
+                {
+                    Undo.DestroyObjectImmediate(script);
+                }
+            }
+
+            Undo.DestroyObjectImmediate(identity);
+            Debug.Log($"Took the Network Identity off {child.name}, which is inside {root.name}: Mirror only allows one, on the root.", root);
+        }
     }
 
     // Makes an object send where one of its transforms is. If it has a Rigidbody2D, the physics is done on the host only.

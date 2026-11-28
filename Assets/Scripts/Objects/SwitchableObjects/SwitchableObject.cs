@@ -1,12 +1,28 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// A switch that, once it has switched on, never switches off: a Walk Switch that Stays On, or a Timer that Stays Completed. A thing that one of these has
+// switched on is held on by it for good, whatever the other switches that work it then do (see SwitchableObject.Signal).
+public interface ILatchedSwitch
+{
+    // Whether it has switched on for good.
+    bool IsLatched { get; }
+
+    // How much of its full effect the things get, from 0 to 1, or below 0 for the ordinary on (all of it).
+    float LatchedAmount { get; }
+}
+
 public class SwitchableObject : MonoBehaviour
 {
     [Tooltip("Object switch action will stay on even if switch is turned off.  Ignores the staySwitchedOn timer.")]
     public bool staySwitchedOn;
     [Tooltip("Time in seconds before switching off.  If set to 0, the timer will be ignored.")]
     public float switchOffTime;
+
+    [Tooltip("When more than one switch works this, every one of them has to be on before it does anything: with four switches, all four. Let one go off and it " +
+             "goes off too. Switches that subtract don't count, and a switch is on from the moment it's sending anything (a button pressed any of the way, " +
+             "a lever that has left its start). With one switch, it makes no difference.")]
+    public bool needsAllSwitches;
 
     private float switchOnTime;
     protected bool activated;
@@ -19,7 +35,7 @@ public class SwitchableObject : MonoBehaviour
 
     protected virtual void Update()
     {
-        if (staySwitchedOn)
+        if (staySwitchedOn || Latched)
         {
             return;
         }
@@ -55,6 +71,13 @@ public class SwitchableObject : MonoBehaviour
         get { return false; }
     }
 
+    // Whether this goes exactly with how far the switch is, one to one, rather than being switched on and off and moving in its own time. A lever,
+    // even one that swings by itself, gives such a thing how far along its swing it is, from the moment it's pressed, and not just at the end.
+    public virtual bool FollowsSwitchPosition
+    {
+        get { return false; }
+    }
+
     // Switches this on by an amount from 0 to 1, called again each frame while it's held there. Only for those that accept one.
     public virtual void SetAmount(float amount)
     {
@@ -84,6 +107,82 @@ public class SwitchableObject : MonoBehaviour
     // amount, from 0 to 1, and a thing that takes an amount (a door's height, how full a liquid is, how far along a path) goes to it. One that
     // can only be on or off is on once the total gets to the whole (100), so it can need all of its switches.
 
+    // ----- Needs All Switches -----
+    //
+    // The switches that work this tell it so as they come on (AddSource), with how they combine, and what each last said it is kept as it comes (Signal).
+    // With Needs All Switches, this is only switched by what they say when every one of them (but the ones that subtract) is on.
+    private readonly Dictionary<Object, SignalMode> sources = new Dictionary<Object, SignalMode>();
+    private readonly Dictionary<Object, bool> sourceOn = new Dictionary<Object, bool>();
+    private readonly List<Object> forgotten = new List<Object>();
+
+    // A switch that works this is there, and says how it combines with the others.
+    public void AddSource(Object source, SignalMode mode)
+    {
+        if (source)
+        {
+            sources[source] = mode;
+        }
+    }
+
+    // A switch that worked this isn't any more (it was switched off, or taken away). What's left decides.
+    public void RemoveSource(Object source)
+    {
+        if (!source)
+        {
+            return;
+        }
+
+        sources.Remove(source);
+        sourceOn.Remove(source);
+
+        if (needsAllSwitches && this && isActiveAndEnabled)
+        {
+            Resolve();
+        }
+    }
+
+    // Whether every switch that has to be on is. With none to go by, nothing is held back.
+    private bool AllSwitchesOn()
+    {
+        forgotten.Clear();
+
+        foreach (var pair in sources)
+        {
+            if (!pair.Key)
+            {
+                forgotten.Add(pair.Key);
+                continue;
+            }
+
+            if (pair.Value == SignalMode.Subtract)
+            {
+                continue;
+            }
+
+            if (!sourceOn.TryGetValue(pair.Key, out var on) || !on)
+            {
+                return false;
+            }
+        }
+
+        foreach (var key in forgotten)
+        {
+            sources.Remove(key);
+        }
+
+        return true;
+    }
+
+    // The switches that have switched this on for good.
+    private readonly HashSet<Object> latches = new HashSet<Object>();
+    private readonly List<Object> unlatched = new List<Object>();
+
+    // Whether a switch has switched this on for good, and so it can't be switched off.
+    protected bool Latched
+    {
+        get { return latches.Count > 0; }
+    }
+
     // What each Add or Subtract switch is giving, as an amount that's negative if it takes away.
     private readonly Dictionary<Object, float> shares = new Dictionary<Object, float>();
     private readonly List<Object> gone = new List<Object>();
@@ -100,6 +199,18 @@ public class SwitchableObject : MonoBehaviour
     // the ordinary on and off. In Add and Subtract the amount is always sent, and 0 takes the switch's share away.
     public void Signal(Object source, SignalMode mode, bool on, float amount)
     {
+        // A switch that has switched on for good holds this on from now: it's remembered, and nothing else that works this changes it again.
+        if (on && source is ILatchedSwitch latchedSwitch && latchedSwitch.IsLatched)
+        {
+            latches.Add(source);
+        }
+
+        // What it last said: on if it's sending something. (An amount of 0 is nothing.)
+        if (source)
+        {
+            sourceOn[source] = on && !Mathf.Approximately(amount, 0f);
+        }
+
         if (mode == SignalMode.MinMax)
         {
             hasMinMax = true;
@@ -135,6 +246,52 @@ public class SwitchableObject : MonoBehaviour
     // Works out what this is switched to by everything that works it, and switches it to that.
     private void Resolve()
     {
+        // Every switch has to be on, and one isn't: nothing is done, and what was done is undone.
+        if (needsAllSwitches && !AllSwitchesOn())
+        {
+            Deactivate();
+            return;
+        }
+
+        // On for good: all that's left to do is what the switches that did it say, and the rest are ignored, however much they send or when.
+        if (latches.Count > 0)
+        {
+            var latchedAmount = float.NegativeInfinity;
+            unlatched.Clear();
+
+            foreach (var source in latches)
+            {
+                if (source is ILatchedSwitch latchedSwitch && source && latchedSwitch.IsLatched)
+                {
+                    var share = latchedSwitch.LatchedAmount;
+                    latchedAmount = Mathf.Max(latchedAmount, share >= 0f ? share : 1f);
+                }
+                else
+                {
+                    unlatched.Add(source);
+                }
+            }
+
+            foreach (var source in unlatched)
+            {
+                latches.Remove(source);
+            }
+
+            if (latchedAmount > float.NegativeInfinity)
+            {
+                if (AcceptsAmount && latchedAmount < 1f)
+                {
+                    SetAmount(latchedAmount);
+                }
+                else
+                {
+                    Activate();
+                }
+
+                return;
+            }
+        }
+
         // Switches that have gone, such as one that was destroyed, don't count.
         if (shares.Count > 0)
         {

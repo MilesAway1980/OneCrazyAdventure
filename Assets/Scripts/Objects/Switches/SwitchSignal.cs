@@ -57,6 +57,40 @@ public static class SwitchSignal
         return mode == SignalMode.MinMax && minimum > 0;
     }
 
+    // Tells the things a switch works that it does, so that one that needs all its switches knows which they are. Done as the switch is switched on, and
+    // undone as it's switched off. (A switch that is off is no longer one it waits for.)
+    public static void Register(UnityEngine.Object source, SignalMode mode, IList<SwitchableObject> things)
+    {
+        if (things == null)
+        {
+            return;
+        }
+
+        for (var i = 0; i < things.Count; i++)
+        {
+            if (things[i])
+            {
+                things[i].AddSource(source, mode);
+            }
+        }
+    }
+
+    public static void Unregister(UnityEngine.Object source, IList<SwitchableObject> things)
+    {
+        if (things == null)
+        {
+            return;
+        }
+
+        for (var i = 0; i < things.Count; i++)
+        {
+            if (things[i])
+            {
+                things[i].RemoveSource(source);
+            }
+        }
+    }
+
     // Tells the things that can take an amount the lowest signal. Those that can only be on or off are left as they are.
     public static void HoldMinimum(IList<SwitchableObject> things, int minimum, Func<SwitchableObject, bool> counts, UnityEngine.Object source)
     {

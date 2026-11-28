@@ -59,10 +59,17 @@ public class ButtonSwitch : MonoBehaviour
     }
     private Func<SwitchableObject, bool> counts;
 
+    // Whether a thing goes by how far down the pad is, and not by it being pressed enough: any that can take an amount, with Allow Partial Presses, and
+    // those that go exactly with the switch (a door that doesn't use its own speed) whether it's on or not.
+    private bool FollowsPad(SwitchableObject obj)
+    {
+        return obj.AcceptsAmount && (passOnAmount || obj.FollowsSwitchPosition);
+    }
+
     // Whether a thing takes part: it's there, it's switched on, and it isn't one that follows how far the pad is pressed.
     private bool Counts(SwitchableObject obj)
     {
-        return obj && obj.enabled && !(passOnAmount && obj.AcceptsAmount);
+        return obj && obj.enabled && !FollowsPad(obj);
     }
 
     private Func<SwitchableObject, bool> CountsFunction
@@ -245,6 +252,16 @@ public class ButtonSwitch : MonoBehaviour
         }
     }
 
+    void OnEnable()
+    {
+        SwitchSignal.Register(this, signalMode, switchableObject);
+    }
+
+    void OnDisable()
+    {
+        SwitchSignal.Unregister(this, switchableObject);
+    }
+
     void Update()
     {
         if (GameSession.IsClientOnly)
@@ -258,10 +275,9 @@ public class ButtonSwitch : MonoBehaviour
             sequence.Tick(switchableObject, false, CountsFunction);
         }
 
-        if (passOnAmount)
-        {
-            PassOnAmount();
-        }
+        // (It only gives it to those that follow the pad, which are all that can take an amount with Allow Partial Presses, and, without it, only the ones
+        // that go exactly with the switch.)
+        PassOnAmount();
 
         // Not pressed, with a lowest signal to send: the things that don't follow the pad are held at it, all the time. Not while they're
         // being switched off one after another.
@@ -547,7 +563,7 @@ public class ButtonSwitch : MonoBehaviour
 
         foreach (var obj in switchableObject)
         {
-            if (!obj || !obj.enabled || !obj.AcceptsAmount)
+            if (!obj || !obj.enabled || !FollowsPad(obj))
             {
                 continue;
             }
@@ -593,7 +609,7 @@ public class ButtonSwitch : MonoBehaviour
 
         foreach (var obj in switchableObject)
         {
-            if (!obj || (passOnAmount && obj.AcceptsAmount))
+            if (!obj || FollowsPad(obj))
             {
                 continue;
             }
@@ -621,7 +637,7 @@ public class ButtonSwitch : MonoBehaviour
 
         foreach (var obj in switchableObject)
         {
-            if (!obj || (passOnAmount && obj.AcceptsAmount))
+            if (!obj || FollowsPad(obj))
             {
                 continue;
             }

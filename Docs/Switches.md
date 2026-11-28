@@ -14,7 +14,10 @@ to be on a layer that collides with characters, which the default layer does.
 | Setting | What it does |
 |---|---|
 | **Activate On** | **Enter** (the default): it goes by someone walking in. **Exit**: it goes by someone walking out. With several characters, Enter is the first one coming into an empty area, and Exit is the last one leaving, which empties it. |
-| **Mode** | What it does when that happens. **Hold** (the default), **Toggle** or **Stays On**: see below. |
+| **Mode** | What it does when that happens. **Hold** (the default), **Toggle**, **Stays On** or **Timer**: see below. |
+| **Seconds To Complete** | Timer only. How many seconds someone has to be in the area, without leaving, for it to be complete. |
+| **Seconds To Reset** | Timer only. How many seconds it takes to go back to the start once the area is empty. 0 is at once. |
+| **Stays Completed** | Timer only. Once it's complete it stays complete, and its things stay on, whoever leaves. |
 | **Stays Active When On** | On by default. While it's on it keeps switching its things on every frame, which doors and anything else that closes by itself need to be held open. Turn it off to switch things on once and let them time themselves out. |
 | **Initial Delay**, **Delay Between Objects**, **Switch Off Order** | As on a lever or a button: see below. |
 
@@ -26,6 +29,21 @@ What each Mode does, for Enter and for Exit:
 | **Toggle** | Flips each time someone walks in. Leaving does nothing. | Flips each time someone walks out. Walking in does nothing. |
 | **Stays On** | Switched on the first time someone walks in, and never off again. | Switched on the first time someone walks out, and never off again. |
 
+**Timer** goes by how long someone is in the area, not by their coming or going (so Activate On is hidden for it):
+
+- It **fills while anyone is in the area**, taking **Seconds To Complete**, and it's **on once it's full**, for as long as someone is still in it. When the area is
+  empty it **drains back** to the start over **Seconds To Reset**, going off the moment it's no longer full. Someone who leaves and comes back soon carries on
+  from where it had got to, and it only starts again from the start if they were gone long enough for it to empty. A **Seconds To Reset** of 0 starts again at once.
+- With **Stays Completed**, it's on for good once it's full: it doesn't drain, whoever leaves (a door that stays open, lights that stay on).
+- Things that **go exactly with the switch** (a door with **Use Own Speed** off) follow how full it is, so the door opens as they stand there. Everything
+  else is switched on when it's complete and off when it's not, and the delays between things work on those.
+- Several characters in the area count as one: it fills at the same speed for one as for three.
+- It's hidden if the object has no sprite, and works from the **Box Collider 2D** alone: put it where you want the invisible area, and size the box.
+
+- **On for good.** A Walk Switch in **Stays On** mode, or a **Timer** with **Stays Completed**, holds the things it has switched on **for good**: once it has
+  switched one on (after its delays), no other switch that works that thing can switch it off again, move it, or fight it, whatever they send. A button
+  pressed or a lever thrown afterward does nothing to it. (Before then they work it as usual.) If a thing has a partial Maximum Signal from it, it's held at that.
+  In the code this is `ILatchedSwitch`, which `SwitchableObject.Signal` remembers, so another switch's signal is ignored in `Resolve`.
 - Any character in the game counts, with any of their colliders. Characters that are put away, or part way through a teleporter's trip, don't.
   One put away while in the area counts as having left it.
 - It runs on the host, as other switches do. There's nothing to network on the switch: the things it switches are the ones sent to other machines.
@@ -42,11 +60,15 @@ that apply:
 | **Hold To Operate** | Off (the default) is the ordinary lever. On: the lever moves only while it's held. |
 | **Seconds To Move** | Ordinary lever only. How many seconds it takes to swing from off to on by itself after a press (and back). |
 | **Seconds To Hold** | Hold To Operate only. How many seconds it has to be held to take the lever all the way to the other state. |
-| **Seconds To Return** | Hold To Operate only. How many seconds it takes to go all the way back to where it was, when it's let go part of the way. |
+| **Seconds To Return** | Hold To Operate only. How many seconds it takes to go all the way back to where it was, when it's let go part of the way (or, with Spring Loaded, from on). |
+| **Spring Loaded** | Hold To Operate only. The lever never stays on. It's on only while it's held all the way, and the moment it's let go it's off and swings back. |
 
 - **Held, it goes to the other state; let go, it goes back to the one it was in.** A lever with Seconds To Hold 10 is on once it's been held for 10 seconds
   in a row. Let go at 6 and it falls back to off. Once it has got all the way there, that's its state, and it has to be let go of and taken hold of
   again to go back. (**One Time** works as before: once it's on, it can't be used again.)
+- **Spring Loaded** makes it momentary, like a button: held all the way, it's on, and whoever is holding it keeps hold of it (he isn't let go of at the
+  end, as he is on an ordinary hold lever). The moment he lets go, or moves away, it's off, what it switches goes off at once, and the lever swings back
+  in Seconds To Return. It never stays on, so One Time doesn't apply to it, and **Stays Active When On** still reapplies the switch while it's held on.
 - **It follows how far it is.** The things that can be set to a part of their range (a door, a liquid level, a moving platform, a light, a fan) are
   given how far the lever has got, the same way a button gives them how far down its pad is, and in the same **Signal Mode** and
   Minimum and Maximum Signal. Held 5 seconds of 10, a door is half open. Let go, and it closes again as the lever falls back.
@@ -162,6 +184,34 @@ goes down when it's pressed all the way, as a percentage of the way from where i
 
 Anything that's a **switchable object**: doors, drawbridges, moving platforms, liquid levels ([Liquids.md](Liquids.md)), fans ([Fan.md](Fan.md)),
 lights ([Lights.md](Lights.md)), and the rest.
+
+**Doors** (`SwitchDoor`) have **Use Own Speed**. On (the default, as doors have always been), it opens and closes at its **Speed**, in units a second, whatever
+the switch does. Off, **Speed** is hidden and the door goes exactly with the switch, one to one: it's open by the same fraction as the switch is on, moving as
+fast as the switch does, from the moment it starts. It follows the Minimum and Maximum Signal like anything else that takes an amount.
+
+- **A lever**, ordinary or one that has to be held, gives it how far along its swing it is. An ordinary one doesn't need Hold To Operate: set a long
+  **Seconds To Move** for a slow lever, and the door goes with it, and turns round if the lever is pressed again part way.
+- **A button** gives it how far down the pad is: half way down, half open, and as the pad comes back up, the door closes by the same amount. This is whether or not
+  **Allow Partial Presses** is ticked on the button: that only decides whether the *other* things it works that can take an amount follow the pad. **Percent
+  Pressed To Activate** doesn't apply to a door that follows it.
+- **A walk-in area** is only on or off, so there's no halfway, and it takes the door all the way at once.
+
+In the code, a switchable object says it does this with `FollowsSwitchPosition`, and a lever (`LeverSwitch.PassOnPosition`) and a button
+(`ButtonSwitch.PassOnAmount`) give those things their position in the same way as for anything that takes an amount.
+
+## Needing all of the switches
+
+Tick **Needs All Switches** on a switchable object (a door, a gate, a light, anything with it in its Inspector) and, when more than one switch works it, **every
+one of them has to be on before it does anything**: a door with four switches stays shut until all four are on, and goes shut again as soon as one goes off.
+(Add mode, where the switches add up to a total, is the other way to combine them: it gives a share for each.)
+
+- Which switches it waits for are the levers, buttons and Walk Switches that have it in their lists, and that are switched on in the scene. A switch that is
+  switched off or removed isn't waited for. With one switch, it makes no difference.
+- **A switch is on from the moment it's sending something**, not only at the end: a button pressed any of the way down, a lever held or swung away from its
+  start, a Walk Switch that has gone on. (A thing that follows how far a switch is gets nothing until every switch is on, and then goes by what they say.)
+- **Switches that subtract** (Signal Mode: Subtract) aren't waited for, as they're meant to take something away and not to be on.
+- Once they're all on, it's switched as it always is: by what the last of them said in Min/Max, or by the total in Add and Subtract. A switch that is
+  **on for good** (see Walk Switch above) counts as on, but it can't hold the thing open if one of the others goes off.
 
 ## For the code
 

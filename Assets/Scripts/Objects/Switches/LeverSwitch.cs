@@ -30,6 +30,11 @@ public class LeverSwitch : InteractableObject
              "all the way by itself, taking Seconds To Move.")]
     public bool holdToOperate;
 
+    [Tooltip("Hold To Operate only. The lever never stays on: it's on only while it's held all the way, and as soon as it's let go it swings back to off " +
+             "(taking Seconds To Return), and what it switches goes off at once. A character who holds it all the way keeps hold of it for as long as he " +
+             "likes. Like a spring-loaded switch, or a button. One Time doesn't apply to it.")]
+    public bool springLoaded;
+
     [Min(0.1f)]
     [Tooltip("Hold To Operate only. How many seconds the Interact button has to be held to take the lever all the way to the other state.")]
     public float secondsToHold = 3f;
@@ -91,7 +96,7 @@ public class LeverSwitch : InteractableObject
 
     private bool Counts(SwitchableObject thing)
     {
-        return thing && thing.enabled && !(holdToOperate && thing.AcceptsAmount);
+        return thing && thing.enabled && !thing.FollowsSwitchPosition && !(holdToOperate && thing.AcceptsAmount);
     }
 
     // Holding the lowest signal is for the things that can take an amount, which are the very ones Counts leaves out with Hold To Operate.
@@ -214,10 +219,22 @@ public class LeverSwitch : InteractableObject
             ReleaseSwinger();
         }
 
+        // An ordinary lever has a position too, how far along its swing it is, and the things that go exactly with the switch follow it as it swings.
+        // (One that has to be held works its position out itself, above.)
+        if (!holdToOperate)
+        {
+            position = Mathf.Clamp01(Mathf.InverseLerp(offAngle, onAngle, angle));
+
+            if (!GameSession.IsClientOnly)
+            {
+                PassOnPosition(true);
+            }
+        }
+
         // Off, with a lowest signal to send: the things are held at it, all the time, and not just when the lever is thrown. That's also how
         // they start. Not while they're being switched off one after another, which would put them all there at once.
         if (!activated && SwitchSignal.HoldsMinimum(signalMode, minimumSignal) && !sequence.Pending && !GameSession.IsClientOnly &&
-            !(holdToOperate && position > PositionMargin))
+            !(position > PositionMargin))
         {
             SwitchSignal.HoldMinimum(switchableObjects, minimumSignal, EnabledThing, this);
         }
@@ -293,7 +310,7 @@ public class LeverSwitch : InteractableObject
         get { return interactedWith; }
     }
 
-    // How far the lever is from off to on, from 0 to 1, for a lever that has to be held. (Another machine needs it to show where the lever is.)
+    // How far the lever is from off to on, from 0 to 1. (Another machine needs it to show where a lever that has to be held is.)
     public float Position
     {
         get { return position; }
@@ -339,6 +356,13 @@ public class LeverSwitch : InteractableObject
             }
         }
 
+        if (springLoaded)
+        {
+            UpdateSpringLoaded();
+            PassOnPosition();
+            return;
+        }
+
         var rest = interactedWith ? 1f : 0f;
         var held = holder != null;
         var goal = held ? 1f - rest : rest;
@@ -375,6 +399,49 @@ public class LeverSwitch : InteractableObject
         PassOnPosition();
     }
 
+    // Hold To Operate and Spring Loaded: held, the lever goes toward on, and when it's all the way there it's on, for as long as it's held. The moment
+    // it's let go, it's off, and it swings back by itself. It's never left on, and he isn't let go of when it gets there: he lets go.
+    private void UpdateSpringLoaded()
+    {
+        var held = holder != null;
+        var seconds = held ? secondsToHold : secondsToReturn;
+
+        position = Mathf.MoveTowards(position, held ? 1f : 0f, Time.deltaTime / Mathf.Max(0.05f, seconds));
+        angle = Mathf.Lerp(offAngle, onAngle, position);
+
+        if (held && position >= 1f)
+        {
+            if (!interactedWith)
+            {
+                interactedWith = true;
+
+                if (logHolding)
+                {
+                    Debug.Log($"{name}: the lever got all the way on, and is on while {holder.name} holds it.", this);
+                }
+            }
+
+            if (!activated || staysActiveWhenOn)
+            {
+                Activate();
+            }
+        }
+        else if (!held && interactedWith)
+        {
+            interactedWith = false;
+
+            if (logHolding)
+            {
+                Debug.Log($"{name}: the lever was let go of while it was on, so it's off, and swinging back.", this);
+            }
+
+            if (activated)
+            {
+                Deactivate();
+            }
+        }
+    }
+
     // Whoever was working the lever isn't any more.
     private void ReleaseHolder()
     {
@@ -397,9 +464,15 @@ public class LeverSwitch : InteractableObject
         swinger = null;
     }
 
+    void OnEnable()
+    {
+        SwitchSignal.Register(this, signalMode, switchableObjects);
+    }
+
     void OnDisable()
     {
         ReleaseHolder();
+        SwitchSignal.Unregister(this, switchableObjects);
     }
 
     // Why a character isn't working the lever any more, or null if they still are: they have to be holding the button, in range, and in
@@ -429,8 +502,9 @@ public class LeverSwitch : InteractableObject
         return null;
     }
 
-    // Gives the things that can be moved by an amount how far the lever is, and lets them go when it's back where it started.
-    private void PassOnPosition()
+    // Gives the things that can be moved by an amount how far the lever is, and lets them go when it's back where it started. An ordinary lever only
+    // does it for those that go exactly with the switch (followersOnly): it switches the rest on and off at the ends of its swing.
+    private void PassOnPosition(bool followersOnly = false)
     {
         var any = position > PositionMargin;
 
@@ -441,7 +515,7 @@ public class LeverSwitch : InteractableObject
 
         foreach (var thing in switchableObjects)
         {
-            if (!thing || !thing.enabled || !thing.AcceptsAmount)
+            if (!thing || !thing.enabled || !thing.AcceptsAmount || (followersOnly && !thing.FollowsSwitchPosition))
             {
                 continue;
             }

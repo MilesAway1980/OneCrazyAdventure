@@ -21,7 +21,10 @@ public enum WalkMode
     // Each time the trigger happens, it flips: on, then off, then on again.
     Toggle,
     // Switched on the first time the trigger happens, and stays on from then.
-    StaysOn
+    StaysOn,
+    // Goes by how long someone is in the area, not by their coming or going (so Activate On doesn't apply): it fills up while anyone is in it, and is on
+    // once it's full. Things that go exactly with the switch follow how full it is.
+    Timer
 }
 
 // A switch that is just an area on the ground (a Box Collider 2D): it switches the things in its list when a character walks into the
@@ -36,13 +39,24 @@ public enum WalkMode
 // other switches it runs on the host, in a network game, and the things it switches are the ones that are sent to the other machines.
 //
 // Initial Delay, Delay Between Objects and Switch Off Order work as they do on a lever or a button (see Docs/Switches.md).
-public class WalkSwitch : MonoBehaviour
+public class WalkSwitch : MonoBehaviour, ILatchedSwitch
 {
     [Tooltip("Whether it goes by someone walking into the area (Enter) or out of it (Exit).")]
     public WalkTrigger activateOn = WalkTrigger.Enter;
 
-    [Tooltip("What it does when that happens. Hold: Enter is on while anyone is in the area; Exit is on from when someone leaves until someone walks back in. Toggle: flips each time. Stays On: switches on once and stays on.")]
+    [Tooltip("What it does when that happens. Hold: Enter is on while anyone is in the area; Exit is on from when someone leaves until someone walks back in. Toggle: flips each time. Stays On: switches on once and stays on. Timer: goes by how long anyone is in the area, and is on once they've been in it for Seconds To Complete.")]
     public WalkMode mode = WalkMode.Hold;
+
+    [Min(0.05f)]
+    [Tooltip("Timer only. How many seconds someone has to be in the area, without leaving, for it to be complete and switch its things on. Things that can be set to a part of their range and go exactly with the switch (a door that doesn't use its own speed) follow how far along it is.")]
+    public float secondsToComplete = 3f;
+
+    [Min(0f)]
+    [Tooltip("Timer only. How many seconds it takes to go all the way back to the start once the area is empty, if it hadn't finished or isn't kept. Leaving and coming back soon carries on from where it had got to. 0 goes back at once.")]
+    public float secondsToReset = 1.5f;
+
+    [Tooltip("Timer only. Once it's complete, it stays complete: the things stay switched on, whoever leaves, and it doesn't go back (a door that stays open, lights that stay on).")]
+    public bool staysCompleted;
 
     [Tooltip("While it's on, it keeps switching things on every frame. Things that switch themselves off, after a time or straight away, are held on for as long as it's on, and only start to go off when it is. Without it, things are switched on once, and are left to switch themselves off. Needed for doors and the like that should close again.")]
     public bool staysActiveWhenOn = true;
@@ -84,13 +98,42 @@ public class WalkSwitch : MonoBehaviour
     private bool leftBehind;
     private bool activated;
 
+    // Timer. How far along it is, from 0 to 1, and whether the things that follow it were being given it.
+    private const float PositionMargin = 0.0001f;
+    private float progress;
+    private bool passingAmount;
+
     // Switches the things one after another, when there's a delay before them or between them.
     private readonly SwitchSequence sequence = new SwitchSequence();
-    private static readonly Func<SwitchableObject, bool> usable = thing => thing.enabled;
+    private Func<SwitchableObject, bool> usable;
 
     private bool Sequenced
     {
         get { return initialDelay > 0f || delayBetweenObjects > 0f; }
+    }
+
+    // Stays On, or a Timer that Stays Completed, once it has gone on: it's on for good, and the things it has switched on are held on, whatever other
+    // switches that work them do afterward.
+    public bool IsLatched
+    {
+        get { return latched && isActiveAndEnabled; }
+    }
+
+    public float LatchedAmount
+    {
+        get { return AmountFor(true); }
+    }
+
+    // How far along the timer is, from 0 (the start) to 1 (complete). Only changes in Timer mode.
+    public float Progress
+    {
+        get { return progress; }
+    }
+
+    // Whether a thing is switched on and off by this. With a Timer, those that go exactly with the switch aren't: they follow how far along it is.
+    private bool Usable(SwitchableObject thing)
+    {
+        return thing.enabled && !(mode == WalkMode.Timer && thing.FollowsSwitchPosition);
     }
 
     // Whether anyone is in the area at the moment.
@@ -116,6 +159,11 @@ public class WalkSwitch : MonoBehaviour
         MakeTriggers();
     }
 
+    void Awake()
+    {
+        usable = Usable;
+    }
+
     void Start()
     {
         MakeTriggers();
@@ -126,10 +174,18 @@ public class WalkSwitch : MonoBehaviour
         }
     }
 
+    void OnEnable()
+    {
+        SwitchSignal.Register(this, signalMode, switchableObjects);
+    }
+
     void OnDisable()
     {
+        SwitchSignal.Unregister(this, switchableObjects);
         inside.Clear();
         sequence.Cancel();
+        progress = 0f;
+        passingAmount = false;
     }
 
     // Any collider on the object is only for telling who is in the area, so it's made a trigger: characters walk through it. This is done
@@ -251,6 +307,10 @@ public class WalkSwitch : MonoBehaviour
                 wantOn = latched;
                 break;
 
+            case WalkMode.Timer:
+                wantOn = UpdateTimer(occupied);
+                break;
+
             default:
                 if (activateOn == WalkTrigger.Enter)
                 {
@@ -286,11 +346,77 @@ public class WalkSwitch : MonoBehaviour
             Deactivate();
         }
 
-        // Off, with a lowest signal to send: the things are held at it, all the time. Not while they're being switched off one after another.
-        if (!activated && SwitchSignal.HoldsMinimum(signalMode, minimumSignal) && !sequence.Pending)
+        if (mode == WalkMode.Timer)
+        {
+            PassOnProgress();
+        }
+        else if (progress != 0f)
+        {
+            // Changed from a Timer to something else: it isn't part of the way there any more.
+            progress = 0f;
+            PassOnProgress();
+        }
+
+        // Off, with a lowest signal to send: the things are held at it, all the time. Not while they're being switched off one after another, or
+        // while a timer is giving the things that follow it how far along it is.
+        if (!activated && SwitchSignal.HoldsMinimum(signalMode, minimumSignal) && !sequence.Pending && !(progress > PositionMargin))
         {
             SwitchSignal.HoldMinimum(switchableObjects, minimumSignal, usable, this);
         }
+    }
+
+    // Timer: fills while anyone is in the area, and empties when no one is (unless it's complete and is to stay that way). Returns whether it's
+    // complete, which is when it's on.
+    private bool UpdateTimer(bool occupied)
+    {
+        if (!latched)
+        {
+            if (occupied)
+            {
+                progress = Mathf.MoveTowards(progress, 1f, Time.deltaTime / Mathf.Max(0.05f, secondsToComplete));
+            }
+            else
+            {
+                progress = secondsToReset <= 0f ? 0f : Mathf.MoveTowards(progress, 0f, Time.deltaTime / secondsToReset);
+            }
+
+            if (progress >= 1f && staysCompleted)
+            {
+                latched = true;
+            }
+        }
+
+        return progress >= 1f;
+    }
+
+    // Gives the things that go exactly with the switch how far along the timer is, and lets them go when it's back at the start.
+    private void PassOnProgress()
+    {
+        var any = progress > PositionMargin;
+
+        if (!any && !passingAmount)
+        {
+            return;
+        }
+
+        foreach (var thing in switchableObjects)
+        {
+            if (!thing || !thing.enabled || !thing.AcceptsAmount || !thing.FollowsSwitchPosition)
+            {
+                continue;
+            }
+
+            if (any)
+            {
+                thing.Signal(this, signalMode, true, SwitchSignal.Pressed(signalMode, progress, minimumSignal, maximumSignal));
+            }
+            else
+            {
+                thing.Signal(this, signalMode, false, AmountFor(false));
+            }
+        }
+
+        passingAmount = any;
     }
 
     // The amount, from 0 to 1, to give the things that can take one while it's on or off, or below 0 for no amount: switching them on or
@@ -321,7 +447,7 @@ public class WalkSwitch : MonoBehaviour
 
         foreach (var thing in switchableObjects)
         {
-            if (thing && thing.enabled)
+            if (thing && Usable(thing))
             {
                 thing.Signal(this, signalMode, true, AmountFor(true));
             }
@@ -344,7 +470,7 @@ public class WalkSwitch : MonoBehaviour
 
         foreach (var thing in switchableObjects)
         {
-            if (thing && thing.enabled)
+            if (thing && Usable(thing))
             {
                 thing.Signal(this, signalMode, false, AmountFor(false));
             }

@@ -210,19 +210,49 @@ public class ButtonSwitch : MonoBehaviour
                              "script now. Run Tools > Buttons > Upgrade Button Prefab, or remove the joint.", this);
         }
 
-        // Where the pad sits when nothing is on it, so it can come back to exactly there, and how far it can go down from there.
-        restLocal = transform.InverseTransformPoint(pad.transform.position);
-        fullTravel = FullTravel(pad);
-
         filter = new ContactFilter2D { useTriggers = false };
         pad.sleepMode = RigidbodySleepMode2D.NeverSleep;
         pad.interpolation = RigidbodyInterpolation2D.Interpolate;
+
+        MeasurePad();
+    }
+
+    private bool measured;
+
+    // Where the pad sits when nothing is on it, so it can come back to exactly there, and how far it can go down from there. This needs the pad to be
+    // switched on: a networked pad is switched off when the scene loads, and on when the game starts (Mirror does that), which can be after this
+    // starts, and the colliders of a pad that's off aren't there to measure (it would find nowhere to go down to, and never move). So if it isn't on yet,
+    // this waits for it.
+    private void MeasurePad()
+    {
+        if (measured || !pad || !pad.gameObject.activeInHierarchy)
+        {
+            return;
+        }
+
+        Physics2D.SyncTransforms();
+
+        restLocal = transform.InverseTransformPoint(pad.transform.position);
+        fullTravel = FullTravel(pad);
+        measured = true;
+
+        if (fullTravel <= 0.0001f)
+        {
+            Debug.LogWarning($"{name}: the pad has nowhere to go down to, so it won't move. It needs a solid part of the button under it (the base) that is lower than its top, and a collider of its own.", this);
+        }
     }
 
     void FixedUpdate()
     {
         // In someone else's game the host works out how far down the pad is. Where the pad is comes from the network.
         if (GameSession.IsClientOnly || !pad)
+        {
+            return;
+        }
+
+        MeasurePad();
+
+        if (!measured)
         {
             return;
         }

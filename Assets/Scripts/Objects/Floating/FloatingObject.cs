@@ -23,9 +23,8 @@ public class FloatingString
 //
 // Its Lift is how much mass it holds up, and it holds that up whatever it's tied to: a platform with a mass of 100 and four floats of Lift 25 tied to it stays
 // where it is. If one is taken away (switched off or destroyed) the lift is 75, and it starts to sink. With more lift than mass, it rises. The lift is a
-// force on the body, as far to the side of its middle as the string is tied (and at the height of its middle, so that it doesn't matter whether the strings are
-// tied above or below it: a push up from below the middle would turn it over), so a float at one end tips a platform if the others don't match it. It's also
-// turned back toward level, a little, by what's holding it. The float goes along with what it holds, a string's length above where it's tied. See Docs/Floating.md.
+// force on the body at the place the string is tied (but see HoldUp for strings tied below the middle of it), so a float at one end tips a platform if the others
+// don't match it, and one float at the end that holds all of it has it hang from that end. The float goes along with what it holds, a string's length above where it's tied. See Docs/Floating.md.
 public class FloatingObject : MonoBehaviour
 {
     [Min(0f)]
@@ -44,14 +43,15 @@ public class FloatingObject : MonoBehaviour
     public float dragRate = 2f;
 
     [Min(0f)]
-    [Tooltip("How strongly it turns what it holds back to level (to the way it was when the game started), in proportion to how much of its weight it's holding up: a body that " +
-             "is all held up is turned back at this strength, one that is half held up at half. It's a spring, and a body that is held unevenly (a float at one end missing) " +
-             "tips until the two balance. 0 leaves it to the lift alone, which has nothing to level it.")]
-    public float levelStrength = 20f;
+    [Tooltip("How strongly it turns what it holds back to level (to the way it was when the game started), as a spring, in proportion to how much of its weight it's " +
+             "holding up. 0, the default, leaves it to the lift alone, which is just how it would hang from the strings: held up all along, it stays level; held up at one " +
+             "end, it hangs from it. Anything above 0 keeps it from tipping as far (and from hanging from one end).")]
+    public float levelSpring = 0f;
 
     [Min(0f)]
-    [Tooltip("How quickly the swinging back and forth of that dies away. Lower swings more times before it's still.")]
-    public float levelDamping = 6f;
+    [Tooltip("How quickly its turning dies away while it's being held up, in proportion to how much of its weight is: a rocking platform steadies, instead of swinging for " +
+             "ever. Lower swings more times before it's still; 0 is none, and it turns as freely as its own Angular Damping allows.")]
+    public float turnDamping = 2f;
 
     [Header("Look")]
     [Min(0f)]
@@ -268,17 +268,22 @@ public class FloatingObject : MonoBehaviour
                 continue;
             }
 
-            // As far to the side of the middle of it as it's tied, but at the height of its middle. Pushing up from a place below the middle is a balance that can't
-            // be kept (the slightest tilt turns it further, until it's upside down and the places are above the middle), and a place above it hangs level by
-            // itself; with this, it makes no difference where the strings are tied up and down, and only how far across they are decides what tips it.
-            var point = new Vector2(anchor.WorldPoint.x, held.worldCenterOfMass.y);
+            // Where it pushes up from. A string tied above the middle of the body (in the body's own up, whichever way it's turned) pushes from where it's tied, which is
+            // how it would hang: a body held from above is steady, and one held from a single place hangs from it. A string tied below the middle would be a balance that
+            // can't be kept (the slightest tilt turns the body further, until it's upside down), so it pushes from the middle's height instead, off to the side by as far as
+            // it's tied: it makes no difference how far below it's tied, and the body still hangs from it, which is as it should be.
+            var middle = held.worldCenterOfMass;
+            var offset = anchor.WorldPoint - middle;
+            var bodyUp = (Vector2)held.transform.up;
+            var height = Vector2.Dot(offset, bodyUp);
+            var point = middle + (height >= 0f ? offset : offset - bodyUp * height);
 
             // Exactly what that much mass weighs, so that it cancels it, swung up and down by the bob.
             var up = share * gravity * held.gravityScale * BobPullNow();
 
             // Drag on how fast the body is going up or down as a whole, no more in a step than takes it to a stop. It's on the middle of it, and not at the
             // place the string is tied: drag at the places would also be a drag on its turning, which is stiff, and a body with little to resist turning (one with no
-            // collider has next to none) would be kicked back and forth harder with each step. Turning is looked after by the levelling.
+            // collider has next to none) would be kicked back and forth harder with each step. Turning is looked after by Turn Damping.
             var largest = held.mass * 0.5f / Mathf.Max(0.0001f, Time.fixedDeltaTime);
             var drag = Mathf.Clamp(-held.linearVelocity.y * share * dragRate, -largest, largest);
 
@@ -301,19 +306,19 @@ public class FloatingObject : MonoBehaviour
         return Mathf.Max(0f, 1f + Bob() * bobHeight * bobPull);
     }
 
-    // Turns the body back toward the way it was when the game started, as hard as this float's share of its weight: the shares of all that hold it up add
-    // to the fraction of its weight that's held, and it's levelled by that much. Worked out as a change of its turning speed and not a torque, so it's the
-    // same for any weight and size, and so that it's a spring and not a push.
+    // Slows the body's turning while it's held up, and, if Level Spring is set, turns it back toward the way it was when the game started, as hard as this float's
+    // share of its weight: the shares of all that hold it up add to the fraction of its weight that's held, and it's done by that much. Worked out as a change of
+    // its turning speed and not a torque, so it's the same for any weight and size.
     private void Level(Rigidbody2D held, FloatingAnchorPoint anchor, float share)
     {
-        if (levelStrength <= 0f || held.freezeRotation || (held.constraints & RigidbodyConstraints2D.FreezeRotation) != 0)
+        if ((levelSpring <= 0f && turnDamping <= 0f) || held.freezeRotation || (held.constraints & RigidbodyConstraints2D.FreezeRotation) != 0)
         {
             return;
         }
 
         var fraction = share / Mathf.Max(0.0001f, held.mass);
-        var away = Mathf.DeltaAngle(held.rotation, anchor.RestRotation);
-        var acceleration = fraction * (levelStrength * away - levelDamping * held.angularVelocity);
+        var away = levelSpring > 0f ? Mathf.DeltaAngle(held.rotation, anchor.RestRotation) : 0f;
+        var acceleration = fraction * (levelSpring * away - turnDamping * held.angularVelocity);
 
         held.angularVelocity += acceleration * Time.fixedDeltaTime;
     }

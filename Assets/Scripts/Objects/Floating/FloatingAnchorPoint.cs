@@ -19,6 +19,11 @@ public class FloatingAnchorPoint : MonoBehaviour
     [Tooltip("Hold the body for this many seconds more after the last float is in place, for them to settle. Only matters with Hold Until Attached.")]
     public float releaseDelay = 0.3f;
 
+    [Tooltip("A character standing on the body weighs what his mass says, so 30 more mass of lift holds up a character of mass 30. Characters are made to fall and jump well by " +
+             "gravity that's much heavier than the world's, and standing, that all presses down on what they're on (a character of 30 might press like 250). With this on, " +
+             "all of that but his mass is taken back off the body, as an upward force where he stands. Turn it off to have him as heavy as he is.")]
+    public bool characterWeighsMass = true;
+
     private readonly List<FloatingObject> floats = new List<FloatingObject>();
     private FloatingBody holder;
 

@@ -20,7 +20,8 @@ A platform with a mass of 100 and four floats of Lift 25 tied to it **stays exac
 | **Lift** | How much mass it holds up. With several strings it's shared between them. |
 | **Strings** | One or more. Each has an **Anchor** (the anchor point it's tied to; empty is a string that hangs loose and holds nothing), a **Length**, and a **Start Offset** (where on the float it starts). |
 | **Drag Rate** | How much it holds back the body going up or down, so that a body out of balance sinks or rises at a steady pace and doesn't speed up and up. More is slower and steadier. 0 is none. |
-| **Level Strength**, **Level Damping** | How hard what it holds is turned back to level (the way it was when the game started), in proportion to how much of its weight is held up, and how quickly the swinging dies away. 0 for no levelling. |
+| **Turn Damping** | How quickly the swinging of what it holds dies away, in proportion to how much of its weight is held up, so a rocking platform steadies. 0 is none. |
+| **Level Spring** | 0 by default. Above 0, it turns what it holds back to level (the way it was when the game started), in proportion to how much of its weight is held up. This stops it tipping as far, and from hanging from one end. |
 | **Bob Height**, **Bob Speed** | How far, and how fast, the float bobs. |
 | **Bob Pull** | How much the bobbing pulls on what it holds: the lift swings up and down with the bob, by this fraction per unit of Bob Height. A float that bobs more pulls harder and rocks the body, and floats that don't bob together make it less steady. The lift is the same on average, so the body doesn't sink or rise. 0 is a bob that's only for looks. |
 | **Follow Time** | How long the float takes to catch up with what it's tied to. A little lag makes it feel buoyant. |
@@ -39,20 +40,26 @@ Selected in the scene, an anchor point shows **Lift here | body mass**: what's h
 
 - **The lift is a force on the body**, equal to the weight of that much mass (`lift × gravity × the body's Gravity Scale`), so it cancels it exactly. So
   4 × 25 against a mass of 100 is exactly balanced, whatever gravity the body has. More lift than mass and it rises, less and it sinks.
-- **It acts as far to the side of the middle as the string is tied, at the height of the middle.** So floats spread evenly across a platform hold it level, and
-  take away just one and that side sinks and the platform tips, a little (see below). How far up or down the anchor points are doesn't matter: a push up from a place
-  *below* the middle of something is a balance that can't be kept (the slightest tilt turns it more, until it's upside down), and a place above it is
-  steady, so the lift doesn't use the height. Floats tied to the same place just add up.
+- **The lift pushes up at the place the string is tied**, so it holds the body the way strings would. Floats spread evenly across the top of a platform hold it
+  level (and a little steadier for being above its middle). Take away one end and that side sinks and the platform tips, until the lift's twisting and its
+  weight balance. And one float at the end that holds all of the weight, say a platform of 500 with one float of lift 500 at one end, **hangs from that end**: it
+  turns until its middle is straight below where it's tied (a quarter of a turn, 90 degrees, for a platform tied at the middle of its end), and swings there.
+- **A string tied below the middle of the body** (underneath a platform) can't be a push from there: it would be a balance that can't be kept, and the platform
+  would turn over. So it pushes up from the height of the middle of the body, off to the side by as far as it's tied. It makes no difference how far below it's tied,
+  and the body still hangs from a single one as it should. (Ties above the middle, on top, are as they'd hang.)
+- **Level Spring** isn't needed. It's there for a body that should stay nearly level however unevenly it's held, which also stops it hanging from one end.
+  Freeze Rotation Z on the body turns off everything that turns it.
 - **Bobbing pulls on what it holds.** The lift of each float swings with its bob (**Bob Pull** times **Bob Height** each way, 10% by default), around the same
   lift on average, so the body stays where it is but isn't perfectly still: it bobs and rocks a little, and more with floats that bob more or out of step.
-- **It's levelled.** What holds it is turned back toward the way it was when the game started, as hard as the fraction of its weight that's held up
-  (**Level Strength**, **Level Damping**). That also lets it settle after being knocked. A body held unevenly tips until the lift's twisting and the levelling balance.
-  Freeze Rotation Z on the body turns this off, as it does everything that turns it.
 - **Several strings on one float** share its lift equally between the anchors they're tied to.
 - **Drag** acts on how fast the body is moving up or down as a whole (on its middle, so it doesn't fight its turning), in proportion to what's holding it, so the platform settles to a steady speed: the lift that's
   missing over the lift that's left, times gravity, over **Drag Rate**. A platform of 100 missing one float of 25 (three of 25 left) settles at about 1.6 units
   a second with a Drag Rate of 2.
-- **Anything standing on it is more mass.** The Brick on a platform that was balanced sinks it, and a Pebble hardly does. That's just the weights.
+- **A character standing on it is exactly his mass.** Characters are given gravity much heavier than the world's (a multiple of it, and a harder pull again
+  falling) so that they fall and jump well, and standing, all of that presses down on what they're on: a character of mass 30 might press like 250. Left like that,
+  a platform that's balanced would need about eight times a character's mass in extra lift to hold him up. So the floating objects take back all of it but his mass,
+  as an upward force on the platform where he's standing (**Character Weighs Mass** on the anchor point, on by default; `Character.StandingWeightRatio` is what he
+  presses with). A landing is still a push, and still dips the platform. The Brick on a balanced platform of 500 needs 10,000 more lift, and a Pebble needs 5.
 - **The float goes along with what it holds**, a string's length above where it's tied (in the middle of them, with several), with a little lag and bob.
   It's moved by this script, so give it no physics of its own. (A Rigidbody2D on it is made Kinematic, and it can be solid and in the way.)
 - **Starting up.** The floats come on a few at a time as the scene starts, and a body that's let fall under the first of them is already off level by the time the

@@ -2061,6 +2061,27 @@ namespace Characters
             get { return Mathf.Min(distFromGround, 100f); }
         }
 
+        // How many times his own weight (his mass times gravity) he presses on what he's standing on. A character's gravity is made heavier than the world's so that
+        // he falls and jumps well: his gravity is a multiple of it, and a fall is a harder pull again. Standing, that all comes down on what he's on, so a platform
+        // he stands on feels many times his mass. Floating objects use it to take back all but his mass.
+        public float StandingWeightRatio
+        {
+            get
+            {
+                var settings = currentMovementSettings;
+
+                if (settings == null || !rigidBody2D)
+                {
+                    return 1f;
+                }
+
+                // The extra pull of a fall, in multiples of gravity, as it's worked out each step (and none of it while in a liquid or being kicked up out of one).
+                var extra = submerged > 0f || Kicking ? 0f : settings.gravity * Mathf.Clamp01(bodyWeight) * Mathf.Max(0f, settings.fallAcceleration - 1f);
+
+                return Mathf.Max(0f, rigidBody2D.gravityScale + extra);
+            }
+        }
+
         // How fast he's walking, in units a second, and which way: positive is right. What he's trying to do, not how fast he's actually going, which a
         // wall or a rope can hold back. The Balloon's string goes by it to be pulled along.
         public float WalkSpeedNow

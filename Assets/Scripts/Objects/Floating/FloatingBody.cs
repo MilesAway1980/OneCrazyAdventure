@@ -101,10 +101,22 @@ public class FloatingBody : MonoBehaviour
         }
     }
 
+    private const int MaxContacts = 32;
+    private readonly ContactPoint2D[] contacts = new ContactPoint2D[MaxContacts];
+    private ContactFilter2D contactFilter = new ContactFilter2D { useTriggers = false };
+    private readonly Dictionary<Rigidbody2D, Vector2> loads = new Dictionary<Rigidbody2D, Vector2>();
+    private readonly Dictionary<Rigidbody2D, Vector2> points = new Dictionary<Rigidbody2D, Vector2>();
+    private readonly Dictionary<Rigidbody2D, int> pointCounts = new Dictionary<Rigidbody2D, int>();
+
     void FixedUpdate()
     {
         if (!held)
         {
+            if (body && body.bodyType == RigidbodyType2D.Dynamic && !GameSession.IsClientOnly)
+            {
+                TakeBackCharacterWeight();
+            }
+
             return;
         }
 
@@ -158,6 +170,90 @@ public class FloatingBody : MonoBehaviour
         if (Time.time >= readyAt)
         {
             Release();
+        }
+    }
+
+    // A character presses on what he stands on many times his weight (see Character.StandingWeightRatio), and the lift is worked out in mass. So that a character
+    // of mass 30 is 30 more mass to hold up, the most of it that is more than his mass is taken back off the body, as an upward force where he's standing: what's
+    // pressing, measured from the contact, up to what he's worked out to press with, less his mass times gravity.
+    private void TakeBackCharacterWeight()
+    {
+        var wanted = false;
+
+        foreach (var anchor in anchors)
+        {
+            if (anchor && anchor.characterWeighsMass && anchor.Lift > 0f)
+            {
+                wanted = true;
+            }
+        }
+
+        if (!wanted)
+        {
+            return;
+        }
+
+        var count = body.GetContacts(contactFilter, contacts);
+
+        if (count == 0)
+        {
+            return;
+        }
+
+        loads.Clear();
+        points.Clear();
+        pointCounts.Clear();
+
+        var step = Mathf.Max(0.0001f, Time.fixedDeltaTime);
+
+        for (var i = 0; i < count; i++)
+        {
+            var contact = contacts[i];
+            var ours = contact.rigidbody == body;
+            var other = ours ? contact.otherRigidbody : contact.rigidbody;
+
+            if (!other || other == body)
+            {
+                continue;
+            }
+
+            // Standing on it: a flat enough surface, and he's above it.
+            if (Mathf.Abs(contact.normal.y) < 0.7f || contact.point.y >= other.worldCenterOfMass.y)
+            {
+                continue;
+            }
+
+            loads.TryGetValue(other, out var load);
+            points.TryGetValue(other, out var where);
+            pointCounts.TryGetValue(other, out var number);
+
+            loads[other] = new Vector2(load.x + contact.normalImpulse / step, 0f);
+            points[other] = where + contact.point;
+            pointCounts[other] = number + 1;
+        }
+
+        var gravity = -Physics2D.gravity.y;
+
+        foreach (var pair in loads)
+        {
+            var standing = pair.Key;
+            var character = standing.GetComponent<Characters.Character>();
+
+            if (!character)
+            {
+                continue;
+            }
+
+            var weight = standing.mass * gravity;
+            var expected = weight * character.StandingWeightRatio;
+
+            // What's pressing, but not more than what he's worked out to press with (a landing is a push, and is left as one), less what he weighs.
+            var excess = Mathf.Min(pair.Value.x, expected) - weight;
+
+            if (excess > 0f)
+            {
+                body.AddForceAtPosition(new Vector2(0f, excess), points[standing] / pointCounts[standing]);
+            }
         }
     }
 
